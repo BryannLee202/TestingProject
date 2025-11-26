@@ -1,0 +1,24 @@
+name: Deploy FE to GitHub Pages
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+
+      - name: Upload FE folder
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: ./fe
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v2
