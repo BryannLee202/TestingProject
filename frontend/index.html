@@ -175,29 +175,99 @@
 
 </div>
 </section>
-
 <section id="utility-icons-section" class="container" style="margin-top: 30px; margin-bottom: 30px;">
     <div class="icon-wrapper">
-        <a href="#" class="utility-icon">
-            <i class="fas fa-bolt"></i>
+        
+        <a href="javascript:void(0)" class="utility-icon" onclick="scrollToFlashSale()">
+            <div class="icon-box">
+                <i class="fas fa-bolt"></i>
+            </div>
             <span>Flash Sale</span>
         </a>
-        <a href="#" class="utility-icon">
-            <i class="fas fa-gift"></i>
+
+        <a href="javascript:void(0)" class="utility-icon" onclick="showGiftCardInfo()">
+            <div class="icon-box">
+                <i class="fas fa-gift"></i>
+            </div>
             <span>Gift Card</span>
         </a>
-        <a href="#" class="utility-icon">
-            <i class="fas fa-tags"></i>
+
+        <a href="javascript:void(0)" class="utility-icon" onclick="toggleVoucherPopup()">
+            <div class="icon-box">
+                <i class="fas fa-tags"></i>
+            </div>
             <span>Mã Giảm Giá</span>
         </a>
-        <a href="#" class="utility-icon">
-            <i class="fas fa-book-open"></i>
+
+        <a href="javascript:void(0)" class="utility-icon" onclick="filterNewBooks()">
+            <div class="icon-box">
+                <i class="fas fa-book-open"></i>
+            </div>
             <span>Sách Mới</span>
         </a>
-        </div>
+
+    </div>
 </section>
 
+    <div id="voucher-modal" class="custom-modal-overlay" onclick="toggleVoucherPopup()">
+    <div class="custom-modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h3>🎟️ Kho Mã Giảm Giá</h3>
+            <span class="close-btn" onclick="toggleVoucherPopup()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="voucher-ticket">
+                <div class="voucher-left">
+                    <span class="voucher-code">BS50K</span>
+                    <small>Giảm 50K đơn 200K</small>
+                </div>
+                <button onclick="copyCode('FHS50K')">Lưu</button>
+            </div>
+            <div class="voucher-ticket">
+                <div class="voucher-left">
+                    <span class="voucher-code">FREESHIP</span>
+                    <small>Miễn phí vận chuyển</small>
+                </div>
+                <button onclick="copyCode('FREESHIP')">Lưu</button>
+            </div>
+        </div>
+    </div>
+</div>
 
+<section id="flash-sale-area" class="container" style="margin-top: 30px;">
+   <div class="fs-title">
+        <i class="fas fa-bolt"></i> FLASH SALE
+    </div>
+    <div class="fs-timer">
+        </div>
+    
+    <a href="pages/flash-sale.html" class="view-all-link">
+        Xem tất cả <i class="fas fa-chevron-right"></i>
+    </a>
+    </div>
+    <div class="flash-sale-list">
+        <div class="product-card">
+            <div class="badge-hot">-50%</div>
+            <img src="https://via.placeholder.com/150" alt="Flash Sale">
+            <div class="price">50.000 ₫</div>
+        </div>
+        <div class="product-card">
+            <div class="badge-hot">-40%</div>
+            <img src="https://via.placeholder.com/150" alt="Flash Sale">
+            <div class="price">99.000 ₫</div>
+        </div>
+        <div class="product-card">
+            <div class="badge-hot">-30%</div>
+            <img src="https://via.placeholder.com/150" alt="Flash Sale">
+            <div class="price">120.000 ₫</div>
+        </div>
+        <div class="product-card">
+            <div class="badge-hot">-60%</div>
+            <img src="https://via.placeholder.com/150" alt="Flash Sale">
+            <div class="price">25.000 ₫</div>
+        </div>
+    </div>
+</section>
 
 
 <hr style="margin: 40px 0;">
@@ -222,10 +292,10 @@
           <div class="filter-item">
             <h4>Thể loại</h4>
             <ul class="category-list">
-              <li><a href="#" onclick="filterCat(1)">Văn học</a></li>
-              <li><a href="#" onclick="filterCat(2)">Kinh tế</a></li>
-              <li><a href="#" onclick="filterCat(3)">Thiếu nhi</a></li>
-              <li><a href="#" onclick="filterCat(4)">Công nghệ</a></li>
+              <li><a href="javascript:void(0)" onclick="filterCat(1)">Văn học</a></li>
+              <li><a href="javascript:void(0)" onclick="filterCat(2)">Kinh tế</a></li>
+              <li><a href="javascript:void(0)" onclick="filterCat(3)">Thiếu nhi</a></li>
+              <li><a href="javascript:void(0)" onclick="filterCat(4)">Công nghệ</a></li>
             </ul>
           </div>
 
@@ -282,5 +352,6 @@
 
     <script src="./js/api.js"></script>
     <script src="./js/index.js"></script>
+    <script src="js/utility.js"></script>
   </body>
 </html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flash Sale - Fahasa</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
+
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/flash-sale.css" />
+  </head>
+  <body>
+    <div class="fs-header-nav container">
+      <a href="../index.html"
+        ><i class="fas fa-chevron-left"></i> Quay lại trang chủ</a
+      >
+    </div>
+
+    <main class="container">
+      <section class="fs-top-section">
+        <div class="fs-banner-info">
+          <div class="fs-logo-text">FLASH <i class="fas fa-bolt"></i> SALE</div>
+          <div class="fs-sub-text">Giá Sốc Mỗi Ngày</div>
+          <div class="fs-discount-tag">Giảm đến 50%</div>
+        </div>
+
+        <div class="fs-calendar-tabs" id="calendar-tabs"></div>
+      </section>
+
+      <section class="fs-timeline-container">
+        <div class="fs-countdown-box">
+          <span>Kết thúc trong</span>
+          <div class="timer-digits">
+            <b id="h">02</b> : <b id="m">15</b> : <b id="s">40</b>
+          </div>
+        </div>
+
+        <div class="fs-timeline-slots" id="timeline-slots"></div>
+      </section>
+
+      <section class="fs-category-filter" id="cate-filter">
+        <button class="cat-btn active" onclick="filterByCate('all', this)">
+          <i class="fas fa-th-large"></i> Tất cả
+        </button>
+        <button class="cat-btn" onclick="filterByCate('van-hoc', this)">
+          <i class="fas fa-book"></i> Văn học
+        </button>
+        <button class="cat-btn" onclick="filterByCate('kinh-te', this)">
+          <i class="fas fa-chart-line"></i> Kinh tế
+        </button>
+        <button class="cat-btn" onclick="filterByCate('thieu-nhi', this)">
+          <i class="fas fa-child"></i> Thiếu nhi
+        </button>
+      </section>
+
+      <div id="flash-sale-grid">
+        <div class="loading-spinner">
+          <i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...
+        </div>
+      </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="../js/flash-sale.js"></script>
+  </body>
+</html>

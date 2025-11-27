@@ -1,0 +1,330 @@
+body {
+  background-color: #f0f0f0;
+  font-family: sans-serif;
+}
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Header Nav */
+.fs-header-nav {
+  padding: 15px 0;
+  font-weight: bold;
+}
+.fs-header-nav a {
+  text-decoration: none;
+  color: #333;
+  transition: 0.3s;
+}
+.fs-header-nav a:hover {
+  color: #c92127;
+}
+
+/* 1. TOP SECTION (Banner Cam) */
+.fs-top-section {
+  background: linear-gradient(135deg, #f7941e 0%, #ffc27a 100%);
+  padding: 20px;
+  border-radius: 10px 10px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fs-banner-info {
+  color: #fff;
+  width: 30%;
+}
+.fs-logo-text {
+  font-size: 32px;
+  font-weight: 900;
+  font-style: italic;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
+}
+.fs-sub-text {
+  font-size: 20px;
+  font-weight: bold;
+}
+.fs-discount-tag {
+  background: #e30019;
+  display: inline-block;
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-weight: bold;
+  margin-top: 10px;
+  border: 2px solid #fff;
+}
+
+/* Calendar Tabs */
+.fs-calendar-tabs {
+  display: flex;
+  gap: 8px;
+  width: 68%;
+  overflow-x: auto;
+}
+.cal-tab {
+  background: #fff;
+  border-radius: 8px;
+  min-width: 85px;
+  text-align: center;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.2s;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.cal-tab:hover {
+  transform: translateY(-3px);
+}
+.cal-tab.active {
+  border: 2px solid #fff;
+  transform: scale(1.05);
+}
+.cal-header {
+  background: #eee;
+  padding: 5px 0;
+  font-size: 13px;
+  font-weight: bold;
+  color: #666;
+}
+.cal-tab.active .cal-header {
+  background: #e30019;
+  color: #fff;
+}
+.cal-body {
+  padding: 8px 2px;
+  font-size: 11px;
+  font-weight: bold;
+  color: #0056b3;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 2. TIMELINE (Thanh Đỏ) */
+.fs-timeline-container {
+  background: #fff;
+  display: flex;
+  align-items: stretch;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  border-radius: 0 0 10px 10px;
+  overflow: hidden;
+}
+
+.fs-countdown-box {
+  background: #e30019;
+  color: #fff;
+  padding: 15px 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 220px;
+  clip-path: polygon(0 0, 100% 0, 92% 100%, 0% 100%);
+}
+.timer-digits b {
+  background: #333;
+  color: #fff;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 18px;
+}
+
+.fs-timeline-slots {
+  display: flex;
+  flex-grow: 1;
+  justify-content: space-around;
+  align-items: center;
+  background: #555;
+}
+.time-slot {
+  text-align: center;
+  color: #ccc;
+  cursor: pointer;
+  padding: 10px 0;
+  width: 100%;
+  position: relative;
+}
+.time-slot.active {
+  color: #fff;
+  font-weight: bold;
+  background: #444;
+}
+.time-slot.active::after {
+  content: "";
+  display: block;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid #fff;
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.slot-time {
+  font-size: 18px;
+}
+.slot-status {
+  font-size: 12px;
+}
+
+/* 3. CATEGORY FILTER */
+.fs-category-filter {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin: 25px 0;
+}
+.cat-btn {
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 10px 25px;
+  border-radius: 30px;
+  cursor: pointer;
+  font-weight: bold;
+  color: #555;
+  transition: 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cat-btn:hover,
+.cat-btn.active {
+  background: #e30019;
+  color: #fff;
+  border-color: #e30019;
+  box-shadow: 0 4px 10px rgba(227, 0, 25, 0.3);
+}
+
+/* 4. PRODUCT GRID */
+#flash-sale-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 15px;
+  padding-bottom: 50px;
+}
+.fs-product-card {
+  background: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  position: relative;
+  border: 1px solid #eee;
+  transition: 0.3s;
+}
+.fs-product-card:hover {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.badge-percent {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #e30019;
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: 0 8px 0 8px;
+  font-weight: bold;
+  font-size: 12px;
+  z-index: 2;
+}
+.fs-img-wrap {
+  width: 100%;
+  height: 180px;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.fs-img-wrap img {
+  height: 100%;
+  object-fit: contain;
+}
+
+.fs-title {
+  font-size: 13px;
+  height: 36px;
+  overflow: hidden;
+  margin-bottom: 5px;
+  line-height: 1.4;
+  color: #333;
+}
+.fs-price-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.fs-price {
+  color: #c92127;
+  font-size: 18px;
+  font-weight: bold;
+}
+.fs-old-price {
+  text-decoration: line-through;
+  color: #999;
+  font-size: 12px;
+}
+
+.fs-progress {
+  background: #fddccb;
+  height: 16px;
+  border-radius: 10px;
+  margin-top: 10px;
+  position: relative;
+  overflow: hidden;
+}
+.fs-progress-bar {
+  background: #e30019;
+  height: 100%;
+  width: 0%;
+  border-radius: 10px;
+}
+.fs-progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10px;
+  color: #fff;
+  font-weight: bold;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Nút thêm giỏ hàng */
+.btn-fs-buy {
+  width: 100%;
+  margin-top: 10px;
+  border: 1px solid #c92127;
+  background: #fff;
+  color: #c92127;
+  padding: 6px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.btn-fs-buy:hover {
+  background: #c92127;
+  color: #fff;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  #flash-sale-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .fs-top-section {
+    flex-direction: column;
+    gap: 15px;
+  }
+  .fs-calendar-tabs {
+    width: 100%;
+  }
+  .fs-category-filter {
+    flex-wrap: wrap;
+  }
+}

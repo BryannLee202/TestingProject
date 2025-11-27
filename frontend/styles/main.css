@@ -838,71 +838,69 @@ ul {
 /* --- 1. ĐẢM BẢO TẤT CẢ CÁC KHỐI ĐỀU NHAU --- */
 
 .promo-grid {
-    display: grid;
-    /* Dùng 4 cột có kích thước bằng nhau (1fr) */
-    grid-template-columns: repeat(4, 1fr); 
-    gap: 15px; /* Khoảng cách giữa các banner */
-    margin: 20px 0;
+  display: grid;
+  /* Dùng 4 cột có kích thước bằng nhau (1fr) */
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px; /* Khoảng cách giữa các banner */
+  margin: 20px 0;
 }
 
 .promo-item {
-    /* Quan trọng: Chiều cao cố định để các khối đều nhau */
-    height: 200px; 
-    overflow: hidden;
-    position: relative;
-    border-radius: 8px;
-    /* Lớp viền ngoài (màu đỏ đậm) */
-    background-color: #a00000; 
-    padding: 3px; 
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  /* Quan trọng: Chiều cao cố định để các khối đều nhau */
+  height: 200px;
+  overflow: hidden;
+  position: relative;
+  border-radius: 8px;
+  /* Lớp viền ngoài (màu đỏ đậm) */
+  background-color: #a00000;
+  padding: 3px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* --- 2. HIỆU ỨNG VIỀN BÊN TRONG (INNER BORDER) --- */
 
-
 .inner-border-wrapper {
-    display: block;
-    width: 100%;
-    height: 100%;
-    border-radius: 5px;
-    overflow: hidden;
-    position: relative;
-    transition: transform 0.3s ease;
-    /* Lớp viền trong (màu sáng) */
-    border: 1px solid rgba(255, 255, 255, 0.4); 
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 5px;
+  overflow: hidden;
+  position: relative;
+  transition: transform 0.3s ease;
+  /* Lớp viền trong (màu sáng) */
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 .promo-item:hover .inner-border-wrapper {
-    transform: translateY(-2px); /* Hiệu ứng nhấc nhẹ khi hover */
+  transform: translateY(-2px); /* Hiệu ứng nhấc nhẹ khi hover */
 }
 
 .inner-border-wrapper img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Lấp đầy khung mà không bị méo */
-    display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Lấp đầy khung mà không bị méo */
+  display: block;
 }
-
 
 /* --- 3. NÚT MUA NGAY --- */
 .mua-ngay-btn {
-    position: absolute;
-    bottom: 5px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #e30019; /* Màu nền đỏ */
-    color: white;
-    border: 2px solid white;
-    padding: 5px 15px;
-    border-radius: 20px;
-    font-weight: bold;
-    cursor: pointer;
-    z-index: 5;
-    transition: background-color 0.3s;
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #e30019; /* Màu nền đỏ */
+  color: white;
+  border: 2px solid white;
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 5;
+  transition: background-color 0.3s;
 }
 
 .mua-ngay-btn:hover {
-    background-color: #c90016;
+  background-color: #c90016;
 }
 /* ================================== */
 /* 2. HÀNG ICONS CHỨC NĂNG (UTILITY ICONS) */
@@ -913,89 +911,89 @@ ul {
 /* ================================== */
 
 #utility-icons-section {
-    /* Loại bỏ padding và margin không cần thiết nếu container đã có */
-    padding: 0;
-    margin: 30px auto; /* Căn giữa */
+  /* Loại bỏ padding và margin không cần thiết nếu container đã có */
+  padding: 0;
+  margin: 30px auto; /* Căn giữa */
 }
 
 .icon-wrapper {
-    display: flex;
-    /* Căn đều các khoảng trống giữa các icon */
-    justify-content: space-around; 
-    align-items: flex-start; /* Icons căn trên */
-    padding: 15px 0;
-    background-color: #fff;
-    border-radius: 8px;
-    
-    /* Thiết kế phẳng hơn, loại bỏ box-shadow đậm */
-    /* Nếu muốn có viền dưới màu đỏ, dùng border-bottom */
-    /* border-bottom: 2px solid #e30019; */ 
+  display: flex;
+  /* Căn đều các khoảng trống giữa các icon */
+  justify-content: space-around;
+  align-items: flex-start; /* Icons căn trên */
+  padding: 15px 0;
+  background-color: #fff;
+  border-radius: 8px;
+
+  /* Thiết kế phẳng hơn, loại bỏ box-shadow đậm */
+  /* Nếu muốn có viền dưới màu đỏ, dùng border-bottom */
+  /* border-bottom: 2px solid #e30019; */
 }
 
 .utility-icon {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    color: #333;
-    text-decoration: none;
-    font-size: 13px; /* Kích thước chữ nhỏ hơn */
-    width: 10%; /* Giúp chúng được phân bổ đều và cố định */
-    padding: 10px 0;
-    transition: color 0.3s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  color: #333;
+  text-decoration: none;
+  font-size: 13px; /* Kích thước chữ nhỏ hơn */
+  width: 10%; /* Giúp chúng được phân bổ đều và cố định */
+  padding: 10px 0;
+  transition: color 0.3s;
 }
 
 .utility-icon:hover {
-    color: #e30019; /* Đổi màu chữ khi hover */
+  color: #e30019; /* Đổi màu chữ khi hover */
 }
 
 .utility-icon i {
-    font-size: 26px; /* Kích thước icon */
-    color: #e30019; /* Màu icon đỏ */
-    margin-bottom: 5px;
+  font-size: 26px; /* Kích thước icon */
+  color: #e30019; /* Màu icon đỏ */
+  margin-bottom: 5px;
 }
 
 .utility-icon span {
-    display: block;
-    margin-top: 5px;
-    line-height: 1.2;
+  display: block;
+  margin-top: 5px;
+  line-height: 1.2;
 }
 /* ================================== */
 /* 3. KHU VỰC FLASH SALE */
 /* ================================== */
 .section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 15px;
-    padding: 10px 0;
-    border-bottom: 2px solid #e30019;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  padding: 10px 0;
+  border-bottom: 2px solid #e30019;
 }
 
 .sale-timer {
-    font-weight: bold;
-    color: #666;
-    background-color: #fcebeb;
-    padding: 5px 10px;
-    border-radius: 4px;
+  font-weight: bold;
+  color: #666;
+  background-color: #fcebeb;
+  padding: 5px 10px;
+  border-radius: 4px;
 }
 
 .sale-timer span {
-    color: #e30019;
-    font-size: 1.1em;
+  color: #e30019;
+  font-size: 1.1em;
 }
 
 .view-all {
-    color: #e30019;
-    text-decoration: none;
-    font-weight: bold;
+  color: #e30019;
+  text-decoration: none;
+  font-weight: bold;
 }
 
 /* Kiểu thẻ sản phẩm nhỏ trong Flash Sale (cần chỉnh lại nếu khác product-card) */
 .flashSaleSwiper .product-card-sm {
-    /* Đảm bảo thẻ sản phẩm hiển thị gọn trong slide */
-    width: 100%;
-    /* ... CSS cho thẻ sản phẩm Flash Sale ... */
+  /* Đảm bảo thẻ sản phẩm hiển thị gọn trong slide */
+  width: 100%;
+  /* ... CSS cho thẻ sản phẩm Flash Sale ... */
 }
 /* Trong fe/css/style.css */
 
@@ -1005,51 +1003,240 @@ ul {
 
 .swiper-button-next,
 .swiper-button-prev {
-    /* Tạo hình dạng tròn và kích thước lớn hơn */
-    width: 50px !important; /* Chiều rộng */
-    height: 50px !important; /* Chiều cao */
-    border-radius: 50% !important; /* Hình tròn */
-    
-    /* Màu sắc và nền */
-    background-color: #fff !important; /* Nền trắng (như Fahasa) */
-    color: #333 !important; /* Màu mũi tên xám/đen */
-    
-    /* Bóng đổ (Box Shadow) để tạo hiệu ứng nổi bật */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); 
-    
-    /* Đảm bảo chúng luôn nằm trên banner và lớp overlay */
-    z-index: 100; 
-    
-    /* Căn giữa dọc */
-    top: 50%;
-    transform: translateY(-50%);
-    
-    /* Thêm hiệu ứng chuyển đổi mượt mà */
-    transition: all 0.3s ease;
+  /* Tạo hình dạng tròn và kích thước lớn hơn */
+  width: 50px !important; /* Chiều rộng */
+  height: 50px !important; /* Chiều cao */
+  border-radius: 50% !important; /* Hình tròn */
+
+  /* Màu sắc và nền */
+  background-color: #fff !important; /* Nền trắng (như Fahasa) */
+  color: #333 !important; /* Màu mũi tên xám/đen */
+
+  /* Bóng đổ (Box Shadow) để tạo hiệu ứng nổi bật */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+  /* Đảm bảo chúng luôn nằm trên banner và lớp overlay */
+  z-index: 100;
+
+  /* Căn giữa dọc */
+  top: 50%;
+  transform: translateY(-50%);
+
+  /* Thêm hiệu ứng chuyển đổi mượt mà */
+  transition: all 0.3s ease;
 }
 
 /* Kích thước Icon mũi tên */
 .swiper-button-next::after,
 .swiper-button-prev::after {
-    font-size: 24px !important; /* Kích thước icon */
-    font-weight: bold;
+  font-size: 24px !important; /* Kích thước icon */
+  font-weight: bold;
 }
 
 /* Hiệu ứng khi di chuột (Hover) */
 .swiper-button-next:hover,
 .swiper-button-prev:hover {
-    /* Đổi màu icon khi hover */
-    color: #e30019 !important; /* Chuyển sang màu đỏ */
-    /* Có thể làm bóng đổ đậm hơn khi hover */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  /* Đổi màu icon khi hover */
+  color: #e30019 !important; /* Chuyển sang màu đỏ */
+  /* Có thể làm bóng đổ đậm hơn khi hover */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
 }
 
 /* Tùy chọn: Ẩn mũi tên khi không di chuột vào khối Swiper */
 /* Nếu bạn muốn mũi tên chỉ hiện khi hover (giống Fahasa) */
 .swiper.mySwiper:not(:hover) .swiper-button-next,
 .swiper.mySwiper:not(:hover) .swiper-button-prev {
+  opacity: 0;
+  /* Di chuyển ra ngoài màn hình một chút khi ẩn */
+  transform: translate(5px, -50%);
+  pointer-events: none;
+}
+/* --- CSS CHO POPUP MÃ GIẢM GIÁ --- */
+.custom-modal-overlay {
+  display: none; /* Mặc định ẩn */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+}
+
+.custom-modal-content {
+  background: #fff;
+  width: 400px;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  animation: slideDown 0.3s ease;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+}
+
+.close-btn {
+  font-size: 24px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.voucher-ticket {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff0f0;
+  border: 1px dashed #c92127;
+  padding: 10px 15px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+}
+
+.voucher-code {
+  font-weight: bold;
+  color: #c92127;
+  font-size: 16px;
+  display: block;
+}
+
+.voucher-ticket button {
+  background: #c92127;
+  color: #fff;
+  border: none;
+  padding: 5px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-50px);
     opacity: 0;
-    /* Di chuyển ra ngoài màn hình một chút khi ẩn */
-    transform: translate(5px, -50%); 
-    pointer-events: none;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* --- CSS CHO FLASH SALE AREA --- */
+.flash-sale-header {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  padding: 15px;
+  border-bottom: 2px solid #c92127;
+}
+
+.fs-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #c92127; /* Đỏ Fahasa */
+  margin-right: 20px;
+}
+
+.fs-title i {
+  margin-right: 5px;
+}
+
+.fs-timer span {
+  background: #333;
+  color: #fff;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-weight: bold;
+  margin: 0 2px;
+}
+
+.flash-sale-list {
+  display: flex;
+  gap: 15px;
+  background: #fff;
+  padding: 20px;
+  overflow-x: auto; /* Cho phép cuộn ngang nếu nhiều sách */
+}
+/* --- CSS CHO THANH TIỆN ÍCH (Dựa trên class của bạn) --- */
+
+#utility-icons-section {
+  padding: 0;
+}
+
+.icon-wrapper {
+  display: flex;
+  justify-content: space-around; /* Chia đều khoảng cách */
+  align-items: center;
+  background: #fff; /* Nền trắng */
+  padding: 20px 0;
+  border-radius: 8px; /* Bo góc */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); /* Bóng đổ nhẹ sang trọng */
+}
+
+.utility-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  text-decoration: none !important; /* Bỏ gạch chân */
+  width: 25%; /* Mỗi ô chiếm 1/4 */
+  border-right: 1px solid #f0f0f0; /* Đường kẻ ngăn cách mờ */
+  transition: all 0.3s ease;
+  color: #333;
+}
+
+.utility-icon:last-child {
+  border-right: none; /* Bỏ đường kẻ ở ô cuối */
+}
+
+/* Hiệu ứng khi di chuột vào */
+.utility-icon:hover {
+  transform: translateY(-3px); /* Nhấc nhẹ lên */
+  color: #c92127; /* Đổi màu chữ sang đỏ Fahasa */
+}
+
+.utility-icon .icon-box {
+  margin-bottom: 8px;
+}
+
+.utility-icon i {
+  font-size: 28px;
+  color: #c92127; /* Icon luôn màu đỏ */
+  transition: transform 0.3s;
+}
+
+/* Khi hover thì icon phóng to xíu */
+.utility-icon:hover i {
+  transform: scale(1.1);
+}
+
+.utility-icon span {
+  font-weight: 600; /* Chữ đậm */
+  font-size: 14px;
+}
+/* Trong fe/css/style.css */
+
+.flash-sale-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Đẩy nội dung ra 2 bên */
+  /* ... các thuộc tính cũ ... */
+  position: relative;
+}
+
+.view-all-link {
+  text-decoration: none;
+  color: #007bff; /* Màu xanh hoặc xám tùy bạn */
+  font-size: 14px;
+  font-weight: 600;
+}
+.view-all-link:hover {
+  text-decoration: underline;
+  color: #0056b3;
 }
