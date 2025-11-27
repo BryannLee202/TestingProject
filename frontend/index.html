@@ -29,7 +29,17 @@
         <a href="index.html" class="logo">
           <i class="fas fa-book-open"></i> BOOKSTORE
         </a>
+<div class="category-dropdown-wrapper">
+    <div class="category-btn">
+        <span class="icon-grid"><i class="fas fa-th-large"></i></span>
+        <span class="text"></span>
+        <span class="icon-arrow"><i class="fas fa-chevron-down"></i></span>
+    </div>
 
+    <div class="category-menu" id="header-category-list">
+        <div style="padding:10px; color:#999;">Đang cập nhật...</div>
+    </div>
+</div>
         <div class="search-box">
           <input
             type="text"
@@ -268,7 +278,41 @@
         </div>
     </div>
 </section>
+<section class="container daily-home-section">
+    <div class="daily-home-header">
+        <div class="daily-title">
+            <i class="fas fa-stars" style="color: #F7941E;"></i> GỢI Ý HÔM NAY
+        </div>
+        
+        <div class="daily-tabs-wrapper">
+            <button class="d-tab active" onclick="switchHomeTab('all', this)">
+                <i class="fas fa-hand-holding-heart"></i> Dành cho bạn
+            </button>
+            <button class="d-tab" onclick="switchHomeTab('hot', this)">
+                <img src="https://cdn0.fahasa.com/skin/frontend/ma_vanese/fahasa/images/ico_deal_hot.png" width="20"> 
+                Sách Hot - Giảm Sốc
+            </button>
+            <button class="d-tab" onclick="switchHomeTab('manga', this)">
+                <i class="fas fa-journal-whills"></i> Manga - Comic
+            </button>
+            <button class="d-tab" onclick="switchHomeTab('vanhoc', this)">
+                <i class="fas fa-pen-nib"></i> Văn Học
+            </button>
+        </div>
+    </div>
 
+    <div id="home-daily-grid" class="daily-grid-container">
+        <div style="text-align:center; padding: 20px; width: 100%;">
+            <i class="fas fa-spinner fa-spin"></i> Đang tải...
+        </div>
+    </div>
+
+    <div class="daily-load-more">
+    <a href="pages/daily-suggestions.html" class="btn-home-view-all">
+        Xem tất cả <i class="fas fa-chevron-right"></i>
+    </a>
+</div>
+</section>
 
 <hr style="margin: 40px 0;">
 

@@ -1240,3 +1240,247 @@ ul {
   text-decoration: underline;
   color: #0056b3;
 }
+/* --- CSS CHO MENU DANH MỤC (Cạnh thanh tìm kiếm) --- */
+
+.category-dropdown-wrapper {
+  position: relative; /* Để căn menu con theo nút này */
+  margin-right: 15px; /* Cách thanh tìm kiếm ra một chút */
+  z-index: 1001; /* Luôn nổi lên trên */
+}
+
+/* 1. Nút Danh Mục */
+.category-btn {
+  display: flex;
+  align-items: center;
+  background-color: #fff; /* Hoặc #f0f0f0 tùy nền header của bạn */
+  padding: 0 15px; /* Giảm chiều cao cho gọn */
+  height: 40px; /* Bằng chiều cao thanh tìm kiếm */
+  border-radius: 5px; /* Bo góc nhẹ */
+  cursor: pointer;
+  border: 1px solid #e0e0e0; /* Viền mờ */
+  transition: all 0.3s;
+  color: #333;
+}
+
+.category-btn:hover {
+  border-color: #c92127; /* Viền đỏ khi hover */
+  color: #c92127;
+}
+
+.category-btn .icon-grid {
+  font-size: 20px;
+  margin-right: 10px;
+  color: #999;
+}
+.category-btn:hover .icon-grid {
+  color: #c92127;
+}
+
+.category-btn .text {
+  font-weight: 600;
+  font-size: 14px;
+  margin-right: 20px;
+  white-space: nowrap; /* Không xuống dòng */
+}
+
+.category-btn .icon-arrow {
+  font-size: 12px;
+  color: #999;
+  margin-left: auto;
+}
+
+/* 2. Menu Xổ Xuống (Dropdown) */
+.category-menu {
+  display: none; /* Mặc định ẩn */
+  position: absolute;
+  top: 100%; /* Nằm ngay dưới nút */
+  left: 0;
+  width: 250px; /* Độ rộng menu */
+  background: #fff;
+  border: 1px solid #eee;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  border-radius: 0 0 5px 5px;
+  padding: 5px 0;
+  margin-top: 5px;
+}
+
+/* Hiệu ứng: Hover vào nút cha thì hiện menu con */
+.category-dropdown-wrapper:hover .category-menu {
+  display: block;
+  animation: fadeIn 0.2s;
+}
+
+/* 3. Các mục trong menu (Item) */
+.cate-menu-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  color: #333;
+  text-decoration: none;
+  font-size: 14px;
+  border-bottom: 1px solid #f9f9f9;
+  transition: all 0.2s;
+}
+
+.cate-menu-item:last-child {
+  border-bottom: none;
+}
+
+.cate-menu-item:hover {
+  background-color: #fcebeb; /* Nền hồng nhạt */
+  color: #c92127; /* Chữ đỏ */
+  padding-left: 20px; /* Hiệu ứng đẩy chữ sang phải */
+  font-weight: bold;
+}
+
+.cate-menu-item i {
+  margin-right: 10px;
+  width: 20px;
+  text-align: center;
+  color: #999;
+}
+.cate-menu-item:hover i {
+  color: #c92127;
+}
+/* --- GỢI Ý HÔM NAY (HOMEPAGE) --- */
+
+.daily-home-section {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 30px;
+  margin-bottom: 40px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.daily-home-header {
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+.daily-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #c92127;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.daily-title i {
+  color: #f7941e;
+} /* Icon sao vàng */
+
+/* Tabs */
+.daily-tabs-wrapper {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 5px;
+}
+
+.d-tab {
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 8px 15px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #555;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: 0.3s;
+  white-space: nowrap;
+}
+
+.d-tab img {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.d-tab:hover {
+  border-color: #c92127;
+  color: #c92127;
+  background: #fff5f5;
+}
+
+.d-tab.active {
+  background: #c92127;
+  color: #fff;
+  border-color: #c92127;
+  box-shadow: 0 4px 8px rgba(201, 33, 39, 0.2);
+}
+
+/* Lưới sản phẩm (Tái sử dụng style của grid sản phẩm) */
+.daily-grid-container {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+/* Nút Xem thêm */
+.daily-load-more {
+  text-align: center;
+  margin-top: 30px;
+}
+#btn-home-load-more {
+  background: #fff;
+  border: 1px solid #c92127;
+  color: #c92127;
+  padding: 10px 50px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+#btn-home-load-more:hover {
+  background: #c92127;
+  color: #fff;
+}
+
+/* Reponsive */
+@media (max-width: 768px) {
+  .daily-grid-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+/* fe/css/style.css */
+
+.daily-load-more {
+    text-align: center;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #f0f0f0; /* Thêm đường kẻ mờ ngăn cách */
+}
+
+/* Style cho nút chuyển trang */
+.btn-home-view-all {
+    display: inline-block; /* Để chỉnh được padding/margin */
+    text-decoration: none; /* Bỏ gạch chân */
+    background: #fff;
+    border: 2px solid #C92127; /* Viền đỏ đậm hơn chút */
+    color: #C92127;
+    padding: 10px 60px; /* Nút dài ra cho đẹp */
+    border-radius: 8px; /* Bo góc tròn hơn */
+    font-weight: bold;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(201, 33, 39, 0.1);
+}
+
+.btn-home-view-all:hover {
+    background: #C92127;
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(201, 33, 39, 0.3);
+    transform: translateY(-2px); /* Nhấc nhẹ nút lên khi hover */
+}
+
+.btn-home-view-all i {
+    margin-left: 5px;
+    font-size: 12px;
+}

@@ -1,1 +1,1 @@
-http://127.0.0.1:5500/frontend/pages/cart.html
+http://localhost/frontend/index.html

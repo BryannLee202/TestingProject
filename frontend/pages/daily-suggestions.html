@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gợi ý cho bạn - Fahasa</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
+
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/daily.css" />
+  </head>
+  <body>
+    <div class="container" style="padding: 15px 0">
+      <div class="breadcrumb">
+        <a href="../index.html">Trang chủ</a> <span>/</span>
+        <span class="current">Daily Suggestions</span>
+      </div>
+    </div>
+
+    <main class="container">
+      <div class="daily-banner">
+        <div class="banner-content">
+          <i class="fas fa-sparkles"></i>
+          <h2>Gợi ý cho bạn</h2>
+          <i class="fas fa-sparkles"></i>
+        </div>
+        <i class="fas fa-book-open bg-icon icon-1"></i>
+        <i class="fas fa-thumbs-up bg-icon icon-2"></i>
+      </div>
+
+      <div id="daily-grid" class="daily-grid-container">
+        <div class="loading-state">
+          <i class="fas fa-spinner fa-spin"></i> Đang tải gợi ý...
+        </div>
+      </div>
+
+      <div class="load-more-container">
+        <button id="btn-load-more" onclick="loadMoreBooks()">
+          Xem thêm 20 sản phẩm <i class="fas fa-chevron-down"></i>
+        </button>
+      </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="../js/daily.js"></script>
+  </body>
+</html>
