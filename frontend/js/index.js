@@ -469,7 +469,8 @@ document.addEventListener("click", function (e) {
   if (searchBar && !searchBar.contains(e.target)) {
     if (suggestionBox) suggestionBox.style.display = "none";
   }
-});async function updateCartCount() {
+});
+async function updateCartCount() {
   const badge = document.getElementById("cart-count");
   if (!badge) return;
 
@@ -503,4 +504,17 @@ document.addEventListener("click", function (e) {
     badge.innerText = "0";
     badge.style.display = "none";
   }
+}
+// index.js hoặc api.js
+function logout() {
+  // Xóa token và user khỏi localStorage
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+
+  // Cập nhật header
+  updateHeaderUser();
+  updateCartCount();
+
+  // Chuyển về trang đăng nhập hoặc trang chủ
+  window.location.href = "pages/login.html";
 }
