@@ -1,126 +1,72 @@
 // fe/js/daily.js
 
-// MOCK DATA CHUẨN (Giống ảnh bạn gửi)
-const books = [
-  {
-    title: "Lãnh Đạo Và Văn Hóa Doanh Nghiệp",
-    price: 144000,
-    old_price: 180000,
-    img: "https://salt.tikicdn.com/cache/w1200/ts/product/2e/98/64/093b589574488b394017a4773d42c75a.jpg",
-    sold: 47,
-  },
-  {
-    title: "Cambridge English Qualifications - B1 Preliminary",
-    price: 295000,
-    old_price: 328000,
-    img: "https://salt.tikicdn.com/cache/w1200/ts/product/45/3b/2b/28876104d444747c3461239f6974868e.jpg",
-    sold: 30,
-  },
-  {
-    title: "Chưa Kịp Lớn Đã Phải Trưởng Thành - Quyển 2",
-    price: 63000,
-    old_price: 79000,
-    img: "https://salt.tikicdn.com/cache/w1200/ts/product/38/c7/27/a326075908b178c75047466870631671.jpg",
-    sold: 54,
-  },
-  {
-    title: "Bộ Những Tia Nắng Đầu Tiên (Bộ 10 Cuốn)",
-    price: 81000,
-    old_price: 90000,
-    img: "https://salt.tikicdn.com/cache/w1200/ts/product/5e/18/24/2a6154ba08df6ce6161c13f4303fa19e.jpg",
-    sold: 57,
-  },
-  {
-    title: "Gậy Phát Sáng A80 Lightstick Cờ Việt Nam",
-    price: 304000,
-    old_price: 380000,
-    img: "https://salt.tikicdn.com/cache/w1200/ts/product/ad/0c/36/4545582c035654929871626353995663.jpg",
-    sold: 6,
-  },
-  {
-    title: "Tam Quốc Diễn Nghĩa (Trọn Bộ 3 Tập)",
-    price: 312000,
-    old_price: 390000,
-    img: "https://salt.tikicdn.com/cache/w1200/ts/product/88/52/63/144704020300d8926065586616474662.jpg",
-    sold: 57,
-  },
-  {
-    title: "Scarlett - Hậu Cuốn Theo Chiều Gió",
-    price: 172000,
-    old_price: 215000,
-    img: "https://salt.tikicdn.com/cache/w1200/ts/product/9d/1f/28/7f6d4d2325785055b46726884025c833.jpg",
-    sold: 21,
-  },
-  {
-    title: "Tôi Đã Kiếm 1 Triệu Đô Đầu Tiên Trên Internet",
-    price: 169000,
-    old_price: 199000,
-    img: "https://salt.tikicdn.com/cache/w1200/ts/product/24/e9/8f/b495914652277d33878b47209825b443.jpg",
-    sold: 12,
-  },
-  {
-    title: "Truyện Trạng Quỳnh - Trạng Lợn (Tái Bản)",
-    price: 28000,
-    old_price: 35000,
-    img: "https://salt.tikicdn.com/cache/w1200/ts/product/6e/8f/3e/32616492323c6046755452d378033068.jpg",
-    sold: 72,
-  },
-  {
-    title: "Charlie Munger - Phương Pháp Đầu Tư Giá Trị",
-    price: 135000,
-    old_price: 169000,
-    img: "https://salt.tikicdn.com/cache/w1200/ts/product/c6/3e/26/d561257008107662c0199047970d4c82.jpg",
-    sold: 41,
-  },
-];
-
-// Nhân bản dữ liệu để demo nhiều sách
-let displayBooks = [...books, ...books, ...books];
-let currentIndex = 0;
-const itemsPerPage = 10;
+const DAILY_API = "http://localhost:5000/api";
+let currentPage = 1;
+let isLoading = false;
 
 document.addEventListener("DOMContentLoaded", () => {
-  renderBooks();
+  loadDailyBooks(); // Tải trang 1 ngay khi vào
 });
 
-function renderBooks() {
-  const container = document.getElementById("daily-grid");
-  const loadBtn = document.getElementById("btn-load-more");
+// 1. TẢI SÁCH (Phân trang)
+async function loadDailyBooks() {
+  if (isLoading) return;
+  isLoading = true;
 
-  // Xóa spinner loading nếu là lần đầu
-  if (currentIndex === 0) container.innerHTML = "";
+  const btn = document.getElementById("btn-load-more");
+  if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tải...';
 
-  // Lấy 10 sách tiếp theo
-  const nextBatch = displayBooks.slice(
-    currentIndex,
-    currentIndex + itemsPerPage
-  );
+  try {
+    // Gọi API getAllBooks có sẵn, thêm tham số page & limit
+    const res = await fetch(`${DAILY_API}/books?page=${currentPage}&limit=10`);
+    const data = await res.json();
 
-  if (nextBatch.length === 0) {
-    loadBtn.innerText = "Đã hiển thị hết sản phẩm";
-    loadBtn.disabled = true;
-    loadBtn.style.borderColor = "#ccc";
-    loadBtn.style.color = "#999";
-    return;
+    if (data.success && data.data.length > 0) {
+      renderBooks(data.data); // Vẽ thêm sách vào lưới
+      currentPage++; // Tăng số trang lên cho lần bấm sau
+
+      if (btn) {
+        btn.innerHTML =
+          'Xem thêm 20 sản phẩm <i class="fas fa-chevron-down"></i>';
+        btn.disabled = false;
+      }
+    } else {
+      if (btn) {
+        btn.innerHTML = "Đã hiển thị hết sản phẩm";
+        btn.disabled = true;
+        btn.style.opacity = "0.6";
+      }
+    }
+  } catch (error) {
+    console.error("Lỗi Daily:", error);
+  } finally {
+    isLoading = false;
   }
+}
 
-  const html = nextBatch
+// 2. VẼ SÁCH (Append - Nối tiếp vào danh sách cũ)
+function renderBooks(books) {
+  const container = document.getElementById("daily-grid");
+  const formatMoney = (val) =>
+    new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(val);
+
+  const html = books
     .map((book) => {
-      const formatMoney = (val) =>
-        new Intl.NumberFormat("vi-VN", {
-          style: "currency",
-          currency: "VND",
-        }).format(val);
+      const originalPrice = book.original_price || book.price * 1.2;
       const discount = Math.round(
-        ((book.old_price - book.price) / book.old_price) * 100
+        ((originalPrice - book.price) / originalPrice) * 100
       );
+      const sold = Math.floor(Math.random() * 200) + 10;
 
       return `
         <div class="suggest-card">
             <span class="badge-discount">-${discount}%</span>
             
-            <a href="detail.html" class="card-img-wrap">
-                <img src="${book.img}" alt="${
+            <a href="../pages/detail.html?id=${book.id}" class="card-img-wrap">
+                <img src="${book.image_url}" alt="${
         book.title
       }" onerror="this.src='https://via.placeholder.com/200'">
             </a>
@@ -129,34 +75,31 @@ function renderBooks() {
             
             <div class="price-row">
                 <div class="current-price">${formatMoney(book.price)}</div>
-                <div class="badge-discount" style="position:static; font-size:11px; background:#C92127;">-${discount}%</div>
             </div>
-            
-            <div class="original-price">${formatMoney(book.old_price)}</div>
+            <div class="original-price">${formatMoney(originalPrice)}</div>
             
             <div style="margin-top:8px; display:flex; align-items:center;">
-                <span class="rating-stars">
+                <span class="rating-stars" style="color:#F7941E; font-size:10px;">
                     <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
                 </span>
-                <span class="sold-count">| Đã bán ${book.sold}</span>
+                <span class="sold-count" style="font-size:11px; color:#777; margin-left:5px;">| Đã bán ${sold}</span>
             </div>
+
+            <button class="btn-add-cart" onclick="addToCart(${
+              book.id
+            })" style="width:100%; margin-top:10px; border:1px solid #C92127; background:#fff; color:#C92127; font-weight:bold; padding:5px; border-radius:4px; cursor:pointer;">
+                Thêm vào giỏ
+            </button>
         </div>
         `;
     })
     .join("");
 
+  // Dùng insertAdjacentHTML để không bị xóa mất sách cũ
   container.insertAdjacentHTML("beforeend", html);
-  currentIndex += itemsPerPage;
 }
 
-function loadMoreBooks() {
-  // Giả lập loading
-  const btn = document.getElementById("btn-load-more");
-  const originalText = btn.innerHTML;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tải...';
-
-  setTimeout(() => {
-    renderBooks();
-    btn.innerHTML = originalText;
-  }, 500); // Delay 0.5s cho giống thật
-}
+// 3. XỬ LÝ SỰ KIỆN NÚT LOAD MORE
+// (Hàm này đã được gọi trực tiếp trong onclick của HTML: loadMoreBooks -> loadDailyBooks)
+// Nhưng để khớp với tên hàm trong HTML cũ, ta gán alias:
+window.loadMoreBooks = loadDailyBooks;

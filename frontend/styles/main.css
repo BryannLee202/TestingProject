@@ -1128,40 +1128,59 @@ ul {
 }
 
 /* --- CSS CHO FLASH SALE AREA --- */
+/* Khung chứa chung */
 .flash-sale-header {
-  display: flex;
-  align-items: center;
-  background: #fff;
-  padding: 15px;
-  border-bottom: 2px solid #c92127;
+  display: flex; /* Sắp xếp các phần tử nằm ngang */
+  align-items: center; /* Căn giữa theo chiều dọc */
+  padding: 15px; /* Khoảng cách đệm */
+  background: #fff; /* Nền trắng */
+  border-bottom: 2px solid #c92127; /* Đường kẻ đỏ bên dưới */
 }
 
+/* Tiêu đề Flash Sale */
 .fs-title {
   font-size: 20px;
-  font-weight: bold;
-  color: #c92127; /* Đỏ Fahasa */
-  margin-right: 20px;
+  font-weight: 800;
+  color: #c92127;
+  margin-right: 20px; /* Cách đồng hồ ra một chút */
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.fs-title i {
-  margin-right: 5px;
+/* Đồng hồ (Timer) */
+.fs-timer {
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+  color: #333;
 }
 
 .fs-timer span {
   background: #333;
   color: #fff;
-  padding: 3px 6px;
+  padding: 2px 6px;
   border-radius: 4px;
-  font-weight: bold;
-  margin: 0 2px;
+  margin: 0 3px;
 }
 
-.flash-sale-list {
+/* --- QUAN TRỌNG: Đẩy nút xem tất cả sang phải --- */
+.view-all-link {
+  margin-left: auto; /* Lệnh này tự động đẩy phần tử về phía cuối (bên phải) */
+
+  text-decoration: none;
+  color: #007bff; /* Màu xanh */
+  font-weight: 600;
+  font-size: 14px;
   display: flex;
-  gap: 15px;
-  background: #fff;
-  padding: 20px;
-  overflow-x: auto; /* Cho phép cuộn ngang nếu nhiều sách */
+  align-items: center;
+  gap: 5px;
+  transition: 0.2s;
+}
+
+.view-all-link:hover {
+  color: #0056b3;
+  text-decoration: underline;
 }
 /* --- CSS CHO THANH TIỆN ÍCH (Dựa trên class của bạn) --- */
 
@@ -1452,35 +1471,712 @@ ul {
 /* fe/css/style.css */
 
 .daily-load-more {
-    text-align: center;
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px solid #f0f0f0; /* Thêm đường kẻ mờ ngăn cách */
+  text-align: center;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #f0f0f0; /* Thêm đường kẻ mờ ngăn cách */
 }
 
 /* Style cho nút chuyển trang */
 .btn-home-view-all {
-    display: inline-block; /* Để chỉnh được padding/margin */
-    text-decoration: none; /* Bỏ gạch chân */
-    background: #fff;
-    border: 2px solid #C92127; /* Viền đỏ đậm hơn chút */
-    color: #C92127;
-    padding: 10px 60px; /* Nút dài ra cho đẹp */
-    border-radius: 8px; /* Bo góc tròn hơn */
-    font-weight: bold;
-    font-size: 14px;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 5px rgba(201, 33, 39, 0.1);
+  display: inline-block; /* Để chỉnh được padding/margin */
+  text-decoration: none; /* Bỏ gạch chân */
+  background: #fff;
+  border: 2px solid #c92127; /* Viền đỏ đậm hơn chút */
+  color: #c92127;
+  padding: 10px 60px; /* Nút dài ra cho đẹp */
+  border-radius: 8px; /* Bo góc tròn hơn */
+  font-weight: bold;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(201, 33, 39, 0.1);
 }
 
 .btn-home-view-all:hover {
-    background: #C92127;
-    color: #fff;
-    box-shadow: 0 4px 10px rgba(201, 33, 39, 0.3);
-    transform: translateY(-2px); /* Nhấc nhẹ nút lên khi hover */
+  background: #c92127;
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(201, 33, 39, 0.3);
+  transform: translateY(-2px); /* Nhấc nhẹ nút lên khi hover */
 }
 
 .btn-home-view-all i {
-    margin-left: 5px;
+  margin-left: 5px;
+  font-size: 12px;
+}
+/* --- CSS GỢI Ý TÌM KIẾM (AUTOCOMPLETE) --- */
+
+.suggestions-dropdown {
+  display: none; /* Mặc định ẩn */
+  position: absolute;
+  top: 100%; /* Nằm ngay dưới thanh tìm kiếm */
+  left: 0;
+  width: 100%; /* Rộng bằng thanh tìm kiếm */
+  background: #fff;
+  border: 1px solid #ddd;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 9999; /* Luôn nổi lên trên cùng */
+  max-height: 400px; /* Chiều cao tối đa */
+  overflow-y: auto; /* Cuộn nếu danh sách dài */
+}
+
+/* Từng dòng gợi ý */
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  cursor: pointer;
+  border-bottom: 1px solid #f5f5f5;
+  transition: background 0.2s;
+  text-decoration: none; /* Vì mình sẽ dùng thẻ a */
+}
+
+.suggestion-item:hover {
+  background-color: #f9f9f9;
+}
+
+.suggestion-item img {
+  width: 40px;
+  height: 60px;
+  object-fit: cover;
+  margin-right: 10px;
+  border-radius: 4px;
+}
+
+.suggestion-info h4 {
+  font-size: 14px;
+  margin: 0 0 4px;
+  color: #333;
+  font-weight: 600;
+}
+
+.suggestion-info .price {
+  font-size: 13px;
+  color: #c92127;
+  font-weight: bold;
+}
+/* --- STYLE CHI TIẾT SẢN PHẨM (Detail Page) --- */
+
+/* Khung chứa ảnh và thông tin */
+.product-detail-layout {
+  display: flex;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  gap: 30px;
+}
+
+/* Cột trái: Ảnh */
+.detail-left {
+  width: 40%;
+  text-align: center;
+  border-right: 1px solid #eee;
+  padding-right: 20px;
+}
+.detail-left img {
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+}
+
+/* Cột phải: Thông tin */
+.detail-right {
+  width: 60%;
+}
+.detail-title {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 15px;
+  line-height: 1.3;
+}
+.detail-meta {
+  font-size: 13px;
+  color: #777;
+  margin-bottom: 15px;
+}
+.detail-meta span {
+  color: #333;
+  font-weight: bold;
+}
+
+.detail-price-box {
+  background: #fafafa;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.d-current-price {
+  font-size: 32px;
+  color: #c92127;
+  font-weight: bold;
+}
+.d-old-price {
+  font-size: 16px;
+  color: #999;
+  text-decoration: line-through;
+}
+.d-discount-badge {
+  background: #c92127;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.btn-buy-now {
+  background: #c92127;
+  color: #fff;
+  border: none;
+  padding: 12px 50px;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: 0.3s;
+  display: block;
+  margin-top: 20px;
+}
+.btn-buy-now:hover {
+  background: #a0151a;
+  box-shadow: 0 4px 10px rgba(201, 33, 39, 0.3);
+}
+
+/* Khu vực Đánh giá */
+.review-container {
+  background: #fff;
+  margin-top: 20px;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+.review-header {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+  font-size: 18px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+.review-body {
+  display: flex;
+  gap: 30px;
+}
+.write-review-area {
+  width: 35%;
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  height: fit-content;
+}
+.review-list-area {
+  width: 65%;
+}
+
+/* Sao đánh giá */
+.star-rating-widget i {
+  font-size: 24px;
+  color: #ddd;
+  cursor: pointer;
+  margin-right: 5px;
+}
+.star-rating-widget i.active {
+  color: #f7941e;
+}
+
+.review-textarea {
+  width: 100%;
+  padding: 10px;
+  margin: 15px 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  resize: none;
+}
+.btn-submit-review {
+  width: 100%;
+  padding: 10px;
+  background: #f7941e;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Review Item */
+.user-review-item {
+  display: flex;
+  gap: 15px;
+  padding: 15px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+.avatar-circle {
+  width: 40px;
+  height: 40px;
+  background: #ddd;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #555;
+}
+.star-display {
+  color: #f7941e;
+  font-size: 12px;
+  margin: 5px 0;
+}
+
+/* Responsive Mobile */
+@media (max-width: 768px) {
+  .product-detail-layout {
+    flex-direction: column;
+  }
+  .detail-left {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 20px;
+  }
+  .detail-right {
+    width: 100%;
+  }
+  .review-body {
+    flex-direction: column;
+  }
+  .write-review-area,
+  .review-list-area {
+    width: 100%;
+  }
+}
+/* --- STYLE TRANG CHI TIẾT SẢN PHẨM --- */
+
+/* 1. Layout Sản phẩm (Ảnh trái - Tin phải) */
+.product-detail-layout {
+    display: flex;
+    gap: 40px;
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+.detail-left {
+    width: 40%;
+    flex-shrink: 0;
+    text-align: center;
+}
+.detail-left img {
+    width: 100%;
+    max-height: 450px;
+    object-fit: contain;
+    border-radius: 8px;
+    border: 1px solid #eee;
+}
+
+.detail-right { flex: 1; }
+.detail-title { font-size: 26px; font-weight: bold; color: #333; margin-bottom: 15px; line-height: 1.3; }
+.detail-meta { font-size: 14px; color: #777; margin-bottom: 20px; }
+.detail-meta span { color: #333; font-weight: 500; }
+
+.detail-price-box {
+    background: #fafafa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+}
+.d-price-current { font-size: 36px; color: #C92127; font-weight: bold; margin-right: 15px; }
+.d-price-old { font-size: 18px; color: #999; text-decoration: line-through; }
+.d-discount-badge { background: #C92127; color: #fff; padding: 3px 10px; border-radius: 4px; font-size: 14px; font-weight: bold; }
+
+.btn-buy-now {
+    background: #C92127; color: #fff;
+    border: none; padding: 15px 50px;
+    font-size: 18px; font-weight: bold;
+    border-radius: 4px; cursor: pointer;
+    min-width: 250px;
+    transition: 0.3s;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.btn-buy-now:hover { background: #a81a1f; box-shadow: 0 4px 10px rgba(201,33,39,0.3); }
+
+/* 2. Style Khu vực Đánh giá (Review) */
+.review-container {
+    margin-top: 30px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    padding: 30px;
+}
+
+.review-header {
+    padding-bottom: 15px;
+    border-bottom: 2px solid #eee;
+    margin-bottom: 30px;
+}
+.review-header h3 { font-size: 20px; margin: 0; color: #333; text-transform: uppercase; }
+
+.review-body { display: flex; gap: 40px; }
+
+/* Cột viết đánh giá */
+.write-review-area {
+    width: 35%;
+    background: #f9f9f9;
+    border: 1px solid #eee;
+    padding: 25px;
+    border-radius: 8px;
+    height: fit-content;
+}
+.write-review-area h4 { margin-top: 0; margin-bottom: 15px; font-size: 16px; }
+
+/* Ngôi sao tương tác */
+.star-rating-widget { margin-bottom: 20px; }
+.star-rating-widget i {
+    font-size: 28px;
+    color: #ddd;
+    cursor: pointer;
+    margin-right: 5px;
+    transition: 0.2s;
+}
+.star-rating-widget i.active,
+.star-rating-widget i:hover,
+.star-rating-widget i:hover ~ i { color: #F7941E; }
+
+.review-textarea {
+    width: 100%; padding: 12px;
+    border: 1px solid #ddd; border-radius: 4px;
+    font-family: inherit; font-size: 14px;
+    margin-bottom: 15px; resize: none;
+}
+.review-textarea:focus { border-color: #C92127; outline: none; }
+
+.btn-submit-review {
+    width: 100%; background: #F7941E; color: white;
+    border: none; padding: 12px; border-radius: 4px;
+    font-weight: bold; cursor: pointer; font-size: 16px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: 0.3s;
+}
+.btn-submit-review:hover { background: #e08316; }
+
+/* Cột danh sách đánh giá */
+.review-list-area { flex: 1; }
+.review-list-area h4 { margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid #eee; display: block; padding-bottom: 10px; font-size: 16px; }
+
+.user-review-item {
+    display: flex; gap: 20px;
+    padding: 20px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+.user-review-item:last-child { border-bottom: none; }
+
+.avatar-circle {
+    width: 50px; height: 50px;
+    background: #eee; color: #777;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; font-size: 20px;
+}
+.review-content { flex: 1; }
+.review-author { font-weight: bold; font-size: 15px; margin-bottom: 5px; color: #333; }
+.review-time { font-size: 13px; color: #999; }
+.star-display { color: #F7941E; font-size: 14px; margin: 8px 0; }
+.comment-text { font-size: 15px; color: #333; line-height: 1.6; background: #fafafa; padding: 15px; border-radius: 6px; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .product-detail-layout { flex-direction: column; padding: 20px; }
+    .detail-left, .detail-right { width: 100%; }
+    .review-body { flex-direction: column; }
+    .write-review-area, .review-list-area { width: 100%; }
+    .write-review-area { order: 1; } /* Đưa form lên trên trên mobile */
+}
+/* --- STYLE TRANG CHI TIẾT SẢN PHẨM --- */
+
+/* 1. Layout Sản phẩm (Ảnh trái - Tin phải) */
+.product-detail-layout {
+    display: flex;
+    gap: 40px;
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+.detail-left {
+    width: 40%;
+    flex-shrink: 0;
+    text-align: center;
+}
+.detail-left img {
+    width: 100%;
+    max-height: 450px;
+    object-fit: contain;
+    border-radius: 8px;
+    border: 1px solid #eee;
+}
+
+.detail-right { flex: 1; }
+.detail-title { font-size: 26px; font-weight: bold; color: #333; margin-bottom: 15px; line-height: 1.3; }
+.detail-meta { font-size: 14px; color: #777; margin-bottom: 20px; }
+.detail-meta span { color: #333; font-weight: 500; }
+
+.detail-price-box {
+    background: #fafafa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+}
+.d-price-current { font-size: 36px; color: #C92127; font-weight: bold; margin-right: 15px; }
+.d-price-old { font-size: 18px; color: #999; text-decoration: line-through; }
+.d-discount-badge { background: #C92127; color: #fff; padding: 3px 10px; border-radius: 4px; font-size: 14px; font-weight: bold; }
+
+.btn-buy-now {
+    background: #C92127; color: #fff;
+    border: none; padding: 15px 50px;
+    font-size: 18px; font-weight: bold;
+    border-radius: 4px; cursor: pointer;
+    min-width: 250px;
+    transition: 0.3s;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.btn-buy-now:hover { background: #a81a1f; box-shadow: 0 4px 10px rgba(201,33,39,0.3); }
+
+/* 2. Style Khu vực Đánh giá (Review) */
+.review-container {
+    margin-top: 30px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    padding: 30px;
+}
+
+.review-header {
+    padding-bottom: 15px;
+    border-bottom: 2px solid #eee;
+    margin-bottom: 30px;
+}
+.review-header h3 { font-size: 20px; margin: 0; color: #333; text-transform: uppercase; }
+
+.review-body { display: flex; gap: 40px; }
+
+/* Cột viết đánh giá */
+.write-review-area {
+    width: 35%;
+    background: #f9f9f9;
+    border: 1px solid #eee;
+    padding: 25px;
+    border-radius: 8px;
+    height: fit-content;
+}
+.write-review-area h4 { margin-top: 0; margin-bottom: 15px; font-size: 16px; }
+
+/* Ngôi sao tương tác */
+.star-rating-widget { margin-bottom: 20px; }
+.star-rating-widget i {
+    font-size: 28px;
+    color: #ddd;
+    cursor: pointer;
+    margin-right: 5px;
+    transition: 0.2s;
+}
+.star-rating-widget i.active,
+.star-rating-widget i:hover,
+.star-rating-widget i:hover ~ i { color: #F7941E; }
+
+.review-textarea {
+    width: 100%; padding: 12px;
+    border: 1px solid #ddd; border-radius: 4px;
+    font-family: inherit; font-size: 14px;
+    margin-bottom: 15px; resize: none;
+}
+.review-textarea:focus { border-color: #C92127; outline: none; }
+
+.btn-submit-review {
+    width: 100%; background: #F7941E; color: white;
+    border: none; padding: 12px; border-radius: 4px;
+    font-weight: bold; cursor: pointer; font-size: 16px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: 0.3s;
+}
+.btn-submit-review:hover { background: #e08316; }
+
+/* Cột danh sách đánh giá */
+.review-list-area { flex: 1; }
+.review-list-area h4 { margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid #eee; display: block; padding-bottom: 10px; font-size: 16px; }
+
+.user-review-item {
+    display: flex; gap: 20px;
+    padding: 20px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+.user-review-item:last-child { border-bottom: none; }
+
+.avatar-circle {
+    width: 50px; height: 50px;
+    background: #eee; color: #777;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; font-size: 20px;
+}
+.review-content { flex: 1; }
+.review-author { font-weight: bold; font-size: 15px; margin-bottom: 5px; color: #333; }
+.review-time { font-size: 13px; color: #999; }
+.star-display { color: #F7941E; font-size: 14px; margin: 8px 0; }
+.comment-text { font-size: 15px; color: #333; line-height: 1.6; background: #fafafa; padding: 15px; border-radius: 6px; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .product-detail-layout { flex-direction: column; padding: 20px; }
+    .detail-left, .detail-right { width: 100%; }
+    .review-body { flex-direction: column; }
+    .write-review-area, .review-list-area { width: 100%; }
+    .write-review-area { order: 1; } /* Đưa form lên trên trên mobile */
+}
+/* =========================================
+   CSS FLASH SALE (CĂN CHỈNH ĐỀU)
+   ========================================= */
+
+/* 1. Khung chứa danh sách (Cuộn ngang) */
+.flash-sale-list {
+    display: flex;              /* Xếp hàng ngang */
+    gap: 15px;                  /* Khoảng cách giữa các thẻ */
+    overflow-x: auto;           /* Cho phép cuộn ngang */
+    padding: 15px 5px 25px 5px; /* Padding để không bị cắt bóng đổ */
+    background: #fff;
+    scroll-behavior: smooth;
+}
+
+/* Ẩn thanh cuộn xấu xí (Tùy chọn) */
+.flash-sale-list::-webkit-scrollbar { height: 6px; }
+.flash-sale-list::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 4px; }
+
+/* 2. Thẻ Sản Phẩm Compact (Cố định kích thước) */
+.fs-card-compact {
+    flex: 0 0 auto;             /* QUAN TRỌNG: Không cho thẻ co giãn */
+    width: 190px;               /* Chiều rộng cố định */
+    background: #fff;
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    padding: 10px;
+    position: relative;
+    transition: all 0.3s ease;
+    
+    /* Flex dọc để đẩy nội dung cho đều */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.fs-card-compact:hover {
+    border-color: #C92127;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+/* 3. Khung Ảnh (Cố định chiều cao) */
+.fs-img-container {
+    width: 100%;
+    height: 170px;              /* Chiều cao ảnh cố định */
+    display: flex;
+    align-items: center;        /* Căn giữa dọc */
+    justify-content: center;    /* Căn giữa ngang */
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+
+.fs-img-container img {
+    max-height: 100%;           /* Ảnh không vượt quá khung */
+    width: auto;
+    transition: transform 0.3s;
+}
+
+.fs-card-compact:hover .fs-img-container img {
+    transform: scale(1.05);
+}
+
+/* 4. Tên sách (Cắt dòng nếu quá dài) */
+.fs-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #333;
+    line-height: 1.4;
+    height: 38px;               /* Chiều cao cố định cho 2 dòng chữ */
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;      /* Giới hạn 2 dòng */
+    -webkit-box-orient: vertical;
+    margin-bottom: 8px;
+}
+
+.fs-name:hover { color: #C92127; }
+
+/* 5. Giá tiền */
+.fs-price-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.fs-price {
+    color: #C92127;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.fs-old-price {
+    color: #999;
     font-size: 12px;
+    text-decoration: line-through;
+}
+
+/* 6. Thanh tiến trình (Đã bán) */
+.fs-progress-bar {
+    height: 16px;
+    background-color: #fddccb;
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+}
+
+.fs-progress-fill {
+    background-color: #E30019;
+    height: 100%;
+    border-radius: 10px 0 0 10px;
+}
+
+.fs-progress-text {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 10px;
+    color: #fff;
+    font-weight: bold;
+    text-transform: uppercase;
+    text-shadow: 0 0 2px rgba(0,0,0,0.3);
+    white-space: nowrap;
+}
+
+/* Badge giảm giá */
+.fs-badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: #C92127;
+    color: #fff;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 4px;
+    z-index: 2;
 }

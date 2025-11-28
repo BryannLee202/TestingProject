@@ -1,13 +1,26 @@
 const { dbHelpers } = require("../config/database");
 
 const bookController = {
-  // --- PUBLIC ROUTES ---
+  // --- 1. Lấy sách Flash Sale (MỚI THÊM - Đặt vào trong object) ---
+  getFlashSaleBooks: async (req, res) => {
+    try {
+      // Lấy 10 cuốn sách có giá rẻ nhất hoặc random để làm Flash Sale
+      const query = `
+            SELECT TOP 10 * FROM Books 
+            WHERE price < original_price OR original_price IS NULL
+            ORDER BY NEWID() 
+        `;
+      const result = await dbHelpers.query(query);
+      res.json({ success: true, data: result });
+    } catch (error) {
+      console.error("Lỗi Flash Sale:", error);
+      res.status(500).json({ success: false, message: "Lỗi lấy Flash Sale" });
+    }
+  },
 
-  // 1. Lấy tất cả sách (Có phân trang & lọc danh mục)
-  // 1. Lấy tất cả sách (Có phân trang, lọc danh mục, LỌC GIÁ, TÌM KIẾM)
+  // --- 2. Lấy tất cả sách (Có phân trang & lọc danh mục) ---
   getAllBooks: async (req, res) => {
     try {
-      // 1. Lấy tất cả tham số từ URL
       const {
         page = 1,
         limit = 10,
@@ -18,38 +31,30 @@ const bookController = {
       } = req.query;
       const offset = (page - 1) * limit;
 
-      // 2. Khởi tạo câu truy vấn cơ bản
-      // Mẹo: Dùng WHERE 1=1 để dễ dàng nối chuỗi AND phía sau
       let whereClause = " WHERE 1=1";
       const params = {};
 
-      // --- XỬ LÝ CÁC BỘ LỌC ---
-
       // Lọc theo Danh mục
       if (category) {
-        // Backend nhận biến 'category' và so sánh với cột 'category_id' trong SQL
         whereClause += " AND category_id = @category";
         params.category = parseInt(category);
       }
-      // Lọc theo Giá Tối Thiểu (min_price)
+      // Lọc theo Giá
       if (min_price) {
         whereClause += " AND price >= @min";
         params.min = parseFloat(min_price);
       }
-
-      // Lọc theo Giá Tối Đa (max_price)
       if (max_price) {
         whereClause += " AND price <= @max";
         params.max = parseFloat(max_price);
       }
-
-      // Tìm kiếm theo Tên hoặc Tác giả
+      // Tìm kiếm
       if (search) {
         whereClause += " AND (title LIKE @search OR author LIKE @search)";
         params.search = `%${search}%`;
       }
 
-      // 3. TẠO CÂU SQL LẤY DỮ LIỆU
+      // Query lấy sách
       const sqlQuery = `
         SELECT * FROM Books 
         ${whereClause} 
@@ -57,17 +62,13 @@ const bookController = {
         OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY
       `;
 
-      // Thêm tham số phân trang
       params.offset = parseInt(offset);
       params.limit = parseInt(limit);
 
-      // Gọi DB lấy sách
       const books = await dbHelpers.query(sqlQuery, params);
 
-      // 4. TẠO CÂU SQL ĐẾM TỔNG (Để phân trang đúng với bộ lọc)
+      // Query đếm tổng
       const countQuery = `SELECT COUNT(*) as total FROM Books ${whereClause}`;
-
-      // Loại bỏ offset/limit khỏi params khi đếm để tránh lỗi
       const countParams = { ...params };
       delete countParams.offset;
       delete countParams.limit;
@@ -90,10 +91,10 @@ const bookController = {
     }
   },
 
-  // 2. Tìm kiếm sách
+  // --- 3. Tìm kiếm sách ---
   searchBooks: async (req, res) => {
     try {
-      const { q } = req.query; // ?q=Harry Potter
+      const { q } = req.query;
       if (!q)
         return res
           .status(400)
@@ -109,10 +110,9 @@ const bookController = {
     }
   },
 
-  // 3. Sách nổi bật (Lấy random)
+  // --- 4. Sách nổi bật ---
   getFeaturedBooks: async (req, res) => {
     try {
-      // ORDER BY NEWID() dùng để random trong SQL Server
       const books = await dbHelpers.query(
         "SELECT TOP 8 * FROM Books ORDER BY NEWID()"
       );
@@ -122,7 +122,7 @@ const bookController = {
     }
   },
 
-  // 4. Sách bán chạy
+  // --- 5. Sách bán chạy ---
   getBestsellers: async (req, res) => {
     try {
       const books = await dbHelpers.query(
@@ -134,7 +134,7 @@ const bookController = {
     }
   },
 
-  // 5. Chi tiết sách
+  // --- 6. Chi tiết sách ---
   getBookById: async (req, res) => {
     try {
       const { id } = req.params;
@@ -155,7 +155,7 @@ const bookController = {
     }
   },
 
-  // 6. Lấy Reviews của sách
+  // --- 7. Lấy Reviews ---
   getBookReviews: async (req, res) => {
     try {
       const { id } = req.params;
@@ -169,42 +169,34 @@ const bookController = {
       const reviews = await dbHelpers.query(sql, { bookId: parseInt(id) });
       res.json({ success: true, data: reviews });
     } catch (error) {
-      // Trả về mảng rỗng nếu bảng Reviews chưa tồn tại hoặc lỗi
       res.json({ success: true, data: [] });
     }
   },
 
-  // --- PROTECTED ROUTES ---
-
-  // 7. Viết Review
+  // --- 8. Tạo Review ---
   createReview: async (req, res) => {
     try {
-      const { id } = req.params; // bookId
+      const { id } = req.params;
       const { rating, comment } = req.body;
-      const userId = req.user.id; // Lấy từ token
+      const userId = req.user.id;
 
       const sql = `
         INSERT INTO Reviews (user_id, book_id, rating, comment, created_at)
         VALUES (@userId, @bookId, @rating, @comment, GETDATE())
       `;
-
       await dbHelpers.execute(sql, {
         userId,
         bookId: parseInt(id),
         rating,
         comment,
       });
-
       res.status(201).json({ success: true, message: "Đã gửi đánh giá" });
     } catch (error) {
-      console.error(error);
       res.status(500).json({ success: false, message: "Lỗi khi đánh giá" });
     }
   },
 
-  // --- ADMIN ROUTES ---
-
-  // 8. Tạo sách mới
+  // --- 9. Tạo sách mới ---
   createBook: async (req, res) => {
     try {
       const {
@@ -221,7 +213,6 @@ const bookController = {
         INSERT INTO Books (title, author, price, category_id, description, image_url, stock_quantity)
         VALUES (@title, @author, @price, @catId, @desc, @img, @stock)
       `;
-
       await dbHelpers.execute(sql, {
         title,
         author,
@@ -231,7 +222,6 @@ const bookController = {
         img: image_url,
         stock: stock_quantity || 0,
       });
-
       res.status(201).json({ success: true, message: "Thêm sách thành công" });
     } catch (error) {
       res.status(500).json({
@@ -242,7 +232,7 @@ const bookController = {
     }
   },
 
-  // 9. Cập nhật sách
+  // --- 10. Cập nhật sách ---
   updateBook: async (req, res) => {
     try {
       const { id } = req.params;
@@ -256,7 +246,6 @@ const bookController = {
         category_id,
       } = req.body;
 
-      // Xây dựng câu query update động (chỉ update cái nào có gửi lên) hoặc update hết
       const sql = `
         UPDATE Books 
         SET title=@title, author=@author, price=@price, 
@@ -264,7 +253,6 @@ const bookController = {
             image_url=@img, category_id=@catId
         WHERE id=@id
       `;
-
       await dbHelpers.execute(sql, {
         id: parseInt(id),
         title,
@@ -275,14 +263,13 @@ const bookController = {
         img: image_url,
         catId: category_id,
       });
-
       res.json({ success: true, message: "Cập nhật thành công" });
     } catch (error) {
       res.status(500).json({ success: false, message: "Lỗi cập nhật" });
     }
   },
 
-  // 10. Xóa sách
+  // --- 11. Xóa sách ---
   deleteBook: async (req, res) => {
     try {
       const { id } = req.params;
@@ -298,7 +285,7 @@ const bookController = {
     }
   },
 
-  // 11. Cập nhật kho nhanh
+  // --- 12. Cập nhật kho ---
   updateStock: async (req, res) => {
     try {
       const { id } = req.params;
@@ -308,12 +295,11 @@ const bookController = {
         "UPDATE Books SET stock_quantity = @stock WHERE id = @id",
         { id: parseInt(id), stock: parseInt(stock) }
       );
-
       res.json({ success: true, message: "Đã cập nhật kho" });
     } catch (error) {
       res.status(500).json({ success: false, message: "Lỗi cập nhật kho" });
     }
   },
-};
+}; // <--- Đóng object bookController TẠI ĐÂY
 
 module.exports = bookController;

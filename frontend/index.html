@@ -9,6 +9,8 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles/main.css" />
+    <link rel="stylesheet" href="./css/style.css" />
+
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
       rel="stylesheet"
@@ -17,71 +19,89 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"
     />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
   </head>
   <body>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-
     <script src="js/banner.js"></script>
+
     <header class="header">
       <div class="container header-container">
         <a href="index.html" class="logo">
           <i class="fas fa-book-open"></i> BOOKSTORE
         </a>
-<div class="category-dropdown-wrapper">
-    <div class="category-btn">
-        <span class="icon-grid"><i class="fas fa-th-large"></i></span>
-        <span class="text"></span>
-        <span class="icon-arrow"><i class="fas fa-chevron-down"></i></span>
-    </div>
 
-    <div class="category-menu" id="header-category-list">
-        <div style="padding:10px; color:#999;">Đang cập nhật...</div>
-    </div>
-</div>
-        <div class="search-box">
+        <div class="category-dropdown-wrapper">
+          <div class="category-btn">
+            <span class="icon-grid"><i class="fas fa-th-large"></i></span>
+            <span class="text">Danh Mục</span>
+            <span class="icon-arrow"><i class="fas fa-chevron-down"></i></span>
+          </div>
+          <div class="category-menu" id="header-category-list">
+            <div style="padding: 10px; color: #999">Đang cập nhật...</div>
+          </div>
+        </div>
+
+        <div class="search-box" style="position: relative">
           <input
             type="text"
             id="search-input"
             placeholder="Tìm kiếm sách, tác giả..."
+            autocomplete="off"
+            oninput="handleInputSearch(this.value)"
+            onkeypress="handleEnterSearch(event)"
           />
-          <button onclick="handleSearch()">
+          <button class="sreach-btn" onclick="handleSearch()">
             <i class="fas fa-search"></i>
           </button>
+
+          <div id="search-suggestions-box" class="suggestions-dropdown"></div>
         </div>
 
         <div class="header-icons">
-          <div class="icon-item dropdown">
-            <div class="icon-wrap">
+          <div class="icon-item dropdown notification-wrapper">
+            <div class="icon-wrap" id="notify-toggle" onclick="toggleNotify()">
               <i class="far fa-bell"></i>
+              <span class="badge-dot"></span>
               <span>Thông báo</span>
             </div>
-            <div class="dropdown-menu notify-menu">
+            <div class="dropdown-menu notify-menu" id="notify-dropdown">
               <div class="notify-header">Thông báo mới nhận</div>
               <div class="notify-list">
                 <div class="notify-item">
-                  <img
-                    src="https://cdn-icons-png.flaticon.com/512/726/726496.png"
-                    alt="sale"
-                  />
-                  <div>
-                    <strong>Khuyến mãi 50%</strong>
-                    <p>Duy nhất hôm nay cho sách Văn học.</p>
+                  <div class="notify-icon-box">
+                    <img
+                      src="https://cdn-icons-png.flaticon.com/512/726/726496.png"
+                      alt="sale"
+                    />
+                  </div>
+                  <div class="notify-content">
+                    <div class="notify-title">Khuyến mãi 50%</div>
+                    <div class="notify-desc">
+                      Duy nhất hôm nay cho sách Văn học.
+                    </div>
                   </div>
                 </div>
                 <div class="notify-item">
-                  <img
-                    src="https://cdn-icons-png.flaticon.com/512/1162/1162479.png"
-                    alt="ship"
-                  />
-                  <div>
-                    <strong>Freeship đơn 0đ</strong>
-                    <p>Mã giảm giá đã được thêm vào ví.</p>
+                  <div class="notify-icon-box">
+                    <img
+                      src="https://cdn-icons-png.flaticon.com/512/1162/1162479.png"
+                      alt="ship"
+                    />
+                  </div>
+                  <div class="notify-content">
+                    <div class="notify-title">Freeship đơn 0đ</div>
+                    <div class="notify-desc">
+                      Mã giảm giá đã được thêm vào ví.
+                    </div>
                   </div>
                 </div>
               </div>
-              <div class="notify-footer">Xem tất cả</div>
+              <a href="#" class="notify-footer">Xem tất cả</a>
             </div>
           </div>
 
@@ -105,7 +125,6 @@
                 >
               </div>
             </div>
-
             <div id="user-dropdown" class="dropdown-menu user-menu">
               <a href="pages/login.html" class="menu-link"
                 ><i class="fas fa-sign-in-alt"></i> Đăng nhập</a
@@ -119,283 +138,278 @@
       </div>
     </header>
 
-<section id="banner-section" class="container">
-    <div class="swiper mySwiper">
+    <section id="banner-section" class="container">
+      <div class="swiper mySwiper">
         <div class="swiper-wrapper">
-            
-            <div class="swiper-slide">
-                <a href="#" class="inner-border-wrapper">
-                    <img src="img/banner1.png" alt="Banner Tháng 11 Sale Đỉnh">
-                    </a>
-            </div>
-            
-            <div class="swiper-slide">
-                <a href="#" class="inner-border-wrapper">
-                    <img src="img/banner2.png" alt="Banner Chương trình Dark Friday 2025">
-                </a>
-            </div>
-            <div class="swiper-slide">
-                <a href="#" class="inner-border-wrapper">
-                    <img src="img/banner3.png" alt="Banner Chương trình Dark Friday 2025">
-                </a>
-            </div>
-            <div class="swiper-slide">
-                <a href="#" class="inner-border-wrapper">
-                    <img src="img/banner4.png" alt="Banner Mới">
-                </a>
-            </div>
-
+          <div class="swiper-slide">
+            <a href="#" class="inner-border-wrapper"
+              ><img src="img/banner1.png" alt="Banner 1"
+            /></a>
+          </div>
+          <div class="swiper-slide">
+            <a href="#" class="inner-border-wrapper"
+              ><img src="img/banner2.png" alt="Banner 2"
+            /></a>
+          </div>
+          <div class="swiper-slide">
+            <a href="#" class="inner-border-wrapper"
+              ><img src="img/banner3.png" alt="Banner 3"
+            /></a>
+          </div>
+          <div class="swiper-slide">
+            <a href="#" class="inner-border-wrapper"
+              ><img src="img/banner4.png" alt="Banner 4"
+            /></a>
+          </div>
         </div>
-        
         <div class="swiper-pagination"></div>
         <div class="swiper-button-next"></div>
         <div class="swiper-button-prev"></div>
-    </div>
-</section>
-<section id="promo-grid-section" class="container" style="margin-top: 20px;">
-<div class="promo-grid">
-    
-    <div class="promo-item">
-        <a href="#" class="inner-border-wrapper">
-            <img src="./img/img2/banner1.png" alt="Chuyên tuần Ngữ Văn">
-            <button class="mua-ngay-btn">MUA NGAY</button>
+      </div>
+    </section>
+
+    <section id="promo-grid-section" class="container" style="margin-top: 20px">
+      <div class="promo-grid">
+        <div class="promo-item">
+          <a href="#" class="inner-border-wrapper"
+            ><img src="./img/img2/banner1.png" /><button class="mua-ngay-btn">
+              MUA NGAY
+            </button></a
+          >
+        </div>
+        <div class="promo-item">
+          <a href="#" class="inner-border-wrapper"
+            ><img src="./img/img2/banner2.png" /><button class="mua-ngay-btn">
+              MUA NGAY
+            </button></a
+          >
+        </div>
+        <div class="promo-item">
+          <a href="#" class="inner-border-wrapper"
+            ><img src="./img/img2/banner3.png" /><button class="mua-ngay-btn">
+              MUA NGAY
+            </button></a
+          >
+        </div>
+        <div class="promo-item">
+          <a href="#" class="inner-border-wrapper"
+            ><img src="./img/img2/banner4.png" /><button class="mua-ngay-btn">
+              MUA NGAY
+            </button></a
+          >
+        </div>
+      </div>
+    </section>
+
+    <section
+      id="utility-icons-section"
+      class="container"
+      style="margin-top: 30px; margin-bottom: 30px"
+    >
+      <div class="icon-wrapper">
+        <a
+          href="javascript:void(0)"
+          class="utility-icon"
+          onclick="scrollToFlashSale()"
+        >
+          <div class="icon-box"><i class="fas fa-bolt"></i></div>
+          <span>Flash Sale</span>
         </a>
-    </div>
-
-    <div class="promo-item">
-        <a href="#" class="inner-border-wrapper">
-            <img src="./img/img2/banner2.png" alt="Mừng NXB Oxford">
-            <button class="mua-ngay-btn">MUA NGAY</button>
+        <a
+          href="javascript:void(0)"
+          class="utility-icon"
+          onclick="showGiftCardInfo()"
+        >
+          <div class="icon-box"><i class="fas fa-gift"></i></div>
+          <span>Gift Card</span>
         </a>
-    </div>
-
-    <div class="promo-item">
-        <a href="#" class="inner-border-wrapper">
-            <img src="./img/img2/banner3.png" alt="Quà tri thức">
-            <button class="mua-ngay-btn">MUA NGAY</button>
+        <a
+          href="javascript:void(0)"
+          class="utility-icon"
+          onclick="toggleVoucherPopup()"
+        >
+          <div class="icon-box"><i class="fas fa-tags"></i></div>
+          <span>Mã Giảm Giá</span>
         </a>
-    </div>
-
-    <div class="promo-item">
-        <a href="#" class="inner-border-wrapper">
-            <img src="./img/img2/banner4.png" alt="Giáng sinh ấm áp">
-            <button class="mua-ngay-btn">MUA NGAY</button>
+        <a
+          href="javascript:void(0)"
+          class="utility-icon"
+          onclick="filterNewBooks()"
+        >
+          <div class="icon-box"><i class="fas fa-book-open"></i></div>
+          <span>Sách Mới</span>
         </a>
-    </div>
+      </div>
+    </section>
 
-</div>
-</section>
-<section id="utility-icons-section" class="container" style="margin-top: 30px; margin-bottom: 30px;">
-    <div class="icon-wrapper">
-        
-        <a href="javascript:void(0)" class="utility-icon" onclick="scrollToFlashSale()">
-            <div class="icon-box">
-                <i class="fas fa-bolt"></i>
-            </div>
-            <span>Flash Sale</span>
-        </a>
-
-        <a href="javascript:void(0)" class="utility-icon" onclick="showGiftCardInfo()">
-            <div class="icon-box">
-                <i class="fas fa-gift"></i>
-            </div>
-            <span>Gift Card</span>
-        </a>
-
-        <a href="javascript:void(0)" class="utility-icon" onclick="toggleVoucherPopup()">
-            <div class="icon-box">
-                <i class="fas fa-tags"></i>
-            </div>
-            <span>Mã Giảm Giá</span>
-        </a>
-
-        <a href="javascript:void(0)" class="utility-icon" onclick="filterNewBooks()">
-            <div class="icon-box">
-                <i class="fas fa-book-open"></i>
-            </div>
-            <span>Sách Mới</span>
-        </a>
-
-    </div>
-</section>
-
-    <div id="voucher-modal" class="custom-modal-overlay" onclick="toggleVoucherPopup()">
-    <div class="custom-modal-content" onclick="event.stopPropagation()">
+    <div
+      id="voucher-modal"
+      class="custom-modal-overlay"
+      onclick="toggleVoucherPopup()"
+    >
+      <div class="custom-modal-content" onclick="event.stopPropagation()">
         <div class="modal-header">
-            <h3>🎟️ Kho Mã Giảm Giá</h3>
-            <span class="close-btn" onclick="toggleVoucherPopup()">&times;</span>
+          <h3>🎟️ Kho Mã Giảm Giá</h3>
+          <span class="close-btn" onclick="toggleVoucherPopup()">&times;</span>
         </div>
         <div class="modal-body">
-            <div class="voucher-ticket">
-                <div class="voucher-left">
-                    <span class="voucher-code">BS50K</span>
-                    <small>Giảm 50K đơn 200K</small>
-                </div>
-                <button onclick="copyCode('FHS50K')">Lưu</button>
+          <div class="voucher-ticket">
+            <div class="voucher-left">
+              <span class="voucher-code">BS50K</span
+              ><small>Giảm 50K đơn 200K</small>
             </div>
-            <div class="voucher-ticket">
-                <div class="voucher-left">
-                    <span class="voucher-code">FREESHIP</span>
-                    <small>Miễn phí vận chuyển</small>
-                </div>
-                <button onclick="copyCode('FREESHIP')">Lưu</button>
+            <button onclick="copyCode('BS50K')">Lưu</button>
+          </div>
+          <div class="voucher-ticket">
+            <div class="voucher-left">
+              <span class="voucher-code">FREESHIP</span
+              ><small>Miễn phí vận chuyển</small>
             </div>
+            <button onclick="copyCode('FREESHIP')">Lưu</button>
+          </div>
         </div>
+      </div>
     </div>
-</div>
 
-<section id="flash-sale-area" class="container" style="margin-top: 30px;">
-   <div class="fs-title">
-        <i class="fas fa-bolt"></i> FLASH SALE
-    </div>
-    <div class="fs-timer">
+    <section id="flash-sale-area" class="container" style="margin-top: 30px">
+      <div class="flash-sale-header">
+        <div class="fs-title"><i class="fas fa-bolt"></i> FLASH SALE</div>
+        <div class="fs-timer">
+          <span id="hours">02</span> : <span id="minutes">45</span> :
+          <span id="seconds">10</span>
         </div>
-    
-    <a href="pages/flash-sale.html" class="view-all-link">
-        Xem tất cả <i class="fas fa-chevron-right"></i>
-    </a>
-    </div>
-    <div class="flash-sale-list">
-        <div class="product-card">
-            <div class="badge-hot">-50%</div>
-            <img src="https://via.placeholder.com/150" alt="Flash Sale">
-            <div class="price">50.000 ₫</div>
+        <a href="pages/flash-sale.html" class="view-all-link"
+          >Xem tất cả <i class="fas fa-chevron-right"></i
+        ></a>
+      </div>
+
+      <div class="flash-sale-list" id="home-flash-sale-grid">
+        <div
+          style="padding: 20px; text-align: center; width: 100%; color: #666"
+        >
+          <i class="fas fa-spinner fa-spin"></i> Đang tải Deal sốc...
         </div>
-        <div class="product-card">
-            <div class="badge-hot">-40%</div>
-            <img src="https://via.placeholder.com/150" alt="Flash Sale">
-            <div class="price">99.000 ₫</div>
-        </div>
-        <div class="product-card">
-            <div class="badge-hot">-30%</div>
-            <img src="https://via.placeholder.com/150" alt="Flash Sale">
-            <div class="price">120.000 ₫</div>
-        </div>
-        <div class="product-card">
-            <div class="badge-hot">-60%</div>
-            <img src="https://via.placeholder.com/150" alt="Flash Sale">
-            <div class="price">25.000 ₫</div>
-        </div>
-    </div>
-</section>
-<section class="container daily-home-section">
-    <div class="daily-home-header">
+      </div>
+    </section>
+
+    <section class="container daily-home-section">
+      <div class="daily-home-header">
         <div class="daily-title">
-            <i class="fas fa-stars" style="color: #F7941E;"></i> GỢI Ý HÔM NAY
+          <i class="fas fa-stars" style="color: #f7941e"></i> GỢI Ý HÔM NAY
         </div>
-        
         <div class="daily-tabs-wrapper">
-            <button class="d-tab active" onclick="switchHomeTab('all', this)">
-                <i class="fas fa-hand-holding-heart"></i> Dành cho bạn
-            </button>
-            <button class="d-tab" onclick="switchHomeTab('hot', this)">
-                <img src="https://cdn0.fahasa.com/skin/frontend/ma_vanese/fahasa/images/ico_deal_hot.png" width="20"> 
-                Sách Hot - Giảm Sốc
-            </button>
-            <button class="d-tab" onclick="switchHomeTab('manga', this)">
-                <i class="fas fa-journal-whills"></i> Manga - Comic
-            </button>
-            <button class="d-tab" onclick="switchHomeTab('vanhoc', this)">
-                <i class="fas fa-pen-nib"></i> Văn Học
-            </button>
-        </div>
-    </div>
-
-    <div id="home-daily-grid" class="daily-grid-container">
-        <div style="text-align:center; padding: 20px; width: 100%;">
-            <i class="fas fa-spinner fa-spin"></i> Đang tải...
-        </div>
-    </div>
-
-    <div class="daily-load-more">
-    <a href="pages/daily-suggestions.html" class="btn-home-view-all">
-        Xem tất cả <i class="fas fa-chevron-right"></i>
-    </a>
-</div>
-</section>
-
-<hr style="margin: 40px 0;">
-
-<section id="main-content" class="container">
-    <main class="container main-layout">
-      <aside class="sidebar">
-        <div class="filter-group">
-          <h3><i class="fas fa-filter"></i> BỘ LỌC TÌM KIẾM</h3>
-
-          <div class="filter-item">
-            <h4>Khoảng giá</h4>
-            <select id="price-filter" class="form-control">
-              <option value="">Tất cả mức giá</option>
-              <option value="0-50000">Dưới 50.000đ</option>
-              <option value="50000-150000">50.000đ - 150.000đ</option>
-              <option value="150000-300000">150.000đ - 300.000đ</option>
-              <option value="300000-9999999">Trên 300.000đ</option>
-            </select>
-          </div>
-
-          <div class="filter-item">
-            <h4>Thể loại</h4>
-            <ul class="category-list">
-              <li><a href="javascript:void(0)" onclick="filterCat(1)">Văn học</a></li>
-              <li><a href="javascript:void(0)" onclick="filterCat(2)">Kinh tế</a></li>
-              <li><a href="javascript:void(0)" onclick="filterCat(3)">Thiếu nhi</a></li>
-              <li><a href="javascript:void(0)" onclick="filterCat(4)">Công nghệ</a></li>
-            </ul>
-          </div>
-
-          <button onclick="handleSearch()" class="btn-filter">Áp dụng</button>
-        </div>
-      </aside>
-
-      <section class="product-section">
-        <div class="section-header">
-          <h2>🔥 Xu Hướng Mua Sắm</h2>
-          <div class="sort-options">
-            Sắp xếp:
-            <select onchange="handleSort(this.value)">
-              <option value="newest">Mới nhất</option>
-              <option value="price_asc">Giá thấp đến cao</option>
-              <option value="price_desc">Giá cao đến thấp</option>
-            </select>
-          </div>
-        </div>
-
-        <div id="book-list" class="product-grid">
-          <div class="loading-spinner">
-            <i class="fas fa-spinner fa-spin"></i> Đang tải sách...
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <footer class="footer">
-      <div class="container">
-        <div class="footer-col">
-          <h3>VỀ BOOKSTORE</h3>
-          <p>Giới thiệu</p>
-          <p>Tuyển dụng</p>
-          <p>Chính sách bảo mật</p>
-        </div>
-        <div class="footer-col">
-          <h3>HỖ TRỢ KHÁCH HÀNG</h3>
-          <p>Hướng dẫn mua hàng</p>
-          <p>Phương thức thanh toán</p>
-          <p>Chính sách đổi trả</p>
-        </div>
-        <div class="footer-col">
-          <h3>LIÊN HỆ</h3>
-          <p><i class="fas fa-map-marker-alt"></i> 123 Đường Sách, TP.HCM</p>
-          <p><i class="fas fa-envelope"></i> cskh@bookstore.com</p>
-          <p><i class="fas fa-phone"></i> 1900 1234</p>
+          <button class="d-tab active" onclick="switchHomeTab('all', this)">
+            <i class="fas fa-hand-holding-heart"></i> Dành cho bạn
+          </button>
+          <button class="d-tab" onclick="switchHomeTab('hot', this)">
+            <img
+              src="https://cdn0.fahasa.com/skin/frontend/ma_vanese/fahasa/images/ico_deal_hot.png"
+              width="20"
+            />
+            Sách Hot
+          </button>
+          <button class="d-tab" onclick="switchHomeTab('manga', this)">
+            <i class="fas fa-journal-whills"></i> Manga
+          </button>
+          <button class="d-tab" onclick="switchHomeTab('vanhoc', this)">
+            <i class="fas fa-pen-nib"></i> Văn Học
+          </button>
         </div>
       </div>
-      <div class="footer-bottom">
-        <p>&copy; 2024 BookStore - Design by You</p>
-      </div>
-    </footer>
 
-    <script src="./js/api.js"></script>
-    <script src="./js/index.js"></script>
-    <script src="js/utility.js"></script>
+      <div id="home-daily-grid" class="daily-grid-container">
+        <div style="text-align: center; padding: 20px; width: 100%">
+          <i class="fas fa-spinner fa-spin"></i> Đang tải...
+        </div>
+      </div>
+
+      <div class="daily-load-more">
+        <a href="pages/daily-suggestions.html" class="btn-home-view-all"
+          >Xem tất cả <i class="fas fa-chevron-right"></i
+        ></a>
+      </div>
+    </section>
+
+    <hr style="margin: 40px 0" />
+
+    <section id="main-content" class="container">
+      <main class="container main-layout">
+        <aside class="sidebar">
+          <div class="filter-group">
+            <h3><i class="fas fa-filter"></i> BỘ LỌC TÌM KIẾM</h3>
+
+            <div class="filter-item">
+              <h4>Khoảng giá</h4>
+              <select id="price-filter" class="form-control">
+                <option value="">Tất cả mức giá</option>
+                <option value="0-50000">Dưới 50.000đ</option>
+                <option value="50000-150000">50.000đ - 150.000đ</option>
+                <option value="150000-300000">150.000đ - 300.000đ</option>
+                <option value="300000-9999999">Trên 300.000đ</option>
+              </select>
+            </div>
+
+            <div class="filter-item">
+              <h4>Thể loại</h4>
+              <div id="category-filter-list" class="category-list">
+                <p style="font-size: 12px; color: #999">Đang tải...</p>
+              </div>
+            </div>
+
+            <button onclick="handleSearch()" class="btn-filter">Áp dụng</button>
+          </div>
+        </aside>
+
+        <section class="product-section">
+          <div class="section-header">
+            <h2>🔥 Xu Hướng Mua Sắm</h2>
+            <div class="sort-options">
+              Sắp xếp:
+              <select onchange="handleSort(this.value)">
+                <option value="newest">Mới nhất</option>
+                <option value="price_asc">Giá thấp đến cao</option>
+                <option value="price_desc">Giá cao đến thấp</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="book-list" class="product-grid">
+            <div class="loading-spinner">
+              <i class="fas fa-spinner fa-spin"></i> Đang tải sách...
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div class="container">
+          <div class="footer-col">
+            <h3>VỀ BOOKSTORE</h3>
+            <p>Giới thiệu</p>
+            <p>Tuyển dụng</p>
+            <p>Chính sách bảo mật</p>
+          </div>
+          <div class="footer-col">
+            <h3>HỖ TRỢ KHÁCH HÀNG</h3>
+            <p>Hướng dẫn mua hàng</p>
+            <p>Phương thức thanh toán</p>
+            <p>Chính sách đổi trả</p>
+          </div>
+          <div class="footer-col">
+            <h3>LIÊN HỆ</h3>
+            <p><i class="fas fa-map-marker-alt"></i> 123 Đường Sách, TP.HCM</p>
+            <p><i class="fas fa-envelope"></i> cskh@bookstore.com</p>
+            <p><i class="fas fa-phone"></i> 1900 1234</p>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>&copy; 2024 BookStore - Design by You</p>
+        </div>
+      </footer>
+
+      <script src="./js/api.js"></script>
+      <script src="./js/index.js"></script>
+      <script src="js/utility.js"></script>
+    </section>
   </body>
 </html>

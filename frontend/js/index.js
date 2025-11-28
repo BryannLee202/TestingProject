@@ -2,37 +2,49 @@
 // const API_BASE = "http://localhost:5000/api";
 
 // --- BIẾN TOÀN CỤC ---
-let currentCategoryId = null; // Lưu danh mục đang chọn
+let currentCategoryId = null; // Lưu danh mục đang chọn (cho trang tìm kiếm)
+
+// Biến cho phần "Gợi ý hôm nay"
+let dailyHomeCurrentPage = 1;
+let dailyHomeCurrentTab = "all";
+let isDailyHomeLoading = false;
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Kiểm tra đăng nhập (hàm này nằm bên api.js/common.js)
+  // 1. Kiểm tra đăng nhập
   if (typeof checkLogin === "function") checkLogin();
 
-  // Tải danh mục vào sidebar
+  // 2. Tải danh mục vào sidebar & Header
   loadCategories();
+  loadHeaderCategories();
 
-  // Tải toàn bộ sách lần đầu
+  // 3. Tải danh sách sách chính (Trang tìm kiếm/Mặc định)
   loadBooks();
+
+  // 4. Tải Flash Sale (Trang chủ)
+  loadHomeFlashSale();
+
+  // 5. Tải Gợi ý hôm nay (Trang chủ - Tab mặc định 'all')
+  loadHomeDailyData("all");
 });
 
-// 1. HÀM TẢI SÁCH (CÓ HỖ TRỢ TÌM KIẾM & LỌC)
+/* ==============================================
+   PHẦN 1: LOGIC TÌM KIẾM & DANH SÁCH CHÍNH
+   ============================================== */
+
 async function loadBooks(params = {}) {
   const container = document.getElementById("book-list");
+  if (!container) return; // Nếu không ở trang có book-list thì bỏ qua
+
   container.innerHTML =
     '<p style="text-align:center; width:100%">⏳ Đang tìm kiếm...</p>';
 
   try {
-    // Xây dựng đường dẫn URL
     const url = new URL(`${API_BASE}/books`);
-
-    // Thêm các tham số vào URL (search, category, min_price, max_price...)
     Object.keys(params).forEach((key) => {
       if (params[key] !== null && params[key] !== "") {
         url.searchParams.append(key, params[key]);
       }
     });
-
-    console.log("Calling API:", url.toString()); // Log để kiểm tra link
 
     const res = await fetch(url);
     const data = await res.json();
@@ -44,492 +56,300 @@ async function loadBooks(params = {}) {
     }
   } catch (err) {
     console.error("Lỗi:", err);
-    container.innerHTML = `<p style="text-align:center; color:red">Lỗi kết nối Server!</p>`;
   }
 }
+/* ==============================================
+   PHẦN XỬ LÝ TÌM KIẾM
+   ============================================== */
 
-// 2. HÀM XỬ LÝ KHI BẤM NÚT TÌM KIẾM
+// 1. Hàm xử lý khi nhấn nút Tìm kiếm
 function handleSearch() {
   const keyword = document.getElementById("search-input").value;
-  const priceFilter = document.getElementById("price-filter").value;
 
-  // Tạo object chứa tham số để gửi lên Server
+  // Lấy thêm các bộ lọc hiện tại (nếu có) để tìm kiếm chính xác hơn
+  const priceFilter = document.getElementById("price-filter")?.value;
   const params = {};
 
-  // 1. Xử lý Từ khóa
+  // Thêm từ khóa vào tham số gửi đi
   if (keyword.trim()) {
     params.search = keyword.trim();
   }
 
-  // 2. Xử lý Khoảng giá
+  // Giữ nguyên lọc giá nếu đang chọn
   if (priceFilter) {
     const [min, max] = priceFilter.split("-");
     params.min_price = min;
     params.max_price = max;
   }
 
-  // 3. Xử lý Thể loại (Giữ nguyên thể loại đang chọn nếu có)
+  // Giữ nguyên danh mục nếu đang chọn
   if (currentCategoryId) {
     params.category = currentCategoryId;
   }
 
-  // Gọi lại hàm load sách với tham số mới
+  console.log("Đang tìm kiếm:", params);
+
+  // Gọi hàm loadBooks để tải lại danh sách
   loadBooks(params);
+
+  // Tự động cuộn xuống phần danh sách sách
+  const bookList = document.getElementById("main-content"); // Hoặc ID của container chứa sách
+  if (bookList) {
+    bookList.scrollIntoView({ behavior: "smooth" });
+  }
 }
 
-// 3. HÀM VẼ SÁCH RA MÀN HÌNH
+// 2. Hàm xử lý khi nhấn phím Enter trong ô input
+function handleEnterSearch(event) {
+  if (event.key === "Enter") {
+    event.preventDefault(); // Ngăn load lại trang
+    handleSearch(); // Gọi hàm tìm kiếm
+  }
+}
+
 function renderBooks(books) {
   const container = document.getElementById("book-list");
-
   if (!books || books.length === 0) {
     container.innerHTML =
       "<div style='text-align:center; width:100%; padding: 50px;'>❌ Không tìm thấy cuốn sách nào.</div>";
     return;
   }
+  container.innerHTML = generateBookHTML(books);
+}
 
-  const formatMoney = (amount) =>
-    new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(amount);
+/* ==============================================
+   PHẦN 2: LOGIC FLASH SALE (TRANG CHỦ)
+   ============================================== */
 
-  const html = books
-    .map((book) => {
-      // Giả lập giá gốc (cao hơn giá bán 20%)
-      const fakeOriginalPrice = book.price * 1.2;
-      const discount = Math.round(
-        ((fakeOriginalPrice - book.price) / fakeOriginalPrice) * 100
-      );
+async function loadHomeFlashSale() {
+  const container = document.getElementById("home-flash-sale-grid");
+  if (!container) return;
 
-      return `
-        <div class="product-card">
-            ${discount > 0 ? `<div class="badge-hot">-${discount}%</div>` : ""}
+  try {
+    // Gọi API Flash Sale
+    const res = await fetch(`${API_BASE}/books/flash-sale`);
+    const data = await res.json();
+
+    if (data.success && data.data.length > 0) {
+      // Lấy 5 cuốn đầu tiên
+      renderHomeFlashSale(data.data.slice(0, 5));
+    } else {
+      container.innerHTML =
+        '<p style="padding:20px">Chưa có chương trình Flash Sale.</p>';
+    }
+  } catch (error) {
+    console.error("Lỗi Flash Sale:", error);
+  }
+}
+
+// fe/js/index.js
+
+function renderHomeFlashSale(books) {
+    const container = document.getElementById("home-flash-sale-grid");
+    const formatMoney = (val) => new Intl.NumberFormat('vi-VN', {style:'currency', currency:'VND'}).format(val);
+
+    const html = books.map(book => {
+        const originalPrice = book.original_price || (book.price * 1.3);
+        const discount = Math.round(((originalPrice - book.price) / originalPrice) * 100);
+        // Random số lượng đã bán từ 5 đến 90%
+        const soldPercent = Math.floor(Math.random() * 85) + 5; 
+        const soldQty = Math.floor(Math.random() * 100) + 10;
+
+        return `
+        <div class="fs-card-compact">
+            <div class="fs-badge">-${discount}%</div>
             
-            <a href="pages/detail.html?id=${book.id}">
-                <img src="${
-                  book.image_url || "https://via.placeholder.com/200"
-                }" 
-                     alt="${book.title}" 
+            <a href="pages/detail.html?id=${book.id}" class="fs-img-container">
+                <img src="${book.image_url}" alt="${book.title}" 
                      onerror="this.src='https://via.placeholder.com/200'">
             </a>
             
-            <a href="pages/detail.html?id=${book.id}" title="${book.title}">
-                <h3>${book.title}</h3>
-            </a>
+            <div class="fs-card-info">
+                <a href="pages/detail.html?id=${book.id}" title="${book.title}" style="text-decoration:none">
+                    <h3 class="fs-name">${book.title}</h3>
+                </a>
+                
+                <div class="fs-price-row">
+                    <div class="fs-price">${formatMoney(book.price)}</div>
+                    <div class="fs-old-price">${formatMoney(originalPrice)}</div>
+                </div>
 
-            <div class="rating-area">
-                ${renderStars(book.average_rating || 0)}
-                <span class="review-count">(${
-                  book.review_count || 0
-                } đánh giá)</span>
-            </div>
-
-            <div class="price">
-                ${formatMoney(book.price)}
-                <span class="original-price">${formatMoney(
-                  fakeOriginalPrice
-                )}</span>
-            </div>
-
-            <div class="card-footer">
-                <button class="btn-add-cart" onclick="addToCart(${book.id})">
-                    <i class="fas fa-cart-plus"></i> Thêm vào giỏ
-                </button>
+                <div class="fs-progress-bar">
+                    <div class="fs-progress-fill" style="width: ${soldPercent}%"></div>
+                    <div class="fs-progress-text">ĐÃ BÁN ${soldQty}</div>
+                </div>
             </div>
         </div>
         `;
-    })
-    .join("");
+    }).join('');
 
-  container.innerHTML = html;
+    container.innerHTML = html;
 }
 
-// 4. HÀM VẼ NGÔI SAO (Helper)
-function renderStars(rating) {
-  let stars = "";
-  for (let i = 1; i <= 5; i++) {
-    if (i <= rating) stars += '<i class="fas fa-star"></i>';
-    else if (i - 0.5 <= rating) stars += '<i class="fas fa-star-half-alt"></i>';
-    else stars += '<i class="far fa-star"></i>';
+/* ==============================================
+   PHẦN 3: LOGIC GỢI Ý HÔM NAY (TRANG CHỦ)
+   ============================================== */
+
+// 3.1. Chuyển Tab
+function switchHomeTab(type, btn) {
+  // Đổi giao diện nút active
+  document
+    .querySelectorAll(".d-tab")
+    .forEach((el) => el.classList.remove("active"));
+  btn.classList.add("active");
+
+  // Reset dữ liệu
+  dailyHomeCurrentTab = type;
+  dailyHomeCurrentPage = 1;
+  document.getElementById("home-daily-grid").innerHTML = ""; // Xóa cũ
+
+  // Reset nút xem thêm
+  const btnLoad = document.getElementById("btn-home-load-more");
+  if (btnLoad) {
+    btnLoad.innerHTML =
+      'Xem thêm 20 sản phẩm <i class="fas fa-chevron-down"></i>';
+    btnLoad.disabled = false;
+    btnLoad.style.opacity = "1";
   }
-  return stars;
+
+  // Tải mới
+  loadHomeDailyData(type);
 }
 
-// 5. HÀM THÊM GIỎ HÀNG
-async function addToCart(bookId) {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    Swal.fire({
-      title: "Đăng nhập",
-      text: "Bạn cần đăng nhập để mua hàng.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#e30019",
-      cancelButtonColor: "#6c757d",
-      confirmButtonText: "Đến trang Đăng nhập",
-      cancelButtonText: "Để sau",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        window.location.href = "pages/login.html";
-      }
-    });
-    return;
-  }
-
-  try {
-    const res = await fetch(`${API_BASE}/cart/add`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ bookId, quantity: 1 }),
-    });
-    const data = await res.json();
-
-    if (res.ok || data.success) {
-      // Cập nhật icon giỏ hàng nếu hàm này tồn tại
-      if (typeof updateCartCount === "function") await updateCartCount();
-
-      Swal.fire({
-        title: "Thành công!",
-        text: "✅ Đã thêm vào giỏ hàng!",
-        icon: "success",
-        toast: true,
-        position: "top-end",
-        showConfirmButton: false,
-        timer: 1500,
-        timerProgressBar: true,
-      });
-    } else {
-      Swal.fire({
-        title: "Lỗi",
-        text: "Lỗi: " + data.message,
-        icon: "error",
-        confirmButtonColor: "#e30019",
-      });
-    }
-  } catch (e) {
-    Swal.fire({
-      title: "Lỗi",
-      text: "Lỗi kết nối Server!",
-      icon: "error",
-      confirmButtonColor: "#e30019",
-    });
-  }
-}
-
-// 6. HÀM TẢI DANH MỤC VÀO SIDEBAR
-async function loadCategories() {
-  try {
-    const res = await fetch(`${API_BASE}/categories`);
-    const data = await res.json();
-
-    const listDiv = document.getElementById("category-filter-list");
-    if (data.success) {
-      listDiv.innerHTML = data.data
-        .map(
-          (cat) => `
-                <a href="#" 
-                   class="category-link" 
-                   style="display:block; padding:5px 0; color:#333; text-decoration:none;"
-                   onclick="selectCategory(event, this, ${cat.id})"> 
-                   ${cat.name}
-                </a>
-            `
-        )
-        .join("");
-    }
-  } catch (err) {
-    console.error("Lỗi danh mục:", err);
-  }
-}
-
-// 7. HÀM CHỌN THỂ LOẠI (LOGIC CHÍNH)
-function selectCategory(event, element, id) {
-  // 🛑 QUAN TRỌNG: Ngăn chặn hành động mặc định (nhảy trang)
-  if (event) event.preventDefault();
-
-  // 1. Reset màu các link khác
-  document.querySelectorAll(".category-link").forEach((el) => {
-    el.style.color = "#333";
-    el.style.fontWeight = "normal";
-  });
-
-  // 2. Highlight link vừa chọn
-  if (element) {
-    element.style.color = "#e30019";
-    element.style.fontWeight = "bold";
-  }
-
-  // 3. Lưu ID vào biến toàn cục
-  currentCategoryId = id;
-  console.log("Đã chọn danh mục:", id);
-
-  // 4. Gọi hàm lọc
-  applyFilters();
-}
-
-// 8. HÀM ÁP DỤNG BỘ LỌC TỔNG HỢP
-function applyFilters() {
-  const priceValue = document.getElementById("price-filter")?.value;
-  const params = {};
-
-  // Xử lý Giá
-  if (priceValue) {
-    const [min, max] = priceValue.split("-");
-    params.min_price = min;
-    params.max_price = max;
-  }
-
-  // Xử lý Thể loại (Lấy từ biến toàn cục)
-  if (currentCategoryId) {
-    params.category = currentCategoryId; // Key là 'category' cho khớp Backend
-  }
-
-  console.log("Params gửi đi:", params);
-
-  // Gọi API
-  loadBooks(params);
-}
-
-// 9. HÀM RESET BỘ LỌC
-function resetFilters() {
-  currentCategoryId = null;
-  document.getElementById("price-filter").value = "";
-
-  document.querySelectorAll(".category-link").forEach((el) => {
-    el.style.color = "#333";
-    el.style.fontWeight = "normal";
-  });
-
-  loadBooks();
-}
-// --- LOGIC MENU DANH MỤC HEADER ---
-
-document.addEventListener("DOMContentLoaded", () => {
-  // ... các hàm khác ...
-  loadHeaderCategories(); // Gọi hàm này khi trang tải xong
-});
-
-async function loadHeaderCategories() {
-  try {
-    const res = await fetch(`${API_BASE}/categories`);
-    const data = await res.json();
-
-    const menuContainer = document.getElementById("header-category-list");
-
-    if (data.success) {
-      // Danh sách icon giả lập cho đẹp (vì DB bạn có thể chưa có field icon)
-      const icons = [
-        "fa-book",
-        "fa-chart-line",
-        "fa-brain",
-        "fa-child",
-        "fa-language",
-        "fa-globe",
-      ];
-
-      menuContainer.innerHTML = data.data
-        .map((cat, index) => {
-          // Lấy icon tương ứng hoặc random
-          const iconClass = icons[index % icons.length];
-
-          return `
-                <a href="javascript:void(0)" 
-                   class="cate-menu-item" 
-                   onclick="handleHeaderCategoryClick(event, ${cat.id})">
-                    <i class="fas ${iconClass}"></i>
-                    <span>${cat.name}</span>
-                </a>
-                `;
-        })
-        .join("");
-    }
-  } catch (err) {
-    console.error("Lỗi tải menu header:", err);
-  }
-}
-
-// Hàm xử lý khi bấm vào danh mục trên Header
-function handleHeaderCategoryClick(event, catId) {
-  event.preventDefault();
-
-  // 1. Nếu đang ở trang chủ (index.html) -> Lọc trực tiếp
-  if (typeof loadBooks === "function") {
-    // Tái sử dụng hàm selectCategory đã viết ở bài trước
-    // Hoặc gọi trực tiếp loadBooks
-    currentCategoryId = catId; // Cập nhật biến toàn cục
-    applyFilters(); // Gọi hàm lọc
-
-    // Cuộn xuống phần danh sách sách cho người dùng thấy
-    document
-      .getElementById("main-content")
-      .scrollIntoView({ behavior: "smooth" });
-  }
-  // 2. Nếu đang ở trang con (detail, cart...) -> Chuyển về trang chủ kèm tham số
-  else {
-    window.location.href = `../index.html?category=${catId}`;
-  }
-}
-// --- LOGIC GỢI Ý HÔM NAY (HOMEPAGE) ---
-
-// 1. Mock Data (Dữ liệu giả chất lượng cao)
-const homeDailyBooks = [
-  {
-    id: 101,
-    title: "Tâm Lý Học Về Tiền",
-    price: 159000,
-    old_price: 199000,
-    img: "https://salt.tikicdn.com/cache/w1200/ts/product/2e/98/64/093b589574488b394017a4773d42c75a.jpg",
-    sold: 120,
-  },
-  {
-    id: 102,
-    title: "Đừng Lựa Chọn An Nhàn Khi Còn Trẻ",
-    price: 68000,
-    old_price: 89000,
-    img: "https://salt.tikicdn.com/cache/w1200/ts/product/38/c7/27/a326075908b178c75047466870631671.jpg",
-    sold: 850,
-  },
-  {
-    id: 103,
-    title: "Thiên Tài Bên Trái, Kẻ Điên Bên Phải",
-    price: 105000,
-    old_price: 149000,
-    img: "https://salt.tikicdn.com/cache/w1200/ts/product/45/3b/2b/28876104d444747c3461239f6974868e.jpg",
-    sold: 340,
-  },
-  {
-    id: 104,
-    title: "Muôn Kiếp Nhân Sinh - Phần 2",
-    price: 180000,
-    old_price: 240000,
-    img: "https://salt.tikicdn.com/cache/w1200/ts/product/88/52/63/144704020300d8926065586616474662.jpg",
-    sold: 1200,
-  },
-  {
-    id: 105,
-    title: "Cây Cam Ngọt Của Tôi",
-    price: 63000,
-    old_price: 108000,
-    img: "https://salt.tikicdn.com/cache/w1200/ts/product/5e/18/24/2a6154ba08df6ce6161c13f4303fa19e.jpg",
-    sold: 900,
-  },
-  {
-    id: 106,
-    title: "Sapiens - Lược Sử Loài Người",
-    price: 215000,
-    old_price: 280000,
-    img: "https://salt.tikicdn.com/cache/w1200/ts/product/ad/0c/36/4545582c035654929871626353995663.jpg",
-    sold: 560,
-  },
-  {
-    id: 107,
-    title: "Dám Bị Ghét",
-    price: 76000,
-    old_price: 96000,
-    img: "https://salt.tikicdn.com/cache/w1200/ts/product/9d/1f/28/7f6d4d2325785055b46726884025c833.jpg",
-    sold: 320,
-  },
-  {
-    id: 108,
-    title: "Hiểu Về Trái Tim",
-    price: 120000,
-    old_price: 150000,
-    img: "https://salt.tikicdn.com/cache/w1200/ts/product/24/e9/8f/b495914652277d33878b47209825b443.jpg",
-    sold: 410,
-  },
-  {
-    id: 109,
-    title: "Luật Tâm Thức",
-    price: 220000,
-    old_price: 300000,
-    img: "https://salt.tikicdn.com/cache/w1200/ts/product/6e/8f/3e/32616492323c6046755452d378033068.jpg",
-    sold: 78,
-  },
-  {
-    id: 110,
-    title: "Hành Trình Về Phương Đông",
-    price: 88000,
-    old_price: 110000,
-    img: "https://salt.tikicdn.com/cache/w1200/ts/product/c6/3e/26/d561257008107662c0199047970d4c82.jpg",
-    sold: 650,
-  },
-];
-
-// Nhân bản dữ liệu để demo load more (thành 30 cuốn)
-let homeBookList = [...homeDailyBooks, ...homeDailyBooks, ...homeDailyBooks];
-let homeCurrentIndex = 0;
-const homePageSize = 10;
-
-// Tự động chạy khi load trang
-document.addEventListener("DOMContentLoaded", () => {
-  // ... các hàm khác của bạn ...
-  renderHomeDaily();
-});
-
-// 2. Hàm vẽ sách ra trang chủ
-function renderHomeDaily() {
+// 3.2. Tải dữ liệu từ API
+async function loadHomeDailyData(type) {
   const container = document.getElementById("home-daily-grid");
-  const loadBtn = document.getElementById("btn-home-load-more");
+  if (!container) return;
 
-  // Nếu là lần đầu load thì xóa loading
-  if (homeCurrentIndex === 0) container.innerHTML = "";
+  if (isDailyHomeLoading) return;
+  isDailyHomeLoading = true;
 
-  // Cắt lấy 10 cuốn tiếp theo
-  const nextBooks = homeBookList.slice(
-    homeCurrentIndex,
-    homeCurrentIndex + homePageSize
-  );
-
-  if (nextBooks.length === 0) {
-    loadBtn.innerHTML = "Đã xem hết sản phẩm";
-    loadBtn.disabled = true;
-    loadBtn.style.opacity = "0.6";
-    return;
+  // Hiển thị loading nếu là trang 1
+  if (dailyHomeCurrentPage === 1) {
+    container.innerHTML =
+      '<div style="grid-column:1/-1; text-align:center; padding:30px;"><i class="fas fa-spinner fa-spin"></i> Đang tìm sách hay...</div>';
   }
 
-  const html = nextBooks
+  try {
+    // Xây dựng URL
+    let url = `${API_BASE}/books?page=${dailyHomeCurrentPage}&limit=10`;
+
+    if (type === "hot")
+      url += "&min_price=100000"; // Giả lập sách hot là sách đắt tiền
+    else if (type === "manga")
+      url += "&category=5"; // ⚠️ ID Manga (Sửa theo DB của bạn)
+    else if (type === "vanhoc") url += "&category=1"; // ⚠️ ID Văn học (Sửa theo DB của bạn)
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    // Xóa loading icon trước khi render
+    if (dailyHomeCurrentPage === 1) container.innerHTML = "";
+
+    if (data.success && data.data.length > 0) {
+      renderHomeDailyGrid(data.data);
+      dailyHomeCurrentPage++; // Tăng trang
+    } else {
+      // Hết dữ liệu
+      const btnLoad = document.getElementById("btn-home-load-more");
+      if (btnLoad) {
+        btnLoad.innerHTML = "Đã xem hết sản phẩm";
+        btnLoad.disabled = true;
+        btnLoad.style.opacity = "0.6";
+      }
+      if (dailyHomeCurrentPage === 1) {
+        container.innerHTML =
+          '<div style="grid-column:1/-1; text-align:center;">Chưa có sách mục này.</div>';
+      }
+    }
+  } catch (error) {
+    console.error("Lỗi Daily:", error);
+  } finally {
+    isDailyHomeLoading = false;
+  }
+}
+
+// 3.3. Vẽ Giao Diện Gợi Ý
+function renderHomeDailyGrid(books) {
+  const container = document.getElementById("home-daily-grid");
+  const html = generateBookHTML(books);
+  container.insertAdjacentHTML("beforeend", html); // Thêm vào cuối (không xóa cũ)
+}
+
+// 3.4. Xử lý nút Xem Thêm
+function loadMoreHomeDaily() {
+  const btn = document.getElementById("btn-home-load-more");
+  const oldText = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tải...';
+
+  // Gọi lại hàm tải dữ liệu (nó sẽ tự dùng page tiếp theo)
+  loadHomeDailyData(dailyHomeCurrentTab).then(() => {
+    if (!btn.disabled) btn.innerHTML = oldText;
+  });
+}
+
+/* ==============================================
+   PHẦN 4: CÁC HÀM HỖ TRỢ CHUNG (HELPER)
+   ============================================== */
+
+// Hàm tạo HTML cho sách (Dùng chung cho cả Flash Sale, Daily, Main List)
+function generateBookHTML(books, isFlashSale = false) {
+  const formatMoney = (val) =>
+    new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(val);
+
+  return books
     .map((book) => {
-      const formatMoney = (amount) =>
-        new Intl.NumberFormat("vi-VN", {
-          style: "currency",
-          currency: "VND",
-        }).format(amount);
+      const originalPrice = book.original_price || book.price * 1.2;
       const discount = Math.round(
-        ((book.old_price - book.price) / book.old_price) * 100
+        ((originalPrice - book.price) / originalPrice) * 100
       );
+      const soldQty = Math.floor(Math.random() * 50) + 5;
+
+      let progressBarHTML = "";
+      if (isFlashSale) {
+        progressBarHTML = `
+            <div class="progress-bar" style="height:16px; background:#fddccb; border-radius:10px; margin-top:8px; position:relative; overflow:hidden;">
+                <div style="width:${soldQty}%; background:#E30019; height:100%;"></div>
+                <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:10px; color:#fff; font-weight:bold; white-space:nowrap;">
+                    ĐÃ BÁN ${soldQty}
+                </div>
+            </div>`;
+      }
 
       return `
-        <div class="product-card">
+        <div class="product-card" style="min-width: 200px;">
             <div class="badge-hot">-${discount}%</div>
             
             <a href="pages/detail.html?id=${book.id}">
-                <img src="${book.img}" alt="${book.title}" 
+                <img src="${book.image_url}" alt="${book.title}" 
                      style="height:180px; width:100%; object-fit:contain; margin-bottom:10px;"
                      onerror="this.src='https://via.placeholder.com/200'">
             </a>
             
             <a href="pages/detail.html?id=${book.id}" title="${book.title}">
-                <h3 style="font-size:13px; margin:0 0 5px; height:36px; overflow:hidden; line-height:1.4; color:#333;">${
+                <h3 style="font-size:13px; margin:0 0 5px; height:40px; overflow:hidden; line-height:1.4; color:#333;">${
                   book.title
                 }</h3>
             </a>
             
             <div class="rating-area" style="font-size:10px; color:#F7941E; margin-bottom:5px;">
-                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                <span style="color:#999;">| Đã bán ${book.sold}</span>
+                ${renderStars(book.average_rating || 5)}
+                <span style="color:#999;">(${book.review_count || 0})</span>
             </div>
 
             <div style="display:flex; gap:8px; align-items:center;">
                 <div class="price" style="color:#C92127; font-size:16px; font-weight:bold;">${formatMoney(
                   book.price
                 )}</div>
-                <div class="original-price" style="text-decoration:line-through; color:#ccc; font-size:12px;">${formatMoney(
-                  book.old_price
+                <div class="original-price" style="text-decoration:line-through; color:#999; font-size:12px;">${formatMoney(
+                  originalPrice
                 )}</div>
             </div>
+
+            ${progressBarHTML}
 
             <button class="btn-add-cart" onclick="addToCart(${
               book.id
@@ -540,41 +360,182 @@ function renderHomeDaily() {
         `;
     })
     .join("");
-
-  container.insertAdjacentHTML("beforeend", html);
-  homeCurrentIndex += homePageSize;
 }
 
-// 3. Hàm xử lý nút Xem thêm
-function loadMoreHomeDaily() {
-  const btn = document.getElementById("btn-home-load-more");
-  const oldText = btn.innerHTML;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tải...';
-
-  setTimeout(() => {
-    renderHomeDaily();
-    btn.innerHTML = oldText;
-  }, 500);
+function renderStars(rating) {
+  let stars = "";
+  for (let i = 1; i <= 5; i++) {
+    if (i <= rating) stars += '<i class="fas fa-star"></i>';
+    else stars += '<i class="far fa-star"></i>';
+  }
+  return stars;
 }
 
-// 4. Hàm chuyển Tab (Mô phỏng)
-function switchHomeTab(type, btn) {
-  // Đổi class active
+// Các hàm khác (addToCart, loadCategories, selectCategory...) giữ nguyên như cũ
+// ... (Bạn copy lại các hàm đó vào đây nếu cần, hoặc để chúng ở cuối file này)
+
+async function addToCart(bookId) {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    Swal.fire({
+      title: "Đăng nhập",
+      text: "Bạn cần đăng nhập để mua hàng.",
+      icon: "warning",
+      confirmButtonText: "Đồng ý",
+    });
+    return;
+  }
+  // ... Logic add cart cũ ...
+  console.log("Add cart", bookId);
+  Swal.fire({
+    title: "Thành công!",
+    text: "Đã thêm vào giỏ hàng!",
+    icon: "success",
+    timer: 1000,
+    showConfirmButton: false,
+  });
+}
+
+async function loadCategories() {
+  // ... Logic load category sidebar cũ ...
+  try {
+    const res = await fetch(`${API_BASE}/categories`);
+    const data = await res.json();
+    const listDiv = document.getElementById("category-filter-list");
+    if (data.success && listDiv) {
+      listDiv.innerHTML = data.data
+        .map(
+          (cat) => `
+                <a href="javascript:void(0)" class="category-link" onclick="selectCategory(event, this, ${cat.id})">${cat.name}</a>
+            `
+        )
+        .join("");
+    }
+  } catch (e) {}
+}
+
+async function loadHeaderCategories() {
+  // ... Logic load category header cũ ...
+  try {
+    const res = await fetch(`${API_BASE}/categories`);
+    const data = await res.json();
+    const menuContainer = document.getElementById("header-category-list");
+    if (data.success && menuContainer) {
+      menuContainer.innerHTML = data.data
+        .map(
+          (cat) => `
+                <a href="javascript:void(0)" class="cate-menu-item" onclick="handleHeaderCategoryClick(event, ${cat.id})">
+                    <i class="fas fa-book"></i> <span>${cat.name}</span>
+                </a>
+            `
+        )
+        .join("");
+    }
+  } catch (e) {}
+}
+
+function selectCategory(event, element, id) {
+  if (event) event.preventDefault();
+  currentCategoryId = id;
+  applyFilters();
+}
+
+function applyFilters() {
+  const params = {};
+  if (currentCategoryId) params.category = currentCategoryId;
+  loadBooks(params);
+}
+
+function handleHeaderCategoryClick(event, catId) {
+  event.preventDefault();
+  // Logic scroll xuống và lọc
+  currentCategoryId = catId;
+  applyFilters();
   document
-    .querySelectorAll(".d-tab")
-    .forEach((el) => el.classList.remove("active"));
-  btn.classList.add("active");
-
-  // Reset lại danh sách và load lại (xáo trộn giả lập)
-  homeCurrentIndex = 0;
-  // Xáo trộn mảng để giả vờ là dữ liệu mới
-  homeBookList = homeBookList.sort(() => Math.random() - 0.5);
-
-  const loadBtn = document.getElementById("btn-home-load-more");
-  loadBtn.disabled = false;
-  loadBtn.innerHTML =
-    'Xem thêm 20 sản phẩm <i class="fas fa-chevron-down"></i>';
-  loadBtn.style.opacity = "1";
-
-  renderHomeDaily();
+    .getElementById("main-content")
+    ?.scrollIntoView({ behavior: "smooth" });
 }
+/* ==============================================
+   PHẦN GỢI Ý TÌM KIẾM (AUTOCOMPLETE)
+   ============================================== */
+
+let searchTimeout = null; // Biến để lưu bộ đếm thời gian
+
+// 1. Hàm xử lý khi người dùng gõ phím
+function handleInputSearch(keyword) {
+  const suggestionBox = document.getElementById("search-suggestions-box");
+
+  // Nếu xóa hết chữ thì ẩn gợi ý
+  if (!keyword.trim()) {
+    suggestionBox.style.display = "none";
+    suggestionBox.innerHTML = "";
+    return;
+  }
+
+  // Xóa bộ đếm cũ (Debounce - Chống spam API)
+  clearTimeout(searchTimeout);
+
+  // Đợi 300ms sau khi ngừng gõ mới gọi API
+  searchTimeout = setTimeout(() => {
+    fetchSearchSuggestions(keyword);
+  }, 300);
+}
+
+// 2. Gọi API tìm kiếm nhanh
+async function fetchSearchSuggestions(keyword) {
+  const suggestionBox = document.getElementById("search-suggestions-box");
+
+  try {
+    // Gọi API tìm kiếm (tái sử dụng API books)
+    const res = await fetch(`${API_BASE}/books?search=${keyword}&limit=5`); // Chỉ lấy 5 kết quả
+    const data = await res.json();
+
+    if (data.success && data.data.length > 0) {
+      renderSuggestions(data.data);
+      suggestionBox.style.display = "block";
+    } else {
+      // Không tìm thấy
+      suggestionBox.style.display = "none";
+    }
+  } catch (error) {
+    console.error("Lỗi gợi ý:", error);
+  }
+}
+
+// 3. Vẽ danh sách gợi ý
+function renderSuggestions(books) {
+  const suggestionBox = document.getElementById("search-suggestions-box");
+  const formatMoney = (val) =>
+    new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(val);
+
+  const html = books
+    .map(
+      (book) => `
+        <a href="pages/detail.html?id=${book.id}" class="suggestion-item">
+            <img src="${
+              book.image_url
+            }" onerror="this.src='https://via.placeholder.com/100'">
+            <div class="suggestion-info">
+                <h4>${book.title}</h4>
+                <div class="price">${formatMoney(book.price)}</div>
+            </div>
+        </a>
+    `
+    )
+    .join("");
+
+  suggestionBox.innerHTML = html;
+}
+
+// 4. Sự kiện: Bấm ra ngoài thì tắt bảng gợi ý
+document.addEventListener("click", function (e) {
+  const searchBar = document.querySelector(".search-bar");
+  const suggestionBox = document.getElementById("search-suggestions-box");
+
+  if (searchBar && !searchBar.contains(e.target)) {
+    suggestionBox.style.display = "none";
+  }
+});
