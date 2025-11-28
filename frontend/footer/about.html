@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giới thiệu - BookStore</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles/main.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+      <div class="container header-container">
+        <a href="../index.html" class="logo">
+          <i class="fas fa-book-open"></i> BOOKSTORE
+        </a>
+<div class="category-dropdown-wrapper">
+    <div class="category-btn">
+        <span class="icon-grid"><i class="fas fa-th-large"></i></span>
+        <span class="text"></span>
+        <span class="icon-arrow"><i class="fas fa-chevron-down"></i></span>
+    </div>
+
+    <div class="category-menu" id="header-category-list">
+        <div style="padding:10px; color:#999;">Đang cập nhật...</div>
+    </div>
+</div>
+        <div class="search-box">
+          <input
+            type="text"
+            id="search-input"
+            placeholder="Tìm kiếm sách, tác giả..."
+          />
+          <button onclick="handleSearch()">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+
+        <div class="header-icons">
+          <div class="icon-item dropdown">
+            <div class="icon-wrap">
+              <i class="far fa-bell"></i>
+              <span>Thông báo</span>
+            </div>
+            <div class="dropdown-menu notify-menu">
+              <div class="notify-header">Thông báo mới nhận</div>
+              <div class="notify-list">
+                <div class="notify-item">
+                  <img
+                    src="https://cdn-icons-png.flaticon.com/512/726/726496.png"
+                    alt="sale"
+                  />
+                  <div>
+                    <strong>Khuyến mãi 50%</strong>
+                    <p>Duy nhất hôm nay cho sách Văn học.</p>
+                  </div>
+                </div>
+                <div class="notify-item">
+                  <img
+                    src="https://cdn-icons-png.flaticon.com/512/1162/1162479.png"
+                    alt="ship"
+                  />
+                  <div>
+                    <strong>Freeship đơn 0đ</strong>
+                    <p>Mã giảm giá đã được thêm vào ví.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="notify-footer">Xem tất cả</div>
+            </div>
+          </div>
+
+          <a href="../pages/cart.html" class="icon-item cart-link">
+            <div class="icon-wrap" style="position: relative">
+              <i class="fas fa-shopping-cart"></i>
+              <span id="cart-count" class="badge-count">0</span>
+            </div>
+            <span>Giỏ hàng</span>
+          </a>
+
+          <div class="icon-item dropdown">
+            <div id="auth-display" class="user-link">
+              <i class="far fa-user"></i>
+              <div class="user-info">
+                <span style="font-weight: bold; font-size: 13px"
+                  >Tài khoản</span
+                >
+                <small style="font-size: 11px; color: #777"
+                  >Đăng nhập / Đăng ký</small
+                >
+              </div>
+            </div>
+
+            <div id="user-dropdown" class="dropdown-menu user-menu">
+              <a href="../pages/login.html" class="menu-link"
+                ><i class="fas fa-sign-in-alt"></i> Đăng nhập</a
+              >
+              <a href="../pages/register.html" class="menu-link"
+                ><i class="fas fa-user-plus"></i> Đăng ký</a
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="container" style="padding: 40px 0; min-height: 60vh;">
+        <div class="page-header">
+            <h1>Giới thiệu về BookStore</h1>
+            <p>Hơn 10 năm đồng hành cùng độc giả Việt Nam</p>
+        </div>
+        
+        <div class="page-content">
+            <div class="about-section">
+                <h2>Về Chúng Tôi</h2>
+                <p>BookStore được thành lập với sứ mệnh mang tri thức đến với mọi người. Chúng tôi tin rằng sách là người bạn đồng hành tuyệt vời nhất trong cuộc sống.</p>
+                
+                <h2>Tầm Nhìn</h2>
+                <p>Trở thành nhà sách trực tuyến hàng đầu Việt Nam, nơi mọi độc giả có thể tìm thấy những cuốn sách phù hợp với nhu cầu và sở thích của mình.</p>
+                
+                <h2>Giá Trị Cốt Lõi</h2>
+                <ul>
+                    <li>✅ Chất lượng sách và dịch vụ tốt nhất</li>
+                    <li>✅ Giá cả hợp lý, cạnh tranh</li>
+                    <li>✅ Giao hàng nhanh chóng, tiện lợi</li>
+                    <li>✅ Đội ngũ hỗ trợ chuyên nghiệp</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-col">
+          <h3>VỀ BOOKSTORE</h3>
+          <p><a href="about.html">Giới thiệu</a></p>
+          <p><a href="careers.html">Tuyển dụng</a></p>
+          <p><a href="privacy-policy.html">Chính sách bảo mật</a></p>
+          <p><a href="terms.html">Điều khoản sử dụng</a></p>
+        </div>
+        <div class="footer-col">
+          <h3>HỖ TRỢ KHÁCH HÀNG</h3>
+          <p><a href="order-guide.html">Hướng dẫn mua hàng</a></p>
+          <p><a href="shipping-methods.html">Phương thức vận chuyển</a></p>
+          <p><a href="return-policy.html">Chính sách đổi trả</a></p>
+          <p><a href="faq.html">Câu hỏi thường gặp</a></p>
+        </div>
+        <div class="footer-col">
+          <h3>LIÊN HỆ & HỖ TRỢ</h3>
+          <p><a href="contact.html">Liên hệ</a></p>
+          <p><a href="support.html">Hỗ trợ</a></p>
+          <p><a href="submit-contact.html">Gửi liên hệ</a></p>
+          <p><a href="submit-support.html">Gửi yêu cầu hỗ trợ</a></p>
+        </div>
+        <div class="footer-col">
+          <h3>THÔNG TIN LIÊN HỆ</h3>
+          <p><i class="fas fa-map-marker-alt"></i> 123 Đường Sách, TP.HCM</p>
+          <p><i class="fas fa-envelope"></i> cskh@bookstore.com</p>
+          <p><i class="fas fa-phone"></i> 1900 1234</p>
+          <p><i class="fas fa-clock"></i> 8:00 - 22:00 (T2 - CN)</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2024 BookStore - Design by You</p>
+      </div>
+    </footer>
+
+    <script src="./js/api.js"></script>
+    <script src="./js/utility.js"></script>
+</body>
+</html>
