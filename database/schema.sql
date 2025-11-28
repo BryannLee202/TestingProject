@@ -172,3 +172,45 @@ CREATE INDEX idx_carts_user ON carts(user_id);
 GO
 
 PRINT '✅ Database schema created successfully!';
+
+-- Bảng liên hệ
+CREATE TABLE contacts (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    name NVARCHAR(100) NOT NULL,
+    email NVARCHAR(100) NOT NULL,
+    phone NVARCHAR(20),
+    subject NVARCHAR(200) NOT NULL,
+    message NVARCHAR(MAX) NOT NULL,
+    status NVARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'read', 'replied', 'resolved')),
+    created_at DATETIME2 DEFAULT GETDATE(),
+    updated_at DATETIME2 DEFAULT GETDATE()
+);
+
+-- Bảng hỗ trợ
+CREATE TABLE support_tickets (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    user_id INT,
+    order_number NVARCHAR(50),
+    issue_type NVARCHAR(50) NOT NULL,
+    description NVARCHAR(MAX) NOT NULL,
+    status NVARCHAR(20) DEFAULT 'open' CHECK (status IN ('open', 'in_progress', 'resolved', 'closed')),
+    priority NVARCHAR(20) DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high', 'urgent')),
+    admin_note NVARCHAR(MAX),
+    created_at DATETIME2 DEFAULT GETDATE(),
+    updated_at DATETIME2 DEFAULT GETDATE(),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- Bảng ứng tuyển
+CREATE TABLE job_applications (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    name NVARCHAR(100) NOT NULL,
+    email NVARCHAR(100) NOT NULL,
+    phone NVARCHAR(20) NOT NULL,
+    position NVARCHAR(100) NOT NULL,
+    experience NVARCHAR(20),
+    cv_url NVARCHAR(500),
+    cover_letter NVARCHAR(MAX),
+    status NVARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'reviewed', 'interview', 'rejected', 'accepted')),
+    created_at DATETIME2 DEFAULT GETDATE()
+);
