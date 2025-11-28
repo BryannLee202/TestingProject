@@ -15,7 +15,7 @@ const orderController = {
 
       // B1: Kiểm tra giỏ hàng có đồ không
       const cartCheck = await dbHelpers.query(
-        "SELECT COUNT(*) as count FROM Cart WHERE user_id = @userId",
+        "SELECT COUNT(*) as count FROM Carts WHERE user_id = @userId",
         { userId }
       );
 
@@ -26,39 +26,36 @@ const orderController = {
       }
 
       // B2: Tạo đơn hàng (INSERT vào bảng Orders)
-      // Dùng OUTPUT INSERTED.id để lấy ID đơn hàng vừa tạo
       const orderSql = `
-                INSERT INTO Orders (user_id, shipping_address, payment_method, customer_note, shipping_fee, total_amount, status, created_at)
-                OUTPUT INSERTED.id
-                VALUES (@userId, @address, @payment, @note, @fee, @total, 'pending', GETDATE())
-            `;
+        INSERT INTO Orders (user_id, shipping_address, payment_method, customer_note, shipping_fee, total_amount, status, created_at)
+        OUTPUT INSERTED.id
+        VALUES (@userId, @shipping_address, @payment_method, @customer_note, @shipping_fee, @total_amount, 'pending', GETDATE())
+      `;
 
       const orderResult = await dbHelpers.query(orderSql, {
         userId,
-        address: shipping_address,
-        payment: payment_method,
-        note: customer_note,
-        fee: shipping_fee,
-        total: total_amount,
+        shipping_address,
+        payment_method,
+        customer_note,
+        shipping_fee,
+        total_amount,
       });
 
       const newOrderId = orderResult[0].id;
 
-      // B3: Copy dữ liệu từ Cart sang OrderDetails
-      // (Kỹ thuật SQL: INSERT INTO ... SELECT ...) -> Rất nhanh và an toàn
+      // B3: Copy dữ liệu từ CartItems sang OrderDetails
       const detailsSql = `
-                INSERT INTO OrderDetails (order_id, book_id, quantity, price)
-                SELECT @orderId, c.book_id, c.quantity, b.price
-                FROM Cart c
-                JOIN Books b ON c.book_id = b.id
-                WHERE c.user_id = @userId
-            `;
+        INSERT INTO OrderDetails (order_id, book_id, quantity, price)
+        SELECT @orderId, ci.book_id, ci.quantity, b.price
+        FROM CartItems ci
+        JOIN Carts c ON ci.cart_id = c.id
+        JOIN Books b ON ci.book_id = b.id
+        WHERE c.user_id = @userId
+      `;
       await dbHelpers.execute(detailsSql, { orderId: newOrderId, userId });
 
       // B4: Xóa sạch giỏ hàng của user này
-      await dbHelpers.execute("DELETE FROM Cart WHERE user_id = @userId", {
-        userId,
-      });
+      await dbHelpers.execute("DELETE FROM CartItems WHERE cart_id IN (SELECT id FROM Carts WHERE user_id = @userId)", { userId });
 
       res.status(201).json({
         success: true,
@@ -78,10 +75,10 @@ const orderController = {
     try {
       const userId = req.user.id;
       const sql = `
-                SELECT * FROM Orders 
-                WHERE user_id = @userId 
-                ORDER BY created_at DESC
-            `;
+        SELECT * FROM Orders 
+        WHERE user_id = @userId 
+        ORDER BY created_at DESC
+      `;
       const orders = await dbHelpers.query(sql, { userId });
       res.json({ success: true, data: orders });
     } catch (error) {

@@ -3,18 +3,15 @@ const User = require("../models/User");
 const { generateToken } = require("../middleware/auth");
 
 const authController = {
-  // 1. Đăng ký user mới
   async register(req, res) {
     try {
       const { name, email, password, address, phone } = req.body;
 
       if (!name || !email || !password) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: "Tên, email và mật khẩu là bắt buộc",
-          });
+        return res.status(400).json({
+          success: false,
+          message: "Tên, email và mật khẩu là bắt buộc",
+        });
       }
 
       const existingUser = await User.findByEmail(email);
@@ -24,14 +21,13 @@ const authController = {
           .json({ success: false, message: "Email đã được sử dụng" });
       }
 
-      // Mã hóa mật khẩu
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
 
       const userData = {
         name,
         email,
-        password: hashedPassword, // Lưu mật khẩu đã mã hóa
+        password: hashedPassword,
         address: address || null,
         phone: phone || null,
       };
@@ -52,7 +48,6 @@ const authController = {
     }
   },
 
-  // 2. Đăng nhập
   async login(req, res) {
     try {
       const { email, password } = req.body;
@@ -70,7 +65,6 @@ const authController = {
           .json({ success: false, message: "Email hoặc mật khẩu không đúng" });
       }
 
-      // So sánh mật khẩu (user.checkPassword đã viết trong Model)
       const isPasswordValid = await user.checkPassword(password);
       if (!isPasswordValid) {
         return res
@@ -79,7 +73,6 @@ const authController = {
       }
 
       if (user.is_active === false) {
-        // Kiểm tra active
         return res
           .status(401)
           .json({ success: false, message: "Tài khoản đã bị khóa" });
@@ -100,10 +93,8 @@ const authController = {
     }
   },
 
-  // 3. Lấy thông tin profile (Hàm này nãy bị thiếu nên lỗi)
   async getProfile(req, res) {
     try {
-      // req.user.id có được nhờ middleware auth
       const user = await User.findById(req.user.id);
       if (!user) {
         return res
@@ -120,7 +111,6 @@ const authController = {
     }
   },
 
-  // 4. Cập nhật profile
   async updateProfile(req, res) {
     try {
       const { name, address, phone, avatar_url } = req.body;
@@ -153,7 +143,6 @@ const authController = {
     }
   },
 
-  // 5. Đổi mật khẩu
   async changePassword(req, res) {
     try {
       const { currentPassword, newPassword } = req.body;
@@ -161,7 +150,6 @@ const authController = {
 
       if (!user) return res.status(404).json({ message: "User not found" });
 
-      // Check pass cũ
       const isMatch = await user.checkPassword(currentPassword);
       if (!isMatch) {
         return res
@@ -169,11 +157,9 @@ const authController = {
           .json({ success: false, message: "Mật khẩu hiện tại không đúng" });
       }
 
-      // Hash pass mới
       const salt = await bcrypt.genSalt(10);
       const hashedNewPassword = await bcrypt.hash(newPassword, salt);
 
-      // Lưu pass mới
       await user.changePassword(hashedNewPassword);
 
       res.json({ success: true, message: "Đổi mật khẩu thành công" });
@@ -185,11 +171,8 @@ const authController = {
     }
   },
 
-  // 6. Lấy tất cả user (cho Admin)
   async getAllUsers(req, res) {
-    // Logic lấy list user nếu cần
     try {
-      // Code gọi User.findAll()...
       res.json({ success: true, message: "Danh sách user" });
     } catch (err) {
       res.status(500).json({ message: "Lỗi" });

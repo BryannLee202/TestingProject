@@ -4,6 +4,7 @@ const categoryController = require("../controllers/categoryController");
 const { authenticate, authorize } = require("../middleware/auth");
 
 // Public routes
+
 router.get("/", categoryController.getAllCategories);
 router.get("/popular", categoryController.getPopularCategories);
 router.get("/:id", categoryController.getCategoryById);

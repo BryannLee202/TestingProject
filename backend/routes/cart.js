@@ -1,13 +1,29 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const cartController = require("../controllers/cartController");
-const { authenticate } = require("../middleware/auth");
+const cartController = require('../controllers/cartController');
 
-// All routes require authentication
-router.get("/", authenticate, cartController.getCart);
-router.post("/add", authenticate, cartController.addToCart);
-router.put("/update/:bookId", authenticate, cartController.updateCartItem);
-router.delete("/remove/:bookId", authenticate, cartController.removeFromCart);
-router.delete("/clear", authenticate, cartController.clearCart);
+// 👇 SỬA LỖI Ở ĐÂY:
+// 1. Đổi đường dẫn thành '../middleware/auth' (File bạn đang có)
+// 2. Đổi tên hàm thành 'authenticate' (Tên hàm trong file auth.js)
+const { authenticate } = require('../middleware/auth'); 
+
+// Áp dụng xác thực cho tất cả route bên dưới
+// 👇 SỬA LẠI BIẾN NÀY LUÔN
+router.use(authenticate);
+
+// 1. Lấy giỏ hàng
+router.get('/', cartController.getCart);
+
+// 2. Thêm vào giỏ
+router.post('/add', cartController.addToCart);
+
+// 3. Cập nhật số lượng
+router.put('/update/:bookId', cartController.updateCartItem);
+
+// 4. Xóa sản phẩm
+router.delete('/remove/:bookId', cartController.removeFromCart);
+
+// 5. Xóa hết
+router.delete('/clear', cartController.clearCart);
 
 module.exports = router;

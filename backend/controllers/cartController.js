@@ -1,14 +1,12 @@
 const Cart = require("../models/Cart");
-const Book = require("../models/Book");
 
 const cartController = {
-  // Lấy giỏ hàng
+  // 1. Lấy giỏ hàng
   async getCart(req, res) {
     try {
       const userId = req.user.id;
       const cart = await Cart.getByUserId(userId);
 
-      // Tính toán tổng tiền
       const summary = {
         total_items: cart.reduce((sum, item) => sum + item.quantity, 0),
         total_amount: cart.reduce(
@@ -24,7 +22,7 @@ const cartController = {
     }
   },
 
-  // Thêm vào giỏ
+  // 2. Thêm vào giỏ
   async addToCart(req, res) {
     try {
       const userId = req.user.id;
@@ -35,22 +33,8 @@ const cartController = {
           .status(400)
           .json({ success: false, message: "Thiếu ID sách" });
 
-      // Ép kiểu số (Quan trọng)
       bookId = parseInt(bookId);
       quantity = parseInt(quantity);
-
-      // Kiểm tra sách
-      const book = await Book.findById(bookId);
-      if (!book)
-        return res
-          .status(404)
-          .json({ success: false, message: "Sách không tồn tại" });
-
-      if (book.stock_quantity < quantity) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Kho không đủ hàng" });
-      }
 
       const item = await Cart.addItem(userId, bookId, quantity);
       res
@@ -62,52 +46,44 @@ const cartController = {
     }
   },
 
-  // Cập nhật số lượng
+  // 3. Cập nhật số lượng
   async updateCartItem(req, res) {
     try {
       const userId = req.user.id;
-      const { bookId } = req.params; // Lấy từ URL
+      const { bookId } = req.params;
       const { quantity } = req.body;
 
-      // Ép kiểu số (Quan trọng)
-      const bookIdInt = parseInt(bookId);
-      const qtyInt = parseInt(quantity);
-
-      if (qtyInt < 1)
+      if (quantity < 1)
         return res
           .status(400)
           .json({ success: false, message: "Số lượng phải >= 1" });
 
-      console.log(`UPDATE: User ${userId} - Book ${bookIdInt} - Qty ${qtyInt}`);
-
-      await Cart.updateItem(userId, bookIdInt, qtyInt);
-
+      await Cart.updateItem(userId, parseInt(bookId), parseInt(quantity));
       res.json({ success: true, message: "Cập nhật thành công" });
     } catch (error) {
-      console.error("Update cart error:", error);
       res.status(500).json({ success: false, message: "Lỗi cập nhật" });
     }
   },
 
-  // Xóa 1 món
+  // 4. Xóa 1 món (Hàm này phải khớp tên với bên Route)
   async removeFromCart(req, res) {
     try {
       const userId = req.user.id;
       const { bookId } = req.params;
 
       await Cart.removeItem(userId, parseInt(bookId));
-
       res.json({ success: true, message: "Đã xóa sản phẩm" });
     } catch (error) {
       res.status(500).json({ success: false, message: "Lỗi xóa sản phẩm" });
     }
   },
 
-  // Xóa hết
+  // 5. Xóa hết (Thêm hàm này phòng hờ bạn gọi route clear)
   async clearCart(req, res) {
     try {
-      await Cart.clearUserCart(req.user.id);
-      res.json({ success: true, message: "Giỏ hàng đã được làm trống" });
+      const userId = req.user.id;
+      await Cart.clearUserCart(userId);
+      res.json({ success: true, message: "Đã xóa toàn bộ giỏ hàng" });
     } catch (error) {
       res.status(500).json({ success: false, message: "Lỗi dọn giỏ hàng" });
     }

@@ -52,6 +52,7 @@ async function updateCartCount() {
   if (!badge) return;
   const token = getToken();
   if (!token) {
+    badge.innerText = "0";
     badge.style.display = "none";
     return;
   }
@@ -61,15 +62,16 @@ async function updateCartCount() {
       headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json();
-    if (data.success) {
-      const count = Array.isArray(data.data) ? data.data.length : 0;
-      badge.innerText = count;
-      badge.style.display = count > 0 ? "block" : "none";
-    }
-  } catch (e) {}
-}
 
-function logout() {
-  localStorage.clear();
-  window.location.href = "index.html";
+    // fallback cart
+    const cartItems = data.data || data.cart || [];
+    const count = Array.isArray(cartItems) ? cartItems.length : 0;
+
+    badge.innerText = count;
+    badge.style.display = count > 0 ? "block" : "none";
+  } catch (e) {
+    console.error("Lỗi load giỏ hàng:", e);
+    badge.innerText = "0";
+    badge.style.display = "none";
+  }
 }

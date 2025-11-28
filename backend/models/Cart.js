@@ -1,87 +1,107 @@
 const { dbHelpers } = require("../config/database");
 
 const Cart = {
-  // 1. Lấy giỏ hàng
+  // 1. Lấy giỏ hàng (Kết nối 3 bảng: CartItems - Carts - Books)
   async getByUserId(userId) {
     const sql = `
       SELECT 
-        c.user_id, 
-        c.book_id, 
-        c.quantity, 
+        ci.id,              -- ID của dòng trong giỏ hàng
+        ci.book_id, 
+        ci.quantity, 
         b.title, 
         b.price, 
         b.image_url, 
         b.author, 
         b.stock_quantity
-      FROM Cart c
-      JOIN Books b ON c.book_id = b.id
+      FROM CartItems ci
+      JOIN Carts c ON ci.cart_id = c.id
+      JOIN Books b ON ci.book_id = b.id
       WHERE c.user_id = @userId
     `;
     return await dbHelpers.query(sql, { userId });
   },
 
-  // 2. Thêm sản phẩm
+  // 2. Thêm sản phẩm (Tự động tạo giỏ nếu chưa có)
   async addItem(userId, bookId, quantity) {
-    // Kiểm tra tồn tại
-    const checkSql =
-      "SELECT * FROM Cart WHERE user_id = @userId AND book_id = @bookId";
-    const existing = await dbHelpers.getOne(checkSql, { userId, bookId });
+    // A. Tìm ID giỏ hàng của User
+    let cart = await dbHelpers.getOne(
+      "SELECT id FROM Carts WHERE user_id = @userId",
+      { userId }
+    );
+    let cartId;
 
-    if (existing) {
-      // Update cộng dồn
-      const updateSql = `
-        UPDATE Cart 
-        SET quantity = quantity + @quantity, updated_at = GETDATE()
-        WHERE user_id = @userId AND book_id = @bookId
-      `;
-      await dbHelpers.execute(updateSql, { userId, bookId, quantity });
+    if (!cart) {
+      // Nếu chưa có giỏ -> Tạo mới
+      await dbHelpers.execute("INSERT INTO Carts (user_id) VALUES (@userId)", {
+        userId,
+      });
+      const newCart = await dbHelpers.getOne(
+        "SELECT id FROM Carts WHERE user_id = @userId",
+        { userId }
+      );
+      cartId = newCart.id;
     } else {
-      // Insert mới
-      const insertSql = `
-        INSERT INTO Cart (user_id, book_id, quantity, created_at, updated_at)
-        VALUES (@userId, @bookId, @quantity, GETDATE(), GETDATE())
-      `;
-      await dbHelpers.execute(insertSql, { userId, bookId, quantity });
+      cartId = cart.id;
+    }
+
+    // B. Kiểm tra xem sách đã có trong giỏ chưa
+    const item = await dbHelpers.getOne(
+      "SELECT * FROM CartItems WHERE cart_id = @cartId AND book_id = @bookId",
+      { cartId, bookId }
+    );
+
+    if (item) {
+      // Có rồi -> Cộng dồn số lượng
+      await dbHelpers.execute(
+        "UPDATE CartItems SET quantity = quantity + @quantity WHERE id = @id",
+        { id: item.id, quantity }
+      );
+    } else {
+      // Chưa có -> Insert dòng mới
+      await dbHelpers.execute(
+        "INSERT INTO CartItems (cart_id, book_id, quantity) VALUES (@cartId, @bookId, @quantity)",
+        { cartId, bookId, quantity }
+      );
     }
 
     return { userId, bookId, quantity };
   },
 
-  // 3. Cập nhật số lượng (QUAN TRỌNG)
+  // 3. Cập nhật số lượng
   async updateItem(userId, bookId, quantity) {
     const sql = `
-      UPDATE Cart 
-      SET quantity = @quantity, updated_at = GETDATE()
-      WHERE user_id = @userId AND book_id = @bookId
+      UPDATE CartItems 
+      SET quantity = @quantity 
+      FROM CartItems ci
+      JOIN Carts c ON ci.cart_id = c.id
+      WHERE c.user_id = @userId AND ci.book_id = @bookId
     `;
-
-    // Dùng execute cho lệnh UPDATE
     await dbHelpers.execute(sql, { userId, bookId, quantity });
-
     return { userId, bookId, quantity };
   },
 
   // 4. Xóa sản phẩm
   async removeItem(userId, bookId) {
-    const sql =
-      "DELETE FROM Cart WHERE user_id = @userId AND book_id = @bookId";
+    const sql = `
+      DELETE ci 
+      FROM CartItems ci
+      JOIN Carts c ON ci.cart_id = c.id
+      WHERE c.user_id = @userId AND ci.book_id = @bookId
+    `;
     await dbHelpers.execute(sql, { userId, bookId });
     return true;
   },
 
-  // 5. Xóa hết
+  // 5. Xóa hết giỏ hàng
   async clearUserCart(userId) {
-    const sql = "DELETE FROM Cart WHERE user_id = @userId";
+    const sql = `
+      DELETE ci 
+      FROM CartItems ci
+      JOIN Carts c ON ci.cart_id = c.id
+      WHERE c.user_id = @userId
+    `;
     await dbHelpers.execute(sql, { userId });
     return true;
-  },
-
-  // 6. Đếm số lượng
-  async getCartCount(userId) {
-    const sql =
-      "SELECT SUM(quantity) as count FROM Cart WHERE user_id = @userId";
-    const result = await dbHelpers.getOne(sql, { userId });
-    return result ? result.count : 0;
   },
 };
 
