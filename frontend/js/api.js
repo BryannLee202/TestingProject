@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Cập nhật Header
+// Cập nhật Header
 function updateHeaderUser() {
   const user = JSON.parse(localStorage.getItem("user"));
   const authDisplay = document.getElementById("auth-display");
@@ -22,30 +23,50 @@ function updateHeaderUser() {
   if (!authDisplay || !userDropdown) return;
 
   if (user) {
-    // Đã đăng nhập
+    // Đã đăng nhập - HIỂN THỊ MENU PROFILE
     authDisplay.innerHTML = `
-            <i class="fas fa-user-circle" style="font-size:20px; color:#28a745"></i>
-            <div class="user-info">
-                <span style="font-weight:bold;">${
-                  user.name || "Khách hàng"
-                }</span>
-            </div>
-        `;
+      <i class="fas fa-user-circle" style="font-size:20px; color:#28a745"></i>
+      <div class="user-info">
+          <span style="font-weight:bold;">${user.name || "Khách hàng"}</span>
+          <small style="font-size:11px; color:#777">Tài khoản</small>
+      </div>
+    `;
+
     userDropdown.innerHTML = `
-            <a href="#" class="menu-link" onclick="logout()">Đăng xuất</a>
-        `;
+      <a href="pages/profile.html" class="menu-link">
+        <i class="fas fa-user-circle"></i> Hồ sơ của tôi
+      </a>
+      <a href="pages/orders.html" class="menu-link">
+        <i class="fas fa-shopping-bag"></i> Đơn hàng
+      </a>
+      <a href="pages/wishlist.html" class="menu-link">
+        <i class="fas fa-heart"></i> Yêu thích
+      </a>
+      <hr style="margin: 5px 0; border-color: #eee;">
+      <a href="javascript:void(0)" class="menu-link" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i> Đăng xuất
+      </a>
+    `;
   } else {
     // Chưa đăng nhập
     authDisplay.innerHTML = `
-            <i class="far fa-user"></i>
-            <div class="user-info">
-                <span>Tài khoản</span>
-                <small>Đăng nhập/Đăng ký</small>
-            </div>
-        `;
+      <i class="far fa-user"></i>
+      <div class="user-info">
+          <span style="font-weight:bold; font-size:13px">Tài khoản</span>
+          <small style="font-size:11px; color:#777">Đăng nhập / Đăng ký</small>
+      </div>
+    `;
+
+    userDropdown.innerHTML = `
+      <a href="pages/login.html" class="menu-link">
+        <i class="fas fa-sign-in-alt"></i> Đăng nhập
+      </a>
+      <a href="pages/register.html" class="menu-link">
+        <i class="fas fa-user-plus"></i> Đăng ký
+      </a>
+    `;
   }
 }
-
 // Cập nhật số lượng giỏ hàng
 async function updateCartCount() {
   const badge = document.getElementById("cart-count");
@@ -74,4 +95,39 @@ async function updateCartCount() {
     badge.innerText = "0";
     badge.style.display = "none";
   }
+}
+// Hàm đăng xuất
+function logout() {
+  Swal.fire({
+    title: "Đăng xuất?",
+    text: "Bạn có chắc chắn muốn đăng xuất?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#C92127",
+    cancelButtonColor: "#6c757d",
+    confirmButtonText: "Đăng xuất",
+    cancelButtonText: "Hủy",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Xóa token và user khỏi localStorage
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+
+      // Cập nhật header
+      updateHeaderUser();
+      updateCartCount();
+
+      // Hiển thị thông báo
+      Swal.fire({
+        title: "Đã đăng xuất!",
+        text: "Bạn đã đăng xuất thành công.",
+        icon: "success",
+        confirmButtonColor: "#C92127",
+        timer: 1500,
+      }).then(() => {
+        // Chuyển về trang chủ
+        window.location.href = "index.html";
+      });
+    }
+  });
 }

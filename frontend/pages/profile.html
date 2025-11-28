@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hồ sơ của tôi - BookStore</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+    <link rel="stylesheet" href="../styles/main.css" />
+    <style>
+        /* --- CSS CHO TRANG PROFILE - ĐỒNG BỘ VỚI WEB CHÍNH --- */
+        .profile-page {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: calc(100vh - 200px);
+        }
+
+        .profile-header {
+            background: var(--white);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary-color);
+            position: relative;
+        }
+
+        .profile-header h1 {
+            color: var(--primary-color);
+            margin-bottom: 8px;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .profile-header p {
+            color: #666;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        /* Nút quay lại trang chủ */
+        .back-to-home {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.3s;
+            text-decoration: none;
+        }
+
+        .back-to-home:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(201, 33, 39, 0.3);
+        }
+
+        .profile-layout {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        /* Sidebar Profile - Giống sidebar chính */
+        .profile-sidebar {
+            width: 280px;
+            flex-shrink: 0;
+            background: var(--white);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 0;
+            position: sticky;
+            top: 100px;
+        }
+
+        .user-info-card {
+            padding: 25px 20px;
+            border-bottom: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .avatar-section {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary-color);
+        }
+
+        .btn-change-avatar {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .user-info-card h3 {
+            font-size: 16px;
+            margin: 10px 0 5px;
+            color: #333;
+        }
+
+        .membership-badge {
+            background: var(--primary-color);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            display: inline-block;
+            margin: 8px 0;
+        }
+
+        .points {
+            font-size: 13px;
+            color: #666;
+            margin: 0;
+        }
+
+        /* Navigation Profile - Giống menu chính */
+        .profile-nav ul {
+            list-style: none;
+            padding: 10px 0;
+        }
+
+        .profile-nav li {
+            padding: 12px 20px;
+            cursor: pointer;
+            margin: 0;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #555;
+            border-left: 3px solid transparent;
+        }
+
+        .profile-nav li:hover {
+            background: #f8f9fa;
+            color: var(--primary-color);
+            border-left-color: var(--primary-color);
+        }
+
+        .profile-nav li.active {
+            background: #fff5f5;
+            color: var(--primary-color);
+            border-left-color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .profile-nav li i {
+            width: 18px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .profile-nav li:last-child {
+            color: #dc3545;
+            border-top: 1px solid var(--border-color);
+            margin-top: 10px;
+            padding-top: 15px;
+        }
+
+        /* Content Area - Giống product section */
+        .profile-content {
+            flex: 1;
+            background: var(--white);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 0;
+            min-height: 500px;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content h2 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Form Styles - Giống form chính */
+        .form-group {
+            margin-bottom: 20px;
+            max-width: 500px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            transition: 0.3s;
+            font-family: inherit;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(201, 33, 39, 0.1);
+        }
+
+        .btn-save {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-save:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        /* Nút quay lại trong các tab */
+        .btn-back {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            text-decoration: none;
+        }
+
+        .btn-back:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        /* Stats Grid - Giống product grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .stat-card {
+            background: var(--white);
+            padding: 25px 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            transition: 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--hover-shadow);
+        }
+
+        .stat-card i {
+            font-size: 32px;
+            margin-bottom: 15px;
+        }
+
+        .stat-card h3 {
+            font-size: 28px;
+            margin: 10px 0;
+            color: var(--primary-color);
+        }
+
+        .stat-card p {
+            color: #666;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        /* Order History - Giống product card */
+        .order-card {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: 0.3s;
+            background: var(--white);
+        }
+
+        .order-card:hover {
+            box-shadow: var(--hover-shadow);
+            border-color: var(--primary-color);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .order-status {
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .status-delivered { background: #e8f5e8; color: #2e7d32; }
+        .status-shipping { background: #fff3cd; color: #856404; }
+        .status-pending { background: #ffeaa7; color: #e17055; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+
+        .order-items {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .order-item-img {
+            width: 50px;
+            height: 65px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .order-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .order-footer .btn-save {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+
+        /* Address Management */
+        .address-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .address-card {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+            background: var(--white);
+            transition: 0.3s;
+        }
+
+        .address-card:hover {
+            box-shadow: var(--shadow);
+        }
+
+        .address-card.default {
+            border-color: var(--primary-color);
+            background: #fffafa;
+        }
+
+        .address-actions {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-edit,
+        .btn-delete {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #666;
+            transition: 0.3s;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .btn-edit:hover {
+            background: #f8f9fa;
+            color: var(--primary-color);
+        }
+        .btn-delete:hover {
+            background: #f8f9fa;
+            color: #dc3545;
+        }
+
+        .btn-set-default {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            margin-top: 10px;
+        }
+
+        /* Wishlist - Dùng product grid có sẵn */
+        .wishlist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+        }
+
+        .wishlist-item {
+            position: relative;
+        }
+
+        .btn-remove-wishlist {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: 0.3s;
+        }
+
+        .btn-remove-wishlist:hover {
+            color: #dc3545;
+            transform: scale(1.1);
+        }
+
+        /* Empty States */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .profile-layout {
+                flex-direction: column;
+            }
+            .profile-sidebar {
+                width: 100%;
+                position: static;
+                margin-bottom: 20px;
+            }
+            .profile-content {
+                min-height: auto;
+            }
+            .tab-content {
+                padding: 20px;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .address-grid {
+                grid-template-columns: 1fr;
+            }
+            .order-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .order-footer {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+            .back-to-home {
+                position: static;
+                margin-top: 15px;
+                display: inline-flex;
+            }
+            .profile-header {
+                text-align: center;
+                padding-bottom: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header sẽ được chèn bằng JavaScript -->
+    <div id="header-placeholder"></div>
+
+    <div class="profile-page">
+        <div class="profile-header">
+            <h1><i class="fas fa-user-circle"></i> Hồ sơ của tôi</h1>
+            <p>Quản lý thông tin cá nhân và các hoạt động mua sắm</p>
+            
+            <!-- NÚT QUAY LẠI TRANG CHỦ -->
+            <a href="../index.html" class="back-to-home">
+                <i class="fas fa-home"></i>
+                Về trang chủ
+            </a>
+        </div>
+
+        <div class="profile-layout">
+            <!-- Sidebar -->
+            <div class="profile-sidebar">
+                <div class="user-info-card">
+                    <div class="avatar-section">
+                        <img
+                            id="user-avatar"
+                            src="../img/default-avatar.png"
+                            alt="Avatar"
+                            class="avatar"
+                        />
+                        <button
+                            class="btn-change-avatar"
+                            onclick="document.getElementById('avatar-input').click()"
+                        >
+                            <i class="fas fa-camera"></i>
+                        </button>
+                        <input
+                            type="file"
+                            id="avatar-input"
+                            accept="image/*"
+                            style="display: none"
+                            onchange="uploadAvatar(this.files[0])"
+                        />
+                    </div>
+                    <h3 id="user-name">Đang tải...</h3>
+                    <div class="membership-badge" id="membership-level">Thành viên</div>
+                    <p class="points">
+                        Điểm tích lũy: <strong id="loyalty-points">0</strong> điểm
+                    </p>
+                </div>
+
+                <nav class="profile-nav">
+                    <ul>
+                        <li class="active" onclick="switchTab('dashboard')">
+                            <i class="fas fa-home"></i>
+                            <span>Tổng quan</span>
+                        </li>
+                        <li onclick="switchTab('info')">
+                            <i class="fas fa-user-edit"></i>
+                            <span>Thông tin cá nhân</span>
+                        </li>
+                        <li onclick="switchTab('orders')">
+                            <i class="fas fa-shopping-bag"></i>
+                            <span>Đơn hàng của tôi</span>
+                        </li>
+                        <li onclick="switchTab('addresses')">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Sổ địa chỉ</span>
+                        </li>
+                        <li onclick="switchTab('wishlist')">
+                            <i class="fas fa-heart"></i>
+                            <span>Sách yêu thích</span>
+                        </li>
+                        <li onclick="switchTab('password')">
+                            <i class="fas fa-lock"></i>
+                            <span>Đổi mật khẩu</span>
+                        </li>
+                        <li onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Đăng xuất</span>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+            <!-- Content Area -->
+            <div class="profile-content">
+                <!-- Dashboard Tab -->
+                <div id="dashboard" class="tab-content active">
+                    <h2><i class="fas fa-chart-line"></i> Tổng quan tài khoản</h2>
+                    
+                    <!-- Nút quay lại trong tab (nếu cần) -->
+                    <a href="../index.html" class="btn-back">
+                        <i class="fas fa-arrow-left"></i>
+                        Tiếp tục mua sắm
+                    </a>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <i class="fas fa-shopping-bag" style="color: #28a745;"></i>
+                            <h3 id="total-orders">0</h3>
+                            <p>Đơn hàng</p>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-heart" style="color: #dc3545;"></i>
+                            <h3 id="total-wishlist">0</h3>
+                            <p>Sách yêu thích</p>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-star" style="color: #ffc107;"></i>
+                            <h3 id="loyalty-points-display">0</h3>
+                            <p>Điểm tích lũy</p>
+                        </div>
+                    </div>
+
+                    <h3><i class="fas fa-clock"></i> Đơn hàng gần đây</h3>
+                    <div id="recent-orders">
+                        <div class="empty-state">
+                            <i class="fas fa-shopping-bag"></i>
+                            <p>Chưa có đơn hàng nào</p>
+                            <a href="../index.html" class="btn-save" style="margin-top: 15px;">
+                                <i class="fas fa-shopping-cart"></i> Mua sắm ngay
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personal Info Tab -->
+                <div id="info" class="tab-content">
+                    <h2><i class="fas fa-user-edit"></i> Thông tin cá nhân</h2>
+                    
+                    <a href="../index.html" class="btn-back">
+                        <i class="fas fa-arrow-left"></i>
+                        Về trang chủ
+                    </a>
+                    
+                    <form id="profile-form" onsubmit="updateProfile(event)">
+                        <div class="form-group">
+                            <label>Họ và tên</label>
+                            <input
+                                type="text"
+                                id="full-name"
+                                class="form-control"
+                                required
+                            />
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="email" class="form-control" readonly />
+                        </div>
+                        <div class="form-group">
+                            <label>Số điện thoại</label>
+                            <input type="tel" id="phone" class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label>Ngày sinh</label>
+                            <input type="date" id="birthday" class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label>Giới tính</label>
+                            <select id="gender" class="form-control">
+                                <option value="">Chọn giới tính</option>
+                                <option value="male">Nam</option>
+                                <option value="female">Nữ</option>
+                                <option value="other">Khác</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn-save">
+                            <i class="fas fa-save"></i> Lưu thay đổi
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Orders Tab -->
+                <div id="orders" class="tab-content">
+                    <h2><i class="fas fa-history"></i> Lịch sử đơn hàng</h2>
+                    
+                    <a href="../index.html" class="btn-back">
+                        <i class="fas fa-arrow-left"></i>
+                        Tiếp tục mua sắm
+                    </a>
+                    
+                    <div id="orders-list">
+                        <div class="empty-state">
+                            <i class="fas fa-shopping-bag"></i>
+                            <p>Chưa có đơn hàng nào</p>
+                            <a href="../index.html" class="btn-save" style="margin-top: 15px;">
+                                <i class="fas fa-shopping-cart"></i> Mua sắm ngay
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Addresses Tab -->
+                <div id="addresses" class="tab-content">
+                    <h2><i class="fas fa-address-book"></i> Quản lý địa chỉ</h2>
+                    
+                    <a href="../index.html" class="btn-back">
+                        <i class="fas fa-arrow-left"></i>
+                        Về trang chủ
+                    </a>
+                    
+                    <button class="btn-save" onclick="showAddAddressForm()" style="margin-bottom: 20px;">
+                        <i class="fas fa-plus"></i> Thêm địa chỉ mới
+                    </button>
+                    <div id="addresses-list" class="address-grid">
+                        <div class="empty-state" style="grid-column: 1/-1;">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <p>Chưa có địa chỉ nào</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wishlist Tab -->
+                <div id="wishlist" class="tab-content">
+                    <h2><i class="fas fa-heart"></i> Sách yêu thích</h2>
+                    
+                    <a href="../index.html" class="btn-back">
+                        <i class="fas fa-arrow-left"></i>
+                        Khám phá thêm sách
+                    </a>
+                    
+                    <div id="wishlist-items" class="wishlist-grid">
+                        <div class="empty-state" style="grid-column: 1/-1;">
+                            <i class="fas fa-heart"></i>
+                            <p>Chưa có sách yêu thích nào</p>
+                            <a href="../index.html" class="btn-save" style="margin-top: 15px;">
+                                <i class="fas fa-book-open"></i> Khám phá sách
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Change Password Tab -->
+                <div id="password" class="tab-content">
+                    <h2><i class="fas fa-lock"></i> Đổi mật khẩu</h2>
+                    
+                    <a href="../index.html" class="btn-back">
+                        <i class="fas fa-arrow-left"></i>
+                        Về trang chủ
+                    </a>
+                    
+                    <form id="password-form" onsubmit="changePassword(event)">
+                        <div class="form-group">
+                            <label>Mật khẩu hiện tại</label>
+                            <input
+                                type="password"
+                                id="current-password"
+                                class="form-control"
+                                required
+                            />
+                        </div>
+                        <div class="form-group">
+                            <label>Mật khẩu mới</label>
+                            <input
+                                type="password"
+                                id="new-password"
+                                class="form-control"
+                                required
+                                minlength="6"
+                            />
+                        </div>
+                        <div class="form-group">
+                            <label>Xác nhận mật khẩu mới</label>
+                            <input
+                                type="password"
+                                id="confirm-password"
+                                class="form-control"
+                                required
+                            />
+                        </div>
+                        <button type="submit" class="btn-save">
+                            <i class="fas fa-key"></i> Đổi mật khẩu
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer sẽ được chèn bằng JavaScript -->
+    <div id="footer-placeholder"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/profile.js"></script>
+</body>
+</html>
