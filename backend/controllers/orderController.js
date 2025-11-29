@@ -25,15 +25,40 @@ const orderController = {
           .json({ success: false, message: "Giỏ hàng trống!" });
       }
 
+      // ⭐ AUTO TẠO ORDER_NUMBER
+      const orderNumber =
+        "ORD-" + Date.now() + "-" + Math.floor(Math.random() * 10000);
+
       // B2: Tạo đơn hàng (INSERT vào bảng Orders)
       const orderSql = `
-        INSERT INTO Orders (user_id, shipping_address, payment_method, customer_note, shipping_fee, total_amount, status, created_at)
+        INSERT INTO Orders (
+          user_id,
+          order_number,
+          shipping_address,
+          payment_method,
+          customer_note,
+          shipping_fee,
+          total_amount,
+          status,
+          created_at
+        )
         OUTPUT INSERTED.id
-        VALUES (@userId, @shipping_address, @payment_method, @customer_note, @shipping_fee, @total_amount, 'pending', GETDATE())
+        VALUES (
+          @userId,
+          @order_number,
+          @shipping_address,
+          @payment_method,
+          @customer_note,
+          @shipping_fee,
+          @total_amount,
+          'pending',
+          GETDATE()
+        )
       `;
 
       const orderResult = await dbHelpers.query(orderSql, {
         userId,
+        order_number: orderNumber,
         shipping_address,
         payment_method,
         customer_note,
@@ -54,19 +79,24 @@ const orderController = {
       `;
       await dbHelpers.execute(detailsSql, { orderId: newOrderId, userId });
 
-      // B4: Xóa sạch giỏ hàng của user này
-      await dbHelpers.execute("DELETE FROM CartItems WHERE cart_id IN (SELECT id FROM Carts WHERE user_id = @userId)", { userId });
+      // B4: Xóa sạch giỏ hàng
+      await dbHelpers.execute(
+        "DELETE FROM CartItems WHERE cart_id IN (SELECT id FROM Carts WHERE user_id = @userId)",
+        { userId }
+      );
 
       res.status(201).json({
         success: true,
         message: "Đặt hàng thành công!",
         orderId: newOrderId,
+        order_number: orderNumber,
       });
     } catch (error) {
       console.error("Create Order Error:", error);
-      res
-        .status(500)
-        .json({ success: false, message: "Lỗi server khi tạo đơn hàng" });
+      res.status(500).json({
+        success: false,
+        message: "Lỗi server khi tạo đơn hàng",
+      });
     }
   },
 
@@ -83,9 +113,10 @@ const orderController = {
       res.json({ success: true, data: orders });
     } catch (error) {
       console.error(error);
-      res
-        .status(500)
-        .json({ success: false, message: "Lỗi lấy danh sách đơn hàng" });
+      res.status(500).json({
+        success: false,
+        message: "Lỗi lấy danh sách đơn hàng",
+      });
     }
   },
 };
