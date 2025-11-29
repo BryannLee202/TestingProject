@@ -6,11 +6,11 @@ BookStore là một ứng dụng web bán sách trực tuyến được phát tr
 
 ## 👥 Thành Viên Nhóm
 
-- **Trần Văn A** - Backend Developer
-- **Nguyễn Thị B** - Frontend Developer 
-- **Lê Văn C** - Database Designer
-- **Phạm Thị D** - Full-stack Developer
-- **Hoàng Văn E** - Project Manager
+- **Đào Duy Cường** - Backend Developer
+- **Nguyễn Trần Xuân Khiêm** - Frontend Developer 
+- **Trần Đức Chiến** - Database Designer
+- **Phan Văn Đỉnh** - Full-stack Developer
+- **Đặng Ái Nhân** - Project Manager
 
 ## 🎯 Mục Tiêu Dự Án
 
