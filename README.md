@@ -266,7 +266,7 @@ Mở trình duyệt và truy cập: http://localhost:5000
 - [ ] **Payment Integration**: Tích hợp Stripe/Momo.
 - [ ] **Recommendation Engine**: Gợi ý sách dựa trên AI.
 - [ ] **Mobile App**: Phiên bản React Native/Flutter.
-- [ ] **Social Features**: Reviews, ratings, wishlist.
+- [X] **Social Features**: Reviews, ratings, wishlist.
 
 ---
 
@@ -300,7 +300,7 @@ Mở trình duyệt và truy cập: http://localhost:5000
 **Nhóm Phát Triển BookStore**
 * 📧 Email: [dinhphan0511@gmail.com](mailto:dinhphan0511@gmail.com)
 * 🐱 GitHub: [https://github.com/PhanDinh2005/bookstore-project.git](hhttps://github.com/PhanDinh2005/bookstore-project.git)
-* 🌐 Website: [http://localhost:5000](http://localhost:5000)
+* 🌐 Website: [https://phandinh2005.github.io/bookstore-project/](https://phandinh2005.github.io/bookstore-project/)
 
 ## 📄 Giấy Phép
 > Dự án được phát triển cho mục đích học tập và nghiên cứu tại **[Tên Trường/Đơn vị]**. Mọi quyền sở hữu trí tuệ thuộc về nhóm phát triển.
