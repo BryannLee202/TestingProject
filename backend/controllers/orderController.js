@@ -1,91 +1,73 @@
 const { dbHelpers } = require("../config/database");
 
 const orderController = {
-  // 1. TẠO ĐƠN HÀNG MỚI
   createOrder: async (req, res) => {
     try {
-      const userId = req.user.id; // Lấy từ token
+      const userId = req.user.id;
+
+      // Lấy dữ liệu từ Frontend
       const {
-        shipping_address,
-        payment_method,
-        customer_note,
-        shipping_fee,
-        total_amount,
+        fullName,
+        phone,
+        address,
+        items,
+        total,
+        paymentMethod = "COD",
+        shippingFee = 30000,
       } = req.body;
 
-      // B1: Kiểm tra giỏ hàng có đồ không
-      const cartCheck = await dbHelpers.query(
-        "SELECT COUNT(*) as count FROM Carts WHERE user_id = @userId",
-        { userId }
-      );
+      console.log("👉 Đang tạo đơn hàng cho User:", userId);
 
-      if (cartCheck[0].count === 0) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Giỏ hàng trống!" });
-      }
+      // Tính toán tổng cuối
+      const finalTotal = parseFloat(total) + parseFloat(shippingFee);
 
-      // B2: Tạo đơn hàng (INSERT vào bảng Orders)
+      // 1. INSERT vào bảng Orders
+      // Sử dụng OUTPUT INSERTED.ID để lấy ngay ID vừa tạo
       const orderSql = `
-        INSERT INTO Orders (user_id, shipping_address, payment_method, customer_note, shipping_fee, total_amount, status, created_at)
-        OUTPUT INSERTED.id
-        VALUES (@userId, @shipping_address, @payment_method, @customer_note, @shipping_fee, @total_amount, 'pending', GETDATE())
-      `;
+                INSERT INTO Orders 
+                (user_id, full_name, phone, shipping_address, payment_method, shipping_fee, total_amount, final_amount, created_at)
+                OUTPUT INSERTED.ID
+                VALUES 
+                (@userId, @name, @phone, @addr, @method, @fee, @total, @final, GETDATE())
+            `;
 
       const orderResult = await dbHelpers.query(orderSql, {
         userId,
-        shipping_address,
-        payment_method,
-        customer_note,
-        shipping_fee,
-        total_amount,
+        name: fullName,
+        phone: phone,
+        addr: address,
+        method: paymentMethod,
+        fee: shippingFee,
+        total: total,
+        final: finalTotal,
       });
 
-      const newOrderId = orderResult[0].id;
+      const orderId = orderResult[0].ID;
+      console.log("✅ Tạo đơn thành công, ID:", orderId);
 
-      // B3: Copy dữ liệu từ CartItems sang OrderDetails
-      const detailsSql = `
-        INSERT INTO OrderDetails (order_id, book_id, quantity, price)
-        SELECT @orderId, ci.book_id, ci.quantity, b.price
-        FROM CartItems ci
-        JOIN Carts c ON ci.cart_id = c.id
-        JOIN Books b ON ci.book_id = b.id
-        WHERE c.user_id = @userId
-      `;
-      await dbHelpers.execute(detailsSql, { orderId: newOrderId, userId });
+      // 2. INSERT vào bảng OrderDetails (Lưu từng cuốn sách)
+      for (const item of items) {
+        // Lưu ý: item.bookId hoặc item.book_id tùy vào frontend gửi lên
+        const bId = item.bookId || item.book_id || item.id;
 
-      // B4: Xóa sạch giỏ hàng của user này
-      await dbHelpers.execute("DELETE FROM CartItems WHERE cart_id IN (SELECT id FROM Carts WHERE user_id = @userId)", { userId });
+        await dbHelpers.execute(
+          "INSERT INTO OrderDetails (order_id, book_id, quantity, price) VALUES (@oId, @bId, @qty, @price)",
+          { oId: orderId, bId: bId, qty: item.quantity, price: item.price }
+        );
+      }
 
-      res.status(201).json({
-        success: true,
-        message: "Đặt hàng thành công!",
-        orderId: newOrderId,
-      });
+      // 3. XÓA GIỎ HÀNG (Quan trọng)
+      await dbHelpers.execute(
+        "DELETE FROM CartItems WHERE cart_id IN (SELECT id FROM Carts WHERE user_id = @userId)",
+        { userId }
+      );
+
+      res.json({ success: true, message: "Đặt hàng thành công!", orderId });
     } catch (error) {
-      console.error("Create Order Error:", error);
+      console.error("❌ Lỗi tạo đơn hàng:", error); // Xem lỗi chi tiết ở Terminal
       res
         .status(500)
-        .json({ success: false, message: "Lỗi server khi tạo đơn hàng" });
-    }
-  },
-
-  // 2. LẤY DANH SÁCH ĐƠN HÀNG CỦA TÔI
-  getMyOrders: async (req, res) => {
-    try {
-      const userId = req.user.id;
-      const sql = `
-        SELECT * FROM Orders 
-        WHERE user_id = @userId 
-        ORDER BY created_at DESC
-      `;
-      const orders = await dbHelpers.query(sql, { userId });
-      res.json({ success: true, data: orders });
-    } catch (error) {
-      console.error(error);
-      res
-        .status(500)
-        .json({ success: false, message: "Lỗi lấy danh sách đơn hàng" });
+        .json({ success: false, message: "Lỗi server: " + error.message });
     }
   },
 };

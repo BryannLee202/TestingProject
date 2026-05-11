@@ -1,15 +1,14 @@
 // require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const { connectDB } = require("../../../backend/config/database"); // Kết nối chuẩn với file database.js mới
+const { connectDB } = require("./config/database");
 
-// Import routes (Chỉ bật những cái đã làm)
-const authRoutes = require("../../../backend/routes/auth");
-const bookRoutes = require("../../../backend/routes/books");
-const cartRoutes = require("../../../backend/routes/cart");
-const orderRoutes = require("../../../backend/routes/orders");
-// const categoryRoutes = require("./routes/categories"); // Tạm ẩn
-// const wishlistRoutes = require("./routes/wishlist");   // Tạm ẩn
+// Import routes
+const authRoutes = require("./routes/auth");
+const bookRoutes = require("./routes/books");
+const cartRoutes = require("./routes/cart");
+const orderRoutes = require("./routes/orders");
+const adminRoutes = require("./routes/admin"); // THÊM DÒNG NÀY
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -18,7 +17,7 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// Request logging middleware (Giữ lại cái này của bạn vì nó rất hay)
+// Request logging middleware
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
   next();
@@ -46,9 +45,7 @@ const initializeApp = async () => {
     app.use("/api/books", bookRoutes);
     app.use("/api/cart", cartRoutes);
     app.use("/api/orders", orderRoutes);
-    
-    // app.use("/api/categories", categoryRoutes); // Tạm ẩn
-    // app.use("/api/wishlist", wishlistRoutes);   // Tạm ẩn
+    app.use("/api/admin", adminRoutes); // THÊM DÒNG NÀY
 
     // 4. Xử lý lỗi 404 (Route không tồn tại)
     app.use("*", (req, res) => {
@@ -73,6 +70,7 @@ const initializeApp = async () => {
       console.log(`   👉 /api/books`);
       console.log(`   👉 /api/cart`);
       console.log(`   👉 /api/orders`);
+      console.log(`   👉 /api/admin`); // THÊM DÒNG NÀY
     });
 
   } catch (error) {
