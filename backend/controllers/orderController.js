@@ -21,6 +21,7 @@ const orderController = {
       // Tính toán tổng cuối
       const finalTotal = parseFloat(total) + parseFloat(shippingFee);
 
+<<<<<<< HEAD
       // 1. INSERT vào bảng Orders
       // Sử dụng OUTPUT INSERTED.ID để lấy ngay ID vừa tạo
       const orderSql = `
@@ -40,6 +41,47 @@ const orderController = {
         fee: shippingFee,
         total: total,
         final: finalTotal,
+=======
+      // ⭐ AUTO TẠO ORDER_NUMBER
+      const orderNumber =
+        "ORD-" + Date.now() + "-" + Math.floor(Math.random() * 10000);
+
+      // B2: Tạo đơn hàng (INSERT vào bảng Orders)
+      const orderSql = `
+        INSERT INTO Orders (
+          user_id,
+          order_number,
+          shipping_address,
+          payment_method,
+          customer_note,
+          shipping_fee,
+          total_amount,
+          status,
+          created_at
+        )
+        OUTPUT INSERTED.id
+        VALUES (
+          @userId,
+          @order_number,
+          @shipping_address,
+          @payment_method,
+          @customer_note,
+          @shipping_fee,
+          @total_amount,
+          'pending',
+          GETDATE()
+        )
+      `;
+
+      const orderResult = await dbHelpers.query(orderSql, {
+        userId,
+        order_number: orderNumber,
+        shipping_address,
+        payment_method,
+        customer_note,
+        shipping_fee,
+        total_amount,
+>>>>>>> 33145164ca09f7ccc5e3fa51f7987fadbb750135
       });
 
       const orderId = orderResult[0].ID;
@@ -50,6 +92,7 @@ const orderController = {
         // Lưu ý: item.bookId hoặc item.book_id tùy vào frontend gửi lên
         const bId = item.bookId || item.book_id || item.id;
 
+<<<<<<< HEAD
         await dbHelpers.execute(
           "INSERT INTO OrderDetails (order_id, book_id, quantity, price) VALUES (@oId, @bId, @qty, @price)",
           { oId: orderId, bId: bId, qty: item.quantity, price: item.price }
@@ -68,6 +111,46 @@ const orderController = {
       res
         .status(500)
         .json({ success: false, message: "Lỗi server: " + error.message });
+=======
+      // B4: Xóa sạch giỏ hàng
+      await dbHelpers.execute(
+        "DELETE FROM CartItems WHERE cart_id IN (SELECT id FROM Carts WHERE user_id = @userId)",
+        { userId }
+      );
+
+      res.status(201).json({
+        success: true,
+        message: "Đặt hàng thành công!",
+        orderId: newOrderId,
+        order_number: orderNumber,
+      });
+    } catch (error) {
+      console.error("Create Order Error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Lỗi server khi tạo đơn hàng",
+      });
+    }
+  },
+
+  // 2. LẤY DANH SÁCH ĐƠN HÀNG CỦA TÔI
+  getMyOrders: async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const sql = `
+        SELECT * FROM Orders 
+        WHERE user_id = @userId 
+        ORDER BY created_at DESC
+      `;
+      const orders = await dbHelpers.query(sql, { userId });
+      res.json({ success: true, data: orders });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        success: false,
+        message: "Lỗi lấy danh sách đơn hàng",
+      });
+>>>>>>> 33145164ca09f7ccc5e3fa51f7987fadbb750135
     }
   },
 };

@@ -10,11 +10,12 @@
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "body-parser": "^2.2.1",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.0",
-    "mssql": "^9.0.1",
+    "mssql": "^9.3.2",
     "tedious": "^16.0.0"
   },
   "devDependencies": {
