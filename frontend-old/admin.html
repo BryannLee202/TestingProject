@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - BookStore</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./styles/main.css">
+    <link rel="stylesheet" href="./styles/admin.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-book-open"></i> BOOKSTORE ADMIN</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="#dashboard" class="nav-link active" data-section="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="#books" class="nav-link" data-section="books"><i class="fas fa-book"></i> Quản lý Sách</a></li>
+                    <li><a href="#categories" class="nav-link" data-section="categories"><i class="fas fa-list"></i> Danh mục</a></li>
+                    <li><a href="#users" class="nav-link" data-section="users"><i class="fas fa-users"></i> Người dùng</a></li>
+                    <li><a href="#orders" class="nav-link" data-section="orders"><i class="fas fa-shopping-cart"></i> Đơn hàng</a></li>
+                    <li><a href="#promotions" class="nav-link" data-section="promotions"><i class="fas fa-tags"></i> Khuyến mãi</a></li>
+                    <li><a href="#contacts" class="nav-link" data-section="contacts"><i class="fas fa-envelope"></i> Liên hệ</a></li>
+                    <li><a href="#support" class="nav-link" data-section="support"><i class="fas fa-headset"></i> Hỗ trợ</a></li>
+                    <li><a href="#careers" class="nav-link" data-section="careers"><i class="fas fa-briefcase"></i> Ứng tuyển</a></li>
+                    <li><a href="index.html" class="nav-link"><i class="fas fa-home"></i> Về trang chủ</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Header -->
+            <header class="admin-header">
+                <div class="header-left">
+                    <button class="sidebar-toggle"><i class="fas fa-bars"></i></button>
+                    <h1 id="page-title">Dashboard</h1>
+                </div>
+                <div class="header-right">
+                    <div class="admin-user">
+                        <span>Xin chào, Admin</span>
+                        <div class="user-dropdown">
+                            <i class="fas fa-user-circle"></i>
+                            <div class="dropdown-menu">
+                                <a href="#"><i class="fas fa-cog"></i> Cài đặt</a>
+                                <a href="#" onclick="admin.logout()"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Sections -->
+            <div class="admin-content">
+                <!-- Dashboard Section -->
+                <section id="dashboard-section" class="content-section active">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="total-orders">0</h3>
+                                <p>Đơn hàng</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="total-books">0</h3>
+                                <p>Sách</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="total-users">0</h3>
+                                <p>Người dùng</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="total-revenue">0 ₫</h3>
+                                <p>Doanh thu</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <h3>Doanh thu theo tháng</h3>
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                        <div class="chart-card">
+                            <h3>Sách bán chạy</h3>
+                            <canvas id="bestsellersChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="recent-activity">
+                        <h3>Hoạt động gần đây</h3>
+                        <div id="recent-orders" class="activity-list">
+                            <!-- Recent orders will be loaded here -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Books Management Section -->
+                <section id="books-section" class="content-section">
+                    <div class="section-header">
+                        <h2>Quản lý Sách</h2>
+                        <button class="btn btn-primary" onclick="showBookModal()">
+                            <i class="fas fa-plus"></i> Thêm sách mới
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table id="books-table" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Hình ảnh</th>
+                                    <th>Tên sách</th>
+                                    <th>Tác giả</th>
+                                    <th>Giá</th>
+                                    <th>Tồn kho</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="books-tbody">
+                                <!-- Books data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Categories Management Section -->
+                <section id="categories-section" class="content-section">
+                    <div class="section-header">
+                        <h2>Quản lý Danh mục</h2>
+                        <button class="btn btn-primary" onclick="showCategoryModal()">
+                            <i class="fas fa-plus"></i> Thêm danh mục
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table id="categories-table" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Tên danh mục</th>
+                                    <th>Mô tả</th>
+                                    <th>Số sách</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="categories-tbody">
+                                <!-- Categories data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Users Management Section -->
+                <section id="users-section" class="content-section">
+                    <div class="section-header">
+                        <h2>Quản lý Người dùng</h2>
+                    </div>
+                    <div class="table-container">
+                        <table id="users-table" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Họ tên</th>
+                                    <th>Email</th>
+                                    <th>Vai trò</th>
+                                    <th>Điện thoại</th>
+                                    <th>Ngày tạo</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-tbody">
+                                <!-- Users data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Orders Management Section -->
+                <section id="orders-section" class="content-section">
+                    <div class="section-header">
+                        <h2>Quản lý Đơn hàng</h2>
+                    </div>
+                    <div class="filters">
+                        <select id="order-status-filter" onchange="loadOrders()">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="pending">Chờ xử lý</option>
+                            <option value="confirmed">Đã xác nhận</option>
+                            <option value="shipped">Đang giao</option>
+                            <option value="delivered">Đã giao</option>
+                            <option value="cancelled">Đã hủy</option>
+                        </select>
+                    </div>
+                    <div class="table-container">
+                        <table id="orders-table" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Mã đơn</th>
+                                    <th>Khách hàng</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thanh toán</th>
+                                    <th>Ngày tạo</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-tbody">
+                                <!-- Orders data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Promotions Management Section -->
+                <section id="promotions-section" class="content-section">
+                    <div class="section-header">
+                        <h2>Quản lý Khuyến mãi</h2>
+                        <button class="btn btn-primary" onclick="showPromotionModal()">
+                            <i class="fas fa-plus"></i> Thêm khuyến mãi
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table id="promotions-table" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Mã</th>
+                                    <th>Tên khuyến mãi</th>
+                                    <th>Giảm giá</th>
+                                    <th>Ngày bắt đầu</th>
+                                    <th>Ngày kết thúc</th>
+                                    <th>Đã sử dụng</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="promotions-tbody">
+                                <!-- Promotions data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Contacts Management Section -->
+                <section id="contacts-section" class="content-section">
+                    <div class="section-header">
+                        <h2>Liên hệ từ khách hàng</h2>
+                    </div>
+                    <div class="table-container">
+                        <table id="contacts-table" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Họ tên</th>
+                                    <th>Email</th>
+                                    <th>Tiêu đề</th>
+                                    <th>Trạng thái</th>
+                                    <th>Ngày gửi</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contacts-tbody">
+                                <!-- Contacts data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Support Tickets Section -->
+                <section id="support-section" class="content-section">
+                    <div class="section-header">
+                        <h2>Yêu cầu hỗ trợ</h2>
+                    </div>
+                    <div class="table-container">
+                        <table id="support-table" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Khách hàng</th>
+                                    <th>Loại vấn đề</th>
+                                    <th>Mức độ ưu tiên</th>
+                                    <th>Trạng thái</th>
+                                    <th>Ngày tạo</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="support-tbody">
+                                <!-- Support tickets data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Job Applications Section -->
+                <section id="careers-section" class="content-section">
+                    <div class="section-header">
+                        <h2>Đơn ứng tuyển</h2>
+                    </div>
+                    <div class="table-container">
+                        <table id="applications-table" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Họ tên</th>
+                                    <th>Vị trí</th>
+                                    <th>Kinh nghiệm</th>
+                                    <th>Email</th>
+                                    <th>Điện thoại</th>
+                                    <th>Trạng thái</th>
+                                    <th>Ngày ứng tuyển</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="applications-tbody">
+                                <!-- Job applications data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <!-- Book Modal -->
+    <div id="book-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="book-modal-title">Thêm sách mới</h3>
+                <span class="close" onclick="closeBookModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="book-form">
+                    <input type="hidden" id="book-id">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="book-title">Tên sách *</label>
+                            <input type="text" id="book-title" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="book-author">Tác giả *</label>
+                            <input type="text" id="book-author" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="book-price">Giá bán *</label>
+                            <input type="number" id="book-price" required min="0" step="1000">
+                        </div>
+                        <div class="form-group">
+                            <label for="book-original-price">Giá gốc</label>
+                            <input type="number" id="book-original-price" min="0" step="1000">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="book-category">Danh mục *</label>
+                            <select id="book-category" required>
+                                <option value="">Chọn danh mục</option>
+                                <!-- Categories will be loaded dynamically -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="book-stock">Tồn kho *</label>
+                            <input type="number" id="book-stock" required min="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="book-description">Mô tả</label>
+                        <textarea id="book-description" rows="4" placeholder="Mô tả về sách..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="book-image">URL hình ảnh</label>
+                        <input type="text" id="book-image" placeholder="https://example.com/image.jpg">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeBookModal()">Hủy</button>
+                        <button type="submit" class="btn btn-primary">Lưu</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Modal -->
+    <div id="category-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="category-modal-title">Thêm danh mục</h3>
+                <span class="close" onclick="closeCategoryModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="category-form">
+                    <input type="hidden" id="category-id">
+                    <div class="form-group">
+                        <label for="category-name">Tên danh mục *</label>
+                        <input type="text" id="category-name" required placeholder="Ví dụ: Tiểu thuyết, Khoa học...">
+                    </div>
+                    <div class="form-group">
+                        <label for="category-description">Mô tả</label>
+                        <textarea id="category-description" rows="3" placeholder="Mô tả về danh mục..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="category-image">URL hình ảnh</label>
+                        <input type="text" id="category-image" placeholder="https://example.com/category.jpg">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeCategoryModal()">Hủy</button>
+                        <button type="submit" class="btn btn-primary">Lưu</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Promotion Modal -->
+    <div id="promotion-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="promotion-modal-title">Thêm khuyến mãi</h3>
+                <span class="close" onclick="closePromotionModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="promotion-form">
+                    <input type="hidden" id="promotion-id">
+                    <div class="form-group">
+                        <label for="promotion-name">Tên khuyến mãi *</label>
+                        <input type="text" id="promotion-name" required placeholder="Ví dụ: Giảm giá mùa hè">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="promotion-code">Mã khuyến mãi *</label>
+                            <input type="text" id="promotion-code" required placeholder="Ví dụ: SUMMER20">
+                        </div>
+                        <div class="form-group">
+                            <label for="promotion-type">Loại giảm giá *</label>
+                            <select id="promotion-type" required>
+                                <option value="percentage">Phần trăm (%)</option>
+                                <option value="fixed">Số tiền cố định (₫)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="promotion-value">Giá trị giảm *</label>
+                            <input type="number" id="promotion-value" required min="0" step="0.01" placeholder="10 hoặc 20000">
+                        </div>
+                        <div class="form-group">
+                            <label for="promotion-limit">Giới hạn sử dụng</label>
+                            <input type="number" id="promotion-limit" min="1" placeholder="Để trống nếu không giới hạn">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="promotion-start">Ngày bắt đầu *</label>
+                            <input type="datetime-local" id="promotion-start" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="promotion-end">Ngày kết thúc *</label>
+                            <input type="datetime-local" id="promotion-end" required>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closePromotionModal()">Hủy</button>
+                        <button type="submit" class="btn btn-primary">Lưu</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+    <script src="./js/api.js"></script>
+    <script src="./js/admin-auth.js"></script>
+    <script src="./js/admin.js"></script>
+</body>
+</html>
