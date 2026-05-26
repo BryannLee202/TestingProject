@@ -7,7 +7,7 @@ import 'swiper/css/navigation';
 
 export default function Banner() {
   const banners = [
-    'https://cdn0.fahasa.com/media/magentothem/banner7/Banner-Manga-thang-05_840x320.jpg',
+    'https: //cdn0.fahasa.com/media/magentothem/banner7/Banner-Manga-thang-05_840x320.jpg',
     'https://cdn0.fahasa.com/media/magentothem/banner7/Ngoai-Van-T5-Slide_840x320.jpg',
     'https://cdn0.fahasa.com/media/magentothem/banner7/Trang-Do-choi-Slide_840x320.jpg',
   ];
