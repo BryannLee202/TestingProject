@@ -9,10 +9,13 @@ import {
   FaShoppingCart, 
   FaRegUser 
 } from 'react-icons/fa';
+import { useCart } from '../context/CartContext';
 
 export default function Header() {
   const [isNotifyOpen, setIsNotifyOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const { getCartCount } = useCart();
+  const cartCount = getCartCount();
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
@@ -78,7 +81,11 @@ export default function Header() {
           <Link to="/cart" className="flex flex-col items-center text-gray-600 hover:text-primary transition-colors relative">
             <div className="relative">
               <FaShoppingCart className="text-2xl" />
-              <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border-2 border-white">0</span>
+              {cartCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border-2 border-white">
+                  {cartCount}
+                </span>
+              )}
             </div>
             <span className="text-[11px] font-medium mt-1">Giỏ hàng</span>
           </Link>

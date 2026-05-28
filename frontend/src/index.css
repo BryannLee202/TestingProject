@@ -10,3 +10,11 @@
     @apply bg-gray-50 text-gray-900;
   }
 }
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

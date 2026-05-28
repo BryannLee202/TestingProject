@@ -125,11 +125,20 @@ const bookController = {
   // --- 5. Sách bán chạy ---
   getBestsellers: async (req, res) => {
     try {
-      const books = await dbHelpers.query(
-        "SELECT TOP 5 * FROM Books ORDER BY price DESC"
-      );
+      const sql = `
+        SELECT TOP 10 b.*, COALESCE(s.total_sold, 0) as total_sold
+        FROM Books b
+        JOIN (
+          SELECT book_id, SUM(quantity) as total_sold
+          FROM OrderDetails
+          GROUP BY book_id
+        ) s ON b.id = s.book_id
+        ORDER BY s.total_sold DESC
+      `;
+      const books = await dbHelpers.query(sql);
       res.json({ success: true, data: books });
     } catch (error) {
+      console.error("Lỗi getBestsellers:", error);
       res.status(500).json({ success: false, message: "Lỗi server" });
     }
   },
@@ -298,6 +307,115 @@ const bookController = {
       res.json({ success: true, message: "Đã cập nhật kho" });
     } catch (error) {
       res.status(500).json({ success: false, message: "Lỗi cập nhật kho" });
+    }
+  },
+  // --- 13. Sách Combo Trending ---
+  getTrendingCombos: async (req, res) => {
+    try {
+      // Dựa theo yêu cầu: thuộc danh mục "Combo" hoặc is_combo = 1
+      const sql = `
+        SELECT TOP 10 b.* 
+        FROM Books b
+        LEFT JOIN Categories c ON b.category_id = c.id
+        WHERE c.name LIKE '%Combo%' OR ISNULL(b.is_combo, 0) = 1
+        ORDER BY NEWID() -- Thay bằng b.view_count DESC nếu có cột view_count
+      `;
+      const books = await dbHelpers.query(sql);
+      res.json({ success: true, data: books });
+    } catch (error) {
+      console.error("Lỗi getTrendingCombos:", error);
+      res.status(500).json({ success: false, message: "Lỗi lấy danh sách combo" });
+    }
+  },
+
+  // --- 14. Gợi ý cá nhân hóa ---
+  getPersonalizedRecommendations: async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      // Lấy danh mục user hay mua nhất
+      const categoryQuery = `
+        SELECT TOP 3 b.category_id, COUNT(*) as buy_count
+        FROM OrderDetails od
+        JOIN Orders o ON od.order_id = o.id
+        JOIN Books b ON od.book_id = b.id
+        WHERE o.user_id = @userId
+        GROUP BY b.category_id
+        ORDER BY buy_count DESC
+      `;
+      const categoriesResult = await dbHelpers.query(categoryQuery, { userId: parseInt(userId) });
+      
+      if (categoriesResult.length === 0) {
+        // Fallback: Sách mới nhất nếu chưa từng mua hàng
+        const fallbackQuery = `SELECT TOP 10 * FROM Books ORDER BY id DESC`;
+        const fallbackBooks = await dbHelpers.query(fallbackQuery);
+        return res.json({ success: true, data: fallbackBooks });
+      }
+      
+      // Sử dụng tham số thay vì chuỗi để an toàn (bảo mật SQL Injection)
+      // Mssql driver cần phải có workaround cho câu lệnh IN, ta có thể nối chuỗi an toàn vì category_id là ID nội bộ
+      const categoryIds = categoriesResult.map(c => parseInt(c.category_id));
+      const catIdsString = categoryIds.join(',');
+      
+      // Lấy sách thuộc các danh mục này nhưng user chưa mua
+      const recommendQuery = `
+        SELECT TOP 10 * FROM Books 
+        WHERE category_id IN (${catIdsString})
+        AND id NOT IN (
+          SELECT od.book_id 
+          FROM OrderDetails od 
+          JOIN Orders o ON od.order_id = o.id 
+          WHERE o.user_id = @userId
+        )
+        ORDER BY NEWID()
+      `;
+      const recommendedBooks = await dbHelpers.query(recommendQuery, { userId: parseInt(userId) });
+      
+      res.json({ success: true, data: recommendedBooks });
+    } catch (error) {
+      console.error("Lỗi getPersonalizedRecommendations:", error);
+      res.status(500).json({ success: false, message: "Lỗi lấy gợi ý sách" });
+    }
+  },
+  // --- 15. Lấy sách theo danh mục (có phân trang) ---
+  getBooksByCategory: async (req, res) => {
+    try {
+      const { categoryId } = req.params;
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 12;
+      const offset = (page - 1) * limit;
+
+      const sqlQuery = `
+        SELECT * FROM Books 
+        WHERE category_id = @categoryId
+        ORDER BY id DESC 
+        OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY
+      `;
+      
+      const countQuery = `SELECT COUNT(*) as total FROM Books WHERE category_id = @categoryId`;
+      
+      const books = await dbHelpers.query(sqlQuery, { 
+        categoryId: parseInt(categoryId), 
+        offset: offset, 
+        limit: limit 
+      });
+      
+      const countResult = await dbHelpers.query(countQuery, { categoryId: parseInt(categoryId) });
+      const total = countResult[0]?.total || 0;
+
+      res.json({
+        success: true,
+        data: books,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit)
+        }
+      });
+    } catch (error) {
+      console.error("Lỗi getBooksByCategory:", error);
+      res.status(500).json({ success: false, message: "Lỗi server" });
     }
   },
 }; // <--- Đóng object bookController TẠI ĐÂY
