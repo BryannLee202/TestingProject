@@ -9,6 +9,7 @@ import PartnerBrands from '../components/home/PartnerBrands';
 import BestSellerRank from '../components/home/BestSellerRank';
 import ComboTrending from '../components/home/ComboTrending';
 import PersonalizedSuggestions from '../components/home/PersonalizedSuggestions';
+import { useAuth } from '../context/AuthContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -17,13 +18,12 @@ export default function Home() {
   const [combos, setCombos] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchHomeData = async () => {
       try {
         setLoading(true);
-        // Get user info if logged in (assuming stored in localStorage)
-        const user = JSON.parse(localStorage.getItem('user'));
         const userId = user ? user.id : 0; // use 0 or null for guest
 
         const [bestsellerRes, comboRes, recommendRes] = await Promise.all([
@@ -43,7 +43,7 @@ export default function Home() {
     };
 
     fetchHomeData();
-  }, []);
+  }, [user]);
 
   return (
     <div className="bg-gray-100 pb-10 min-h-screen">

@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
+import axios from 'axios';
+import { useAuth } from './AuthContext';
 
 const CartContext = createContext();
 
@@ -8,33 +10,72 @@ export const useCart = () => {
 };
 
 export const CartProvider = ({ children }) => {
-  const [cart, setCart] = useState(() => {
-    // Lấy dữ liệu giỏ hàng từ localStorage khi khởi tạo
-    const savedCart = localStorage.getItem('bookstore_cart');
-    return savedCart ? JSON.parse(savedCart) : [];
-  });
+  const [cart, setCart] = useState([]);
+  const { user } = useAuth();
+  
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-  // Lưu vào localStorage mỗi khi giỏ hàng thay đổi
+  // Lấy giỏ hàng khi user đăng nhập hoặc từ localStorage nếu là khách
   useEffect(() => {
-    localStorage.setItem('bookstore_cart', JSON.stringify(cart));
-  }, [cart]);
+    if (user) {
+      const fetchDBCart = async () => {
+        try {
+          const res = await axios.get(`${API_BASE_URL}/cart`);
+          if (res.data.success) {
+            // Map the DB structure to frontend structure
+            const dbCart = res.data.data.map(item => ({
+              id: item.book_id,
+              title: item.title,
+              price: item.price,
+              img: item.image_url || 'https://via.placeholder.com/100',
+              quantity: item.quantity
+            }));
+            setCart(dbCart);
+          }
+        } catch (error) {
+          console.error('Error fetching DB cart', error);
+        }
+      };
+      fetchDBCart();
+    } else {
+      const savedCart = localStorage.getItem('bookstore_cart');
+      if (savedCart) setCart(JSON.parse(savedCart));
+    }
+  }, [user]);
 
-  const addToCart = (product, quantity = 1) => {
-    setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item.id === product.id);
-      
-      if (existingItem) {
-        // Nếu đã có trong giỏ, tăng số lượng
-        return prevCart.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
-      } else {
-        // Nếu chưa có, thêm mới
-        return [...prevCart, { ...product, quantity }];
+  // Lưu vào localStorage nếu là khách
+  useEffect(() => {
+    if (!user) {
+      localStorage.setItem('bookstore_cart', JSON.stringify(cart));
+    }
+  }, [cart, user]);
+
+  const addToCart = async (product, quantity = 1) => {
+    if (user) {
+      try {
+        await axios.post(`${API_BASE_URL}/cart`, { bookId: product.id, quantity });
+        // Update local state for immediate feedback
+        setCart(prev => {
+          const existing = prev.find(i => i.id === product.id);
+          if (existing) {
+            return prev.map(i => i.id === product.id ? { ...i, quantity: i.quantity + quantity } : i);
+          }
+          return [...prev, { ...product, quantity }];
+        });
+      } catch (error) {
+        console.error('Error adding to DB cart', error);
       }
-    });
+    } else {
+      setCart((prevCart) => {
+        const existingItem = prevCart.find((item) => item.id === product.id);
+        if (existingItem) {
+          return prevCart.map((item) =>
+            item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
+          );
+        }
+        return [...prevCart, { ...product, quantity }];
+      });
+    }
 
     Swal.fire({
       icon: 'success',
@@ -47,8 +88,17 @@ export const CartProvider = ({ children }) => {
     });
   };
 
-  const updateQuantity = (productId, newQuantity) => {
+  const updateQuantity = async (productId, newQuantity) => {
     if (newQuantity < 1) return;
+    
+    if (user) {
+      try {
+        await axios.put(`${API_BASE_URL}/cart/${productId}`, { quantity: newQuantity });
+      } catch (error) {
+        console.error('Error updating DB cart', error);
+      }
+    }
+    
     setCart((prevCart) =>
       prevCart.map((item) =>
         item.id === productId ? { ...item, quantity: newQuantity } : item
@@ -56,19 +106,30 @@ export const CartProvider = ({ children }) => {
     );
   };
 
-  const removeFromCart = (productId) => {
+  const removeFromCart = async (productId) => {
+    if (user) {
+      try {
+        await axios.delete(`${API_BASE_URL}/cart/${productId}`);
+      } catch (error) {
+        console.error('Error removing from DB cart', error);
+      }
+    }
     setCart((prevCart) => prevCart.filter((item) => item.id !== productId));
   };
 
-  const clearCart = () => {
+  const clearCart = async () => {
+    if (user) {
+      try {
+        await axios.delete(`${API_BASE_URL}/cart`);
+      } catch (error) {
+        console.error('Error clearing DB cart', error);
+      }
+    }
     setCart([]);
   };
 
   const getCartTotal = () => {
-    return cart.reduce((total, item) => {
-      const price = item.price || 0;
-      return total + price * item.quantity;
-    }, 0);
+    return cart.reduce((total, item) => total + (item.price || 0) * item.quantity, 0);
   };
 
   const getCartCount = () => {

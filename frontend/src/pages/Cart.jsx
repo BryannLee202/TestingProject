@@ -1,24 +1,70 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaTrash, FaMinus, FaPlus, FaShoppingCart } from 'react-icons/fa';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import Swal from 'sweetalert2';
+import axios from 'axios';
 
 export default function Cart() {
   const { cart, updateQuantity, removeFromCart, getCartTotal, clearCart } = useCart();
   const total = getCartTotal();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (cart.length === 0) return;
     
-    Swal.fire({
-      icon: 'success',
-      title: 'Đặt hàng thành công',
-      text: 'Cảm ơn bạn đã mua hàng tại Grape Book!',
-      confirmButtonColor: '#FF0000'
-    }).then(() => {
-      clearCart();
-    });
+    if (!user) {
+      return Swal.fire({
+        icon: 'warning',
+        title: 'Yêu cầu đăng nhập',
+        text: 'Vui lòng đăng nhập để tiến hành đặt hàng.',
+        showCancelButton: true,
+        confirmButtonText: 'Đăng nhập',
+        cancelButtonText: 'Đóng',
+        confirmButtonColor: '#FF0000'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate('/login');
+        }
+      });
+    }
+
+    setLoading(true);
+    try {
+      // Map cart to order items structure expected by backend
+      const items = cart.map(item => ({
+        bookId: item.id,
+        quantity: item.quantity,
+        price: item.price
+      }));
+
+      const res = await axios.post(`${API_BASE_URL}/orders`, { items });
+
+      if (res.data.success) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Đặt hàng thành công',
+          text: 'Cảm ơn bạn đã mua hàng tại Grape Book! Đơn hàng của bạn đang được xử lý.',
+          confirmButtonColor: '#FF0000'
+        }).then(() => {
+          clearCart();
+          navigate('/orders'); // Navigate to user's orders page (to be created)
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi đặt hàng',
+        text: error.response?.data?.message || 'Có lỗi xảy ra khi tạo đơn hàng.',
+        confirmButtonColor: '#FF0000'
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (cart.length === 0) {
@@ -160,9 +206,10 @@ export default function Cart() {
 
               <button 
                 onClick={handleCheckout}
-                className="w-full bg-primary text-white font-bold py-3.5 rounded-md hover:bg-primary-light transition-colors text-center shadow-md shadow-red-200"
+                disabled={loading}
+                className={`w-full bg-primary text-white font-bold py-3.5 rounded-md hover:bg-primary-light transition-colors text-center shadow-md shadow-red-200 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
-                XÁC NHẬN ĐẶT HÀNG
+                {loading ? 'ĐANG XỬ LÝ...' : 'XÁC NHẬN ĐẶT HÀNG'}
               </button>
             </div>
           </div>
