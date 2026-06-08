@@ -21,7 +21,6 @@ const orderController = {
       // Tính toán tổng cuối
       const finalTotal = parseFloat(total) + parseFloat(shippingFee);
 
-<<<<<<< HEAD
       // 1. INSERT vào bảng Orders
       // Sử dụng OUTPUT INSERTED.ID để lấy ngay ID vừa tạo
       const orderSql = `
@@ -41,7 +40,7 @@ const orderController = {
         fee: shippingFee,
         total: total,
         final: finalTotal,
-=======
+      });
       // ⭐ AUTO TẠO ORDER_NUMBER
       const orderNumber =
         "ORD-" + Date.now() + "-" + Math.floor(Math.random() * 10000);
@@ -81,7 +80,6 @@ const orderController = {
         customer_note,
         shipping_fee,
         total_amount,
->>>>>>> 33145164ca09f7ccc5e3fa51f7987fadbb750135
       });
 
       const orderId = orderResult[0].ID;
@@ -92,7 +90,6 @@ const orderController = {
         // Lưu ý: item.bookId hoặc item.book_id tùy vào frontend gửi lên
         const bId = item.bookId || item.book_id || item.id;
 
-<<<<<<< HEAD
         await dbHelpers.execute(
           "INSERT INTO OrderDetails (order_id, book_id, quantity, price) VALUES (@oId, @bId, @qty, @price)",
           { oId: orderId, bId: bId, qty: item.quantity, price: item.price }
@@ -111,7 +108,6 @@ const orderController = {
       res
         .status(500)
         .json({ success: false, message: "Lỗi server: " + error.message });
-=======
       // B4: Xóa sạch giỏ hàng
       await dbHelpers.execute(
         "DELETE FROM CartItems WHERE cart_id IN (SELECT id FROM Carts WHERE user_id = @userId)",
@@ -150,7 +146,6 @@ const orderController = {
         success: false,
         message: "Lỗi lấy danh sách đơn hàng",
       });
->>>>>>> 33145164ca09f7ccc5e3fa51f7987fadbb750135
     }
   },
 };

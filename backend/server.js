@@ -1,13 +1,13 @@
 // require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const { connectDB } = require("../../../backend/config/database"); // Kết nối chuẩn với file database.js mới
+const { connectDB } = require("./config/database"); // Kết nối chuẩn với file database.js mới
 
 // Import routes (Chỉ bật những cái đã làm)
-const authRoutes = require("../../../backend/routes/auth");
-const bookRoutes = require("../../../backend/routes/books");
-const cartRoutes = require("../../../backend/routes/cart");
-const orderRoutes = require("../../../backend/routes/orders");
+const authRoutes = require("./routes/auth");
+const bookRoutes = require("./routes/books");
+const cartRoutes = require("./routes/cart");
+const orderRoutes = require("./routes/orders");
 // const categoryRoutes = require("./routes/categories"); // Tạm ẩn
 // const wishlistRoutes = require("./routes/wishlist");   // Tạm ẩn
 
@@ -46,7 +46,7 @@ const initializeApp = async () => {
     app.use("/api/books", bookRoutes);
     app.use("/api/cart", cartRoutes);
     app.use("/api/orders", orderRoutes);
-    
+
     // app.use("/api/categories", categoryRoutes); // Tạm ẩn
     // app.use("/api/wishlist", wishlistRoutes);   // Tạm ẩn
 
@@ -55,7 +55,7 @@ const initializeApp = async () => {
       res.status(404).json({
         success: false,
         message: "🔍 API endpoint not found",
-        path: req.originalUrl
+        path: req.originalUrl,
       });
     });
 
@@ -67,14 +67,13 @@ const initializeApp = async () => {
       console.log(`   🌐 Server: http://localhost:${PORT}`);
       console.log(`   ⏰ Time: ${new Date().toISOString()}`);
       console.log(`   ==========================================\n`);
-      
+
       console.log(`📋 Active Endpoints:`);
       console.log(`   👉 /api/auth`);
       console.log(`   👉 /api/books`);
       console.log(`   👉 /api/cart`);
       console.log(`   👉 /api/orders`);
     });
-
   } catch (error) {
     console.error("❌ Failed to start server:", error.message);
     process.exit(1);
