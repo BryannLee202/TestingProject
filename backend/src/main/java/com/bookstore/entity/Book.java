@@ -35,4 +35,14 @@ public class Book {
     
     @Column(name = "image_url")
     private String imageUrl;
+
+    @Column(name = "sales_count")
+    private Integer salesCount = 0;
+
+    @Column(name = "is_combo")
+    private Boolean isCombo = false;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "category_id")
+    private Category category;
 }

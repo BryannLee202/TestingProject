@@ -30,4 +30,24 @@ public class BookController {
     public ResponseEntity<Book> createBook(@RequestBody Book book) {
         return ResponseEntity.ok(bookService.createBook(book));
     }
+
+    @GetMapping("/category/{categoryId}")
+    public ResponseEntity<List<Book>> getBooksByCategory(@PathVariable Long categoryId) {
+        return ResponseEntity.ok(bookService.getBooksByCategoryId(categoryId));
+    }
+
+    @GetMapping("/bestsellers")
+    public ResponseEntity<List<Book>> getBestsellers() {
+        return ResponseEntity.ok(bookService.getBestsellers());
+    }
+
+    @GetMapping("/combos")
+    public ResponseEntity<List<Book>> getCombos() {
+        return ResponseEntity.ok(bookService.getCombos());
+    }
+
+    @GetMapping("/recommendations/{userId}")
+    public ResponseEntity<List<Book>> getRecommendations(@PathVariable String userId) {
+        return ResponseEntity.ok(bookService.getRecommendations(userId));
+    }
 }

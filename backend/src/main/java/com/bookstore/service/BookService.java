@@ -25,4 +25,21 @@ public class BookService {
     public Book createBook(Book book) {
         return bookRepository.save(book);
     }
+
+    public List<Book> getBooksByCategoryId(Long categoryId) {
+        return bookRepository.findByCategoryId(categoryId);
+    }
+
+    public List<Book> getBestsellers() {
+        return bookRepository.findTop10ByOrderBySalesCountDesc();
+    }
+
+    public List<Book> getCombos() {
+        return bookRepository.findByIsComboTrue();
+    }
+
+    public List<Book> getRecommendations(String userId) {
+        // Tạm thời trả về bestsellers cho recommendations
+        return getBestsellers();
+    }
 }
