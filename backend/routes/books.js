@@ -17,8 +17,12 @@ router.get("/", bookController.getAllBooks);
 router.get("/search", bookController.searchBooks);
 router.get("/featured", bookController.getFeaturedBooks);
 router.get("/bestsellers", bookController.getBestsellers);
+router.get("/combos", bookController.getTrendingCombos);
 
 // --- 2. CÁC ROUTE CÓ THAM SỐ ID (PHẢI ĐỂ DƯỚI CÙNG) ---
+
+router.get("/recommendations/:userId", bookController.getPersonalizedRecommendations);
+router.get("/category/:categoryId", bookController.getBooksByCategory);
 
 // Chi tiết sách
 router.get("/:id", bookController.getBookById);
