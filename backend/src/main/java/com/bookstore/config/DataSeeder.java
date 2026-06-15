@@ -12,6 +12,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Component
@@ -61,7 +62,7 @@ public class DataSeeder implements CommandLineRunner {
                         .title("Dế Mèn Phiêu Lưu Ký")
                         .author("Tô Hoài")
                         .description("Tác phẩm thiếu nhi kinh điển của văn học Việt Nam.")
-                        .price(55000.0)
+                        .price(BigDecimal.valueOf(55000.0))
                         .stockQuantity(100)
                         .imageUrl("https://bizweb.dktcdn.net/100/197/269/products/de-men-phieu-luu-ky-bia-cung.jpg")
                         .salesCount(500)
@@ -73,7 +74,7 @@ public class DataSeeder implements CommandLineRunner {
                         .title("Clean Code")
                         .author("Robert C. Martin")
                         .description("Sách hay nhất về kỹ năng viết code sạch và bảo trì code.")
-                        .price(250000.0)
+                        .price(BigDecimal.valueOf(250000.0))
                         .stockQuantity(50)
                         .imageUrl("https://m.media-amazon.com/images/I/41xShlnTZTL._SX376_BO1,204,203,200_.jpg")
                         .salesCount(120)
@@ -85,7 +86,7 @@ public class DataSeeder implements CommandLineRunner {
                         .title("Nhà Giả Kim")
                         .author("Paulo Coelho")
                         .description("Cuốn sách bán chạy thứ hai thế giới, chỉ sau kinh thánh.")
-                        .price(79000.0)
+                        .price(BigDecimal.valueOf(79000.0))
                         .stockQuantity(200)
                         .imageUrl("https://nhanam.vn/goc-nhin/wp-content/uploads/2021/05/NhaGiaKim-cover.jpg")
                         .salesCount(1500)
@@ -97,7 +98,7 @@ public class DataSeeder implements CommandLineRunner {
                         .title("Combo Harry Potter (7 Tập)")
                         .author("J.K. Rowling")
                         .description("Trọn bộ 7 tập truyện phép thuật Harry Potter nổi tiếng.")
-                        .price(1500000.0)
+                        .price(BigDecimal.valueOf(1500000.0))
                         .stockQuantity(20)
                         .imageUrl("https://salt.tikicdn.com/cache/w1200/ts/product/bc/50/a1/3807908b89e376046e7f1be701ad8166.jpg")
                         .salesCount(45)
