@@ -49,7 +49,7 @@ export default function PersonalizedSuggestions({ data = [] }) {
                 {/* Image */}
                 <div className="relative pt-[100%] mb-3 overflow-hidden rounded-md bg-gray-50 mt-4">
                   <img 
-                    src={product.image_url || product.img || 'https://via.placeholder.com/150'} 
+                    src={product.image_url || product.img || 'https://placehold.co/150'} 
                     alt={product.title} 
                     className="absolute inset-0 w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-300" 
                   />

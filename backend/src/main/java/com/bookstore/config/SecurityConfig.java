@@ -23,11 +23,29 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.configure(http))
+            .cors(org.springframework.security.config.Customizer.withDefaults())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll() // Cho phép truy cập không cần login
-                .requestMatchers("/api/books/**").permitAll() // Xem sách thoải mái
-                .requestMatchers("/api/categories/**").permitAll() // Xem danh mục thoải mái
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/books/**").permitAll() // Xem sách thoải mái
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/categories/**").permitAll() // Xem danh mục thoải mái
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/banners/**").permitAll() // Xem banner thoải mái
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/notifications/**").permitAll() // Xem thông báo thoải mái
+                .requestMatchers("/error").permitAll() // Cho phép truy cập /error để hiển thị đúng mã lỗi
+                
+                // Quyền Admin
+                .requestMatchers("/api/orders/all").hasRole("ADMIN")
+                .requestMatchers("/api/orders/*/shipping").hasRole("ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/orders/**").hasRole("ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/books/**").hasRole("ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/books/**").hasRole("ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/books/**").hasRole("ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/categories/**").hasRole("ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/categories/**").hasRole("ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/categories/**").hasRole("ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/banners/**").hasRole("ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/banners/**").hasRole("ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/banners/**").hasRole("ADMIN")
+                
                 .anyRequest().authenticated() // Bắt buộc đăng nhập với các API còn lại (giỏ hàng, đơn hàng)
             )
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -35,5 +53,17 @@ public class SecurityConfig {
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
+        org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
+        configuration.setAllowedOrigins(java.util.List.of("http://localhost:5173", "http://localhost:3000"));
+        configuration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(java.util.List.of("*"));
+        configuration.setAllowCredentials(true);
+        org.springframework.web.cors.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }

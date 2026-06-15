@@ -50,4 +50,30 @@ public class BookController {
     public ResponseEntity<List<Book>> getRecommendations(@PathVariable String userId) {
         return ResponseEntity.ok(bookService.getRecommendations(userId));
     }
+
+    @GetMapping("/latest")
+    public ResponseEntity<List<Book>> getLatestBooks() {
+        return ResponseEntity.ok(bookService.getLatestBooks());
+    }
+
+    @GetMapping("/discounted")
+    public ResponseEntity<List<Book>> getDiscountedBooks() {
+        return ResponseEntity.ok(bookService.getDiscountedBooks());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Book> updateBook(@PathVariable Long id, @RequestBody Book book) {
+        return ResponseEntity.ok(bookService.updateBook(id, book));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
+        bookService.deleteBook(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<Book>> searchBooks(@RequestParam String keyword) {
+        return ResponseEntity.ok(bookService.searchBooks(keyword));
+    }
 }

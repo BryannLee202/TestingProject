@@ -32,6 +32,12 @@ public class Book {
     @Column(nullable = false, precision = 18, scale = 2)
     private BigDecimal price;
 
+    @Column(name = "old_price", precision = 18, scale = 2)
+    private BigDecimal oldPrice;
+
+    @Column(name = "discount")
+    private Integer discount = 0;
+
     @Column(name = "stock_quantity", nullable = false)
     private Integer stockQuantity = 0;
     

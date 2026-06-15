@@ -27,6 +27,7 @@ public class Order {
     private User user;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<OrderItem> items = new ArrayList<>();
 
     @Column(nullable = false)
@@ -34,6 +35,38 @@ public class Order {
 
     @Column(nullable = false)
     private String status; // PENDING, PROCESSING, COMPLETED, CANCELLED
+
+    @Column(name = "shipping_address", length = 500)
+    private String shippingAddress;
+
+    @Column(name = "phone_number", length = 20)
+    private String phoneNumber;
+
+    @Column(name = "payment_method", length = 50)
+    private String paymentMethod;
+
+    @Column(name = "shipping_fee")
+    private Double shippingFee = 0.0;
+
+    @Column(name = "customer_note", length = 1000)
+    private String customerNote;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "shipping_status")
+    @Builder.Default
+    private ShippingStatus shippingStatus = ShippingStatus.PENDING;
+
+    @Column(name = "shipping_partner", length = 100)
+    private String shippingPartner;
+
+    @Column(name = "tracking_number", length = 100)
+    private String trackingNumber;
+
+    @Column(name = "discount_amount")
+    private Double discountAmount = 0.0;
+
+    @Column(name = "coupon_code", length = 50)
+    private String couponCode;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;

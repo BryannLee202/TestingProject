@@ -11,7 +11,7 @@ import ComboTrending from '../components/home/ComboTrending';
 import PersonalizedSuggestions from '../components/home/PersonalizedSuggestions';
 import { useAuth } from '../context/AuthContext';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
 export default function Home() {
   const [bestSellers, setBestSellers] = useState([]);
@@ -19,6 +19,10 @@ export default function Home() {
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+
+  const [activeSectionTab, setActiveSectionTab] = useState('Mới Nhất');
+  const [sectionProducts, setSectionProducts] = useState([]);
+  const [sectionLoading, setSectionLoading] = useState(false);
 
   useEffect(() => {
     const fetchHomeData = async () => {
@@ -32,9 +36,23 @@ export default function Home() {
           axios.get(`${API_BASE_URL}/books/recommendations/${userId}`)
         ]);
 
-        if (bestsellerRes.data.success) setBestSellers(bestsellerRes.data.data);
-        if (comboRes.data.success) setCombos(comboRes.data.data);
-        if (recommendRes.data.success) setRecommendations(recommendRes.data.data);
+        if (Array.isArray(bestsellerRes.data)) {
+          setBestSellers(bestsellerRes.data);
+        } else if (bestsellerRes.data?.success) {
+          setBestSellers(bestsellerRes.data.data);
+        }
+
+        if (Array.isArray(comboRes.data)) {
+          setCombos(comboRes.data);
+        } else if (comboRes.data?.success) {
+          setCombos(comboRes.data.data);
+        }
+
+        if (Array.isArray(recommendRes.data)) {
+          setRecommendations(recommendRes.data);
+        } else if (recommendRes.data?.success) {
+          setRecommendations(recommendRes.data.data);
+        }
       } catch (error) {
         console.error('Error fetching home data:', error);
       } finally {
@@ -44,6 +62,28 @@ export default function Home() {
 
     fetchHomeData();
   }, [user]);
+
+  useEffect(() => {
+    const fetchSectionProducts = async () => {
+      setSectionLoading(true);
+      try {
+        let endpoint = '/books/latest';
+        if (activeSectionTab === 'Bán Chạy') {
+          endpoint = '/books/bestsellers';
+        } else if (activeSectionTab === 'Giảm Giá') {
+          endpoint = '/books/discounted';
+        }
+        const res = await axios.get(`${API_BASE_URL}${endpoint}`);
+        setSectionProducts(res.data);
+      } catch (error) {
+        console.error('Error fetching section products:', error);
+      } finally {
+        setSectionLoading(false);
+      }
+    };
+
+    fetchSectionProducts();
+  }, [activeSectionTab]);
 
   return (
     <div className="bg-gray-100 pb-10 min-h-screen">
@@ -69,13 +109,10 @@ export default function Home() {
         <ProductSection 
           title="Sách Mới Nổi Bật" 
           tabs={['Mới Nhất', 'Bán Chạy', 'Giảm Giá']} 
-          products={[
-            { id: 1, title: 'Đắc Nhân Tâm', price: 68000, oldPrice: 80000, img: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_3609.jpg', rating: 5 },
-            { id: 2, title: 'Nhà Giả Kim', price: 55000, oldPrice: 79000, img: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_3609.jpg', rating: 4 },
-            { id: 3, title: 'Hành Trình Về Phương Đông', price: 90000, oldPrice: 120000, img: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_3609.jpg', rating: 5 },
-            { id: 4, title: 'Tôi Thấy Hoa Vàng Trên Cỏ Xanh', price: 75000, oldPrice: 95000, img: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_3609.jpg', rating: 5 },
-            { id: 5, title: 'Tuổi Trẻ Đáng Giá Bao Nhiêu', price: 60000, oldPrice: 85000, img: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_3609.jpg', rating: 4 },
-          ]}
+          products={sectionProducts}
+          activeTab={activeSectionTab}
+          onTabChange={setActiveSectionTab}
+          loading={sectionLoading}
         />
         
         <PartnerBrands />

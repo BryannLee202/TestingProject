@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { FaStar } from 'react-icons/fa';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
 export default function Category() {
   const { categoryId } = useParams();
@@ -15,9 +15,7 @@ export default function Category() {
       try {
         setLoading(true);
         const res = await axios.get(`${API_BASE_URL}/books/category/${categoryId}`);
-        if (res.data.success) {
-          setBooks(res.data.data);
-        }
+        setBooks(res.data || []);
       } catch (error) {
         console.error('Error fetching category books:', error);
       } finally {
@@ -96,7 +94,7 @@ export default function Category() {
                     >
                       <div className="relative pt-[100%] mb-3 overflow-hidden rounded-md bg-gray-50">
                         <img 
-                          src={product.image_url || product.img || 'https://via.placeholder.com/150'} 
+                          src={product.imageUrl || product.image_url || 'https://placehold.co/150'} 
                           alt={product.title} 
                           className="absolute inset-0 w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-300" 
                         />
@@ -106,16 +104,16 @@ export default function Category() {
                       </h3>
                       <div className="flex items-center gap-1 mb-2">
                         {[...Array(5)].map((_, i) => (
-                          <FaStar key={i} className={`text-[10px] ${i < (product.rating || 5) ? 'text-yellow-400' : 'text-gray-200'}`} />
+                          <FaStar key={i} className={`text-[10px] ${i < 5 ? 'text-yellow-400' : 'text-gray-200'}`} />
                         ))}
                       </div>
                       <div className="mt-auto flex flex-col">
                         <span className="text-primary font-bold text-lg leading-none">
                           {product.price ? product.price.toLocaleString('vi-VN') : '0'} đ
                         </span>
-                        {product.original_price && (
+                        {product.oldPrice && (
                           <span className="text-gray-400 text-xs line-through mt-1">
-                            {product.original_price.toLocaleString('vi-VN')} đ
+                            {product.oldPrice.toLocaleString('vi-VN')} đ
                           </span>
                         )}
                       </div>

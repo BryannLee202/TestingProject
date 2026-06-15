@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 import { 
   FaBolt, 
   FaTicketAlt, 
@@ -13,18 +14,39 @@ import {
   FaShoppingBag
 } from 'react-icons/fa';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
+
 export default function QuickLinks() {
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/categories`);
+        setCategories(res.data || []);
+      } catch (error) {
+        console.error('Error fetching categories in QuickLinks:', error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  const getCategoryPath = (keyword, fallbackId) => {
+    const found = categories.find(c => c.name.toLowerCase().includes(keyword.toLowerCase()));
+    return found ? `/category/${found.id}` : `/category/${fallbackId}`;
+  };
+
   const links = [
-    { icon: <FaBolt className="text-[#FBA617]" />, label: 'Flash Sale', path: '/category/flash-sale' },
-    { icon: <FaTicketAlt className="text-[#F04438]" />, label: 'Mã Giảm Giá', path: '/category/coupons' },
-    { icon: <FaFire className="text-[#FF7020]" />, label: 'Sách Bán Chạy', path: '/category/bestsellers' },
-    { icon: <FaPencilAlt className="text-[#1C64F2]" />, label: 'Văn Phòng Phẩm', path: '/category/1' },
-    { icon: <FaGamepad className="text-[#16BD6D]" />, label: 'Đồ Chơi', path: '/category/2' },
-    { icon: <FaBookOpen className="text-[#AC4BEE]" />, label: 'Manga - Comic', path: '/category/3' },
-    { icon: <FaBaby className="text-[#F02F93]" />, label: 'Thiếu Nhi', path: '/category/4' },
-    { icon: <FaGlobeAmericas className="text-[#0E9F6E]" />, label: 'Sách Ngoại Văn', path: '/category/5' },
-    { icon: <FaGift className="text-[#F93A57]" />, label: 'Quà Lưu Niệm', path: '/category/6' },
-    { icon: <FaShoppingBag className="text-[#5A63EC]" />, label: 'Bách Hóa', path: '/category/7' },
+    { icon: <FaBolt className="text-[#FBA617]" />, label: 'Flash Sale', path: '/flash-sale' },
+    { icon: <FaTicketAlt className="text-[#F04438]" />, label: 'Mã Giảm Giá', path: '/coupons' },
+    { icon: <FaFire className="text-[#FF7020]" />, label: 'Sách Bán Chạy', path: '/search?tab=bestsellers' },
+    { icon: <FaPencilAlt className="text-[#1C64F2]" />, label: 'Văn Phòng Phẩm', path: getCategoryPath('văn phòng', 1) },
+    { icon: <FaGamepad className="text-[#16BD6D]" />, label: 'Đồ Chơi', path: getCategoryPath('đồ chơi', 2) },
+    { icon: <FaBookOpen className="text-[#AC4BEE]" />, label: 'Manga - Comic', path: getCategoryPath('manga', 3) },
+    { icon: <FaBaby className="text-[#F02F93]" />, label: 'Thiếu Nhi', path: getCategoryPath('thiếu nhi', 4) },
+    { icon: <FaGlobeAmericas className="text-[#0E9F6E]" />, label: 'Sách Ngoại Văn', path: getCategoryPath('ngoại văn', 5) },
+    { icon: <FaGift className="text-[#F93A57]" />, label: 'Quà Lưu Niệm', path: getCategoryPath('lưu niệm', 6) },
+    { icon: <FaShoppingBag className="text-[#5A63EC]" />, label: 'Bách Hóa', path: getCategoryPath('bách hóa', 7) },
   ];
 
   return (

@@ -125,7 +125,12 @@ export default function Footer() {
           <div className="flex flex-col items-center md:items-end">
             <p className="mb-1">Giấy chứng nhận ĐKKD số: 123456789 do Sở KH & ĐT TP.HCM cấp</p>
             {/* Fake Bo Cong Thuong logo */}
-            <div className="w-32 h-10 bg-[url('https://cdn0.fahasa.com/media/wysiwyg/logo-bo-cong-thuong-da-thong-bao1.png')] bg-contain bg-no-repeat bg-center mix-blend-multiply opacity-80"></div>
+            <a 
+              href="http://online.gov.vn/" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="block w-32 h-10 bg-[url('https://images.tiki.vn/fa/static/img/da-thong-bao-bo-cong-thuong.png')] bg-contain bg-no-repeat bg-center mix-blend-multiply opacity-80 hover:opacity-100 transition-opacity"
+            ></a>
           </div>
         </div>
       </div>

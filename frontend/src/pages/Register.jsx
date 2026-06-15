@@ -14,7 +14,7 @@ export default function Register() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,8 +35,8 @@ export default function Register() {
         password
       });
 
-      if (res.data.success) {
-        login(res.data.data.user, res.data.data.token);
+      if (res.data.token) {
+        login(res.data.user, res.data.token);
         Swal.fire({
           icon: 'success',
           title: 'Đăng ký thành công',

@@ -1,25 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { FaStar, FaShoppingCart, FaMinus, FaPlus, FaCheck } from 'react-icons/fa';
+import { FaStar, FaShoppingCart, FaMinus, FaPlus, FaChevronRight, FaRegThumbsUp, FaExclamationCircle } from 'react-icons/fa';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
+import Swal from 'sweetalert2';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
 export default function ProductDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [book, setBook] = useState(null);
+  const [relatedBooks, setRelatedBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  const [expandedDesc, setExpandedDesc] = useState(false);
   const { addToCart } = useCart();
+  const { user } = useAuth();
+  const [reviews, setReviews] = useState([]);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [newRating, setNewRating] = useState(5);
+  const [newComment, setNewComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
     const fetchBookDetail = async () => {
       try {
         setLoading(true);
         const res = await axios.get(`${API_BASE_URL}/books/${id}`);
-        if (res.data.success) {
-          setBook(res.data.data);
+        if (res.data && res.data.id) {
+          setBook(res.data);
+          // Fetch related books based on category or just latest
+          const relatedRes = await axios.get(`${API_BASE_URL}/books/latest`);
+          setRelatedBooks(relatedRes.data.filter(b => b.id !== res.data.id).slice(0, 5));
         }
       } catch (error) {
         console.error('Error fetching book detail:', error);
@@ -28,8 +42,57 @@ export default function ProductDetail() {
       }
     };
 
+    const fetchReviews = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/reviews/book/${id}`);
+        setReviews(res.data || []);
+      } catch (error) {
+        console.error('Error fetching reviews:', error);
+      }
+    };
+
     fetchBookDetail();
+    fetchReviews();
+    window.scrollTo(0, 0);
   }, [id]);
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    if (!user) {
+      Swal.fire('Vui lòng đăng nhập', 'Bạn cần đăng nhập để viết đánh giá.', 'warning');
+      return;
+    }
+    setSubmittingReview(true);
+    try {
+      const res = await axios.post(`${API_BASE_URL}/reviews/book/${id}`, {
+        rating: newRating,
+        comment: newComment
+      });
+      if (res.data && res.data.id) {
+        setReviews(prev => [res.data, ...prev]);
+        setIsReviewModalOpen(false);
+        setNewComment('');
+        setNewRating(5);
+        Swal.fire('Thành công', 'Đánh giá của bạn đã được ghi nhận!', 'success');
+      }
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      Swal.fire('Lỗi', error.response?.data?.message || 'Không thể gửi đánh giá.', 'error');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  const totalReviewsCount = reviews.length;
+  const averageRating = totalReviewsCount > 0 
+    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviewsCount).toFixed(1)
+    : '0.0';
+
+  const getStarPercentage = (star) => {
+    if (totalReviewsCount === 0) return '0%';
+    const count = reviews.filter(r => r.rating === star).length;
+    return `${Math.round(count * 100 / totalReviewsCount)}%`;
+  };
 
   const handleAddToCart = () => {
     if (book) {
@@ -37,9 +100,20 @@ export default function ProductDetail() {
     }
   };
 
+  const handleBuyNow = () => {
+    if (book) {
+      addToCart(book, quantity);
+      navigate('/cart');
+    }
+  };
+
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('vi-VN').format(price) + ' đ';
+  };
+
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <div className="flex justify-center items-center min-h-[70vh] bg-gray-100">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
@@ -55,120 +129,371 @@ export default function ProductDetail() {
   }
 
   return (
-    <div className="bg-gray-100 min-h-screen pb-10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+    <div className="bg-[#f0f0f0] min-h-screen pb-10 font-sans">
+      <div className="max-w-[1200px] mx-auto px-4 pt-4">
         
         {/* Breadcrumb */}
-        <div className="text-sm text-gray-500 mb-4">
-          <Link to="/" className="hover:text-primary">Trang chủ</Link>
-          <span className="mx-2">/</span>
-          <span className="text-gray-800 font-medium">{book.title}</span>
+        <div className="text-sm text-gray-500 mb-4 uppercase flex items-center gap-2">
+          <Link to="/" className="hover:text-primary">Trang chủ</Link> <FaChevronRight className="text-[10px]" />
+          <Link to={`/category/${book.category?.id || ''}`} className="hover:text-primary">{book.category?.name || 'Danh mục'}</Link> <FaChevronRight className="text-[10px]" />
+          <span className="text-gray-800 truncate">{book.title}</span>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 lg:p-8 flex flex-col md:flex-row gap-8">
+        {/* Top Section */}
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-4 flex flex-col md:flex-row gap-6">
           
-          {/* Left: Product Image */}
-          <div className="w-full md:w-2/5 lg:w-1/3">
-            <div className="border border-gray-100 rounded-lg p-4 flex items-center justify-center bg-white h-auto max-w-sm mx-auto">
+          {/* Left: Images & Actions */}
+          <div className="w-full md:w-[40%] lg:w-[35%] flex flex-col">
+            <div className="border border-gray-100 rounded-lg p-2 mb-4 flex items-center justify-center relative">
               <img 
-                src={book.image_url || book.img || 'https://via.placeholder.com/400'} 
+                src={book.imageUrl || book.image_url || 'https://placehold.co/400'} 
                 alt={book.title} 
-                className="w-full object-contain max-h-[400px]"
+                className="w-full h-auto object-contain max-h-[350px]"
               />
+            </div>
+            
+            {/* Thumbnails (Mocked) */}
+            <div className="flex gap-2 mb-6">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className={`border ${i===1 ? 'border-primary' : 'border-gray-200'} rounded p-1 w-1/4 cursor-pointer hover:border-primary`}>
+                  <img src={book.imageUrl || 'https://placehold.co/100'} alt="thumb" className="w-full h-auto object-cover" />
+                </div>
+              ))}
+            </div>
+
+            {/* Buttons */}
+            <div className="flex gap-3 mt-auto pt-4">
+              <button 
+                onClick={handleAddToCart}
+                className="flex-1 flex items-center justify-center gap-2 bg-white text-primary border border-primary hover:bg-red-50 hover:shadow-sm font-semibold py-2.5 px-3 rounded-lg transition-all text-sm whitespace-nowrap"
+              >
+                <FaShoppingCart className="text-base" /> Thêm vào giỏ hàng
+              </button>
+              <button 
+                onClick={handleBuyNow}
+                className="flex-1 bg-primary text-white hover:bg-primary-light hover:shadow-sm font-semibold py-2.5 px-3 rounded-lg transition-all text-sm whitespace-nowrap"
+              >
+                Mua ngay
+              </button>
             </div>
           </div>
 
-          {/* Right: Product Info */}
-          <div className="w-full md:w-3/5 lg:w-2/3 flex flex-col">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 leading-tight">
+          {/* Right: Info */}
+          <div className="w-full md:w-[60%] lg:w-[65%]">
+            <h1 className="text-[22px] font-medium text-gray-800 mb-2 leading-tight">
               {book.title}
             </h1>
             
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-600 mb-4">
-              <div className="flex items-center gap-1">
-                Tác giả: <span className="font-bold text-primary">{book.author || 'Đang cập nhật'}</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 text-sm text-gray-600 mb-3">
+              <div>Nhà cung cấp: <span className="font-medium text-blue-600">Nhã Nam</span></div>
+              <div>Tác giả: <span className="font-medium text-gray-800">{book.author || 'Đang cập nhật'}</span></div>
+              <div>Nhà xuất bản: <span className="font-medium text-gray-800">Hội Nhà Văn</span></div>
+              <div>Hình thức bìa: <span className="font-medium text-gray-800">Bìa Mềm</span></div>
+            </div>
+
+            <div className="flex items-center gap-3 text-sm mb-4">
+              <div className="flex items-center text-yellow-400 text-sm">
+                {[...Array(5)].map((_, i) => <FaStar key={i} className={i < 5 ? 'text-yellow-400' : 'text-gray-200'} />)}
               </div>
-              <div className="flex items-center gap-1 text-yellow-400">
-                {[...Array(5)].map((_, i) => <FaStar key={i} className={i < (book.rating || 5) ? 'text-yellow-400' : 'text-gray-200'} />)}
-                <span className="text-gray-500 ml-1">(12 đánh giá)</span>
+              <span className="text-yellow-500 font-medium">(1 đánh giá)</span>
+              <span className="text-gray-300">|</span>
+              <span className="text-gray-500">Đã bán {book.salesCount || 10}</span>
+            </div>
+
+            {/* Price Block */}
+            <div className="mb-4">
+              <div className="flex items-end gap-3 mb-1">
+                <span className="text-3xl font-bold text-primary">
+                  {formatPrice(book.price || 0)}
+                </span>
+                {book.oldPrice && (
+                  <span className="text-gray-400 line-through text-sm mb-1">
+                    {formatPrice(book.oldPrice)}
+                  </span>
+                )}
+                {book.discount > 0 && (
+                  <span className="bg-primary text-white text-xs font-bold px-1.5 py-0.5 rounded mb-1.5">
+                    -{book.discount}%
+                  </span>
+                )}
               </div>
             </div>
 
-            <div className="bg-gray-50 p-4 sm:p-6 rounded-lg flex flex-col sm:flex-row sm:items-end gap-4 mb-6">
-              <span className="text-3xl font-bold text-primary">
-                {book.price ? book.price.toLocaleString('vi-VN') : '0'} đ
-              </span>
-              {book.original_price && (
-                <span className="text-gray-400 text-lg line-through mb-1">
-                  {book.original_price.toLocaleString('vi-VN')} đ
-                </span>
-              )}
-              {book.original_price && book.price && (
-                <span className="bg-primary text-white text-xs font-bold px-2 py-1 rounded ml-2 mb-1.5">
-                  -{Math.round(((book.original_price - book.price) / book.original_price) * 100)}%
-                </span>
-              )}
+            <div className="bg-blue-50 text-blue-600 text-sm py-2 px-4 rounded-lg mb-6 border border-blue-100 font-medium">
+              45 nhà sách còn hàng
             </div>
 
-            {/* Description Preview */}
-            <div className="mb-6">
-              <h3 className="font-bold text-gray-800 mb-2">Mô tả ngắn:</h3>
-              <p className="text-gray-600 text-sm leading-relaxed line-clamp-3">
-                {book.description || 'Chưa có mô tả cho sản phẩm này.'}
-              </p>
-            </div>
-
-            {/* Quantity & Actions */}
-            <div className="mt-auto border-t border-gray-100 pt-6">
-              <div className="flex items-center gap-4 mb-6">
-                <span className="font-medium text-gray-700">Số lượng:</span>
-                <div className="flex items-center border border-gray-300 rounded-md">
-                  <button 
-                    onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                    className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 transition-colors"
-                  >
-                    <FaMinus className="text-xs" />
-                  </button>
-                  <input 
-                    type="number" 
-                    value={quantity}
-                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-12 text-center text-sm font-medium border-x border-gray-300 py-1 focus:outline-none appearance-none"
-                    readOnly
-                  />
-                  <button 
-                    onClick={() => setQuantity(q => q + 1)}
-                    className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 transition-colors"
-                  >
-                    <FaPlus className="text-xs" />
-                  </button>
+            {/* Delivery Info */}
+            <div className="border-t border-gray-100 pt-4 mb-4">
+              <h3 className="font-bold text-gray-800 mb-2">Thông tin vận chuyển</h3>
+              <div className="text-sm text-gray-600 mb-2 flex justify-between">
+                <span>Giao hàng đến <span className="font-bold text-gray-800">Phường Bến Nghé, Quận 1, Hồ Chí Minh</span></span>
+                <button className="text-blue-600 hover:underline">Thay đổi</button>
+              </div>
+              <div className="flex gap-2 items-start mt-3">
+                <div className="mt-1 text-green-600">
+                  <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
                 </div>
-                <div className="text-sm text-gray-500">
-                  {book.stock_quantity > 0 ? (
-                    <span className="flex items-center gap-1 text-green-600"><FaCheck /> Còn hàng ({book.stock_quantity})</span>
-                  ) : (
-                    <span className="text-red-500">Hết hàng</span>
-                  )}
+                <div>
+                  <div className="font-bold text-gray-800 text-sm">Giao hàng tiêu chuẩn</div>
+                  <div className="text-sm text-gray-600">Dự kiến giao <span className="font-bold">Thứ tư - 17/06</span></div>
                 </div>
               </div>
+            </div>
 
-              <div className="flex flex-col sm:flex-row gap-4">
+            {/* Promotions */}
+            <div className="border-t border-gray-100 pt-4 mb-6">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="font-bold text-gray-800">Ưu đãi liên quan</h3>
+                <button className="text-blue-600 text-sm hover:underline flex items-center gap-1">Xem thêm <FaChevronRight className="text-[10px]" /></button>
+              </div>
+              <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
+                <div className="border border-blue-200 bg-white rounded flex items-center gap-2 p-1.5 px-3 whitespace-nowrap text-sm cursor-pointer shadow-sm hover:border-blue-400">
+                  <div className="w-6 h-6 bg-blue-500 rounded text-white flex items-center justify-center font-bold text-xs">Z</div>
+                  <span>Zalopay: giảm 50...</span>
+                </div>
+                <div className="border border-pink-200 bg-white rounded flex items-center gap-2 p-1.5 px-3 whitespace-nowrap text-sm cursor-pointer shadow-sm hover:border-pink-400">
+                  <div className="w-6 h-6 bg-pink-500 rounded text-white flex items-center justify-center font-bold text-xs">M</div>
+                  <span>Momo: giảm 12k...</span>
+                </div>
+                <div className="border border-orange-200 bg-white rounded flex items-center gap-2 p-1.5 px-3 whitespace-nowrap text-sm cursor-pointer shadow-sm hover:border-orange-400">
+                  <div className="w-6 h-6 bg-orange-500 rounded text-white flex items-center justify-center font-bold text-xs">S</div>
+                  <span>Shopeepay: giảm...</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Quantity */}
+            <div className="flex items-center gap-6 mt-4">
+              <span className="font-bold text-gray-800">Số lượng:</span>
+              <div className="flex items-center border border-gray-300 rounded">
                 <button 
-                  onClick={handleAddToCart}
-                  className="flex-1 flex items-center justify-center gap-2 bg-red-50 text-primary border border-primary hover:bg-red-100 font-bold py-3 px-6 rounded-md transition-colors"
+                  onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                  className="px-3 py-1 text-gray-500 hover:bg-gray-50 transition-colors bg-white"
                 >
-                  <FaShoppingCart /> Thêm Vào Giỏ Hàng
+                  <FaMinus className="text-xs" />
                 </button>
+                <input 
+                  type="text" 
+                  value={quantity}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value);
+                    if (!isNaN(val) && val > 0) setQuantity(val);
+                  }}
+                  className="w-10 text-center text-sm font-medium border-x border-gray-300 py-1 focus:outline-none"
+                />
                 <button 
-                  className="flex-1 bg-primary text-white hover:bg-primary-light font-bold py-3 px-6 rounded-md transition-colors"
+                  onClick={() => setQuantity(q => q + 1)}
+                  className="px-3 py-1 text-gray-500 hover:bg-gray-50 transition-colors bg-white"
                 >
-                  Mua Ngay
+                  <FaPlus className="text-xs" />
                 </button>
               </div>
             </div>
 
           </div>
         </div>
+
+        {/* Description Section */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-4">
+          <h2 className="text-lg font-bold text-gray-800 mb-4 uppercase">Mô tả sản phẩm</h2>
+          <div className={`text-sm text-gray-700 leading-relaxed overflow-hidden ${expandedDesc ? '' : 'max-h-40 relative'}`}>
+            <div className="whitespace-pre-wrap">{book.description || 'Chưa có thông tin mô tả chi tiết cho sản phẩm này.'}</div>
+            <p className="mt-4 font-bold">QUY CÁCH:</p>
+            <ul className="list-dash pl-4 mt-2 space-y-1">
+              <li>Trọn bộ gồm 8 tập</li>
+              <li>Bìa mềm với thiết kế đồng bộ, cán mờ phủ UV, có tay gấp</li>
+              <li>Hộp 8 cuốn với thiết kế đồng bộ, sử dụng giấy Ivory 400</li>
+            </ul>
+            
+            {!expandedDesc && (
+              <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
+            )}
+          </div>
+          <div className="text-center mt-2">
+            <button 
+              onClick={() => setExpandedDesc(!expandedDesc)}
+              className="text-blue-600 text-sm font-medium hover:underline"
+            >
+              {expandedDesc ? 'Rút gọn' : 'Xem thêm'}
+            </button>
+          </div>
+        </div>
+
+        {/* Reviews Section */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-4">
+          <h2 className="text-lg font-bold text-gray-800 mb-6 uppercase">Đánh giá sản phẩm</h2>
+          
+          <div className="flex flex-col md:flex-row gap-8 mb-8 border-b border-gray-100 pb-8">
+            <div className="w-full md:w-1/2 flex items-center justify-center md:justify-start gap-8">
+              <div className="text-center">
+                <div className="text-5xl font-bold text-gray-800 mb-1">{averageRating}<span className="text-3xl text-gray-400">/5</span></div>
+                <div className="flex items-center justify-center gap-1 text-yellow-400 text-lg mb-1">
+                  {[...Array(5)].map((_, i) => (
+                    <FaStar key={i} className={i < Math.round(Number(averageRating)) ? 'text-yellow-400' : 'text-gray-200'} />
+                  ))}
+                </div>
+                <div className="text-gray-500 text-sm">({totalReviewsCount} đánh giá)</div>
+              </div>
+              
+              <div className="flex-1 max-w-[250px] space-y-1">
+                {[5,4,3,2,1].map(star => (
+                  <div key={star} className="flex items-center gap-2 text-xs text-gray-600">
+                    <span className="w-8">{star} sao</span>
+                    <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div className="h-full bg-yellow-400" style={{ width: getStarPercentage(star) }}></div>
+                    </div>
+                    <span className="w-8 text-right">{getStarPercentage(star)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="w-full md:w-1/2 flex items-center justify-center border-t md:border-t-0 md:border-l border-gray-100 pt-6 md:pt-0">
+              {user ? (
+                <div className="text-center">
+                  <p className="text-sm text-gray-600 mb-3">Chia sẻ nhận xét của bạn về sản phẩm này</p>
+                  <button 
+                    onClick={() => setIsReviewModalOpen(true)}
+                    className="bg-white border border-primary text-primary hover:bg-primary hover:text-white font-bold py-2 px-6 rounded transition-colors text-sm cursor-pointer"
+                  >
+                    Viết đánh giá
+                  </button>
+                </div>
+              ) : (
+                <div className="text-center text-sm text-gray-600">
+                  Chỉ có thành viên mới có thể viết nhận xét. Vui lòng <Link to="/login" className="text-blue-600 hover:underline">đăng nhập</Link> hoặc <Link to="/register" className="text-blue-600 hover:underline">đăng ký</Link>.
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Filter Tabs */}
+          <div className="flex gap-6 border-b border-gray-200 mb-6 text-sm font-medium">
+            <button className="text-primary border-b-2 border-primary pb-2">Mới nhất</button>
+            <button className="text-gray-500 hover:text-gray-800 pb-2">Yêu thích nhất</button>
+          </div>
+
+          {/* Review Items */}
+          <div className="space-y-6">
+            {reviews.length > 0 ? (
+              reviews.map((rev) => (
+                <div key={rev.id} className="flex gap-4 border-b border-gray-50 pb-5">
+                  <div className="w-12 pt-1 font-medium text-sm text-gray-850 text-center">
+                    {rev.user?.fullName ? rev.user.fullName.split(' ').pop() : 'Guest'}
+                    <div className="text-[10px] text-gray-400 font-normal mt-1">
+                      {new Date(rev.createdAt).toLocaleDateString('vi-VN')}
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-1 text-yellow-400 text-xs mb-2">
+                      {[...Array(5)].map((_, i) => (
+                        <FaStar key={i} className={i < rev.rating ? 'text-yellow-400' : 'text-gray-200'} />
+                      ))}
+                    </div>
+                    <div className="text-sm text-gray-700 leading-relaxed mb-3">
+                      {rev.comment}
+                    </div>
+                    <div className="flex gap-4 text-xs text-gray-400 font-medium">
+                      <button className="flex items-center gap-1 hover:text-blue-600 cursor-pointer"><FaRegThumbsUp /> Thích</button>
+                      <button className="flex items-center gap-1 hover:text-red-600 cursor-pointer"><FaExclamationCircle /> Báo cáo</button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-10 text-sm text-gray-500">
+                Chưa có đánh giá nào cho sách này. Hãy là người đầu tiên đánh giá!
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Review Modal */}
+        {isReviewModalOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 relative">
+              <button 
+                onClick={() => setIsReviewModalOpen(false)}
+                className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 font-bold"
+              >
+                ✕
+              </button>
+              <h3 className="text-lg font-bold text-gray-800 mb-4">Viết đánh giá sản phẩm</h3>
+              <form onSubmit={handleSubmitReview} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Chọn mức đánh giá *</label>
+                  <div className="flex gap-2 text-2xl text-yellow-400">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button 
+                        key={star} 
+                        type="button"
+                        onClick={() => setNewRating(star)}
+                        className="hover:scale-110 transition-transform cursor-pointer"
+                      >
+                        <FaStar className={star <= newRating ? 'text-yellow-400' : 'text-gray-200'} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Nội dung nhận xét *</label>
+                  <textarea 
+                    required
+                    rows={4}
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="Hãy chia sẻ nhận xét của bạn về chất lượng sách, cách đóng gói và thời gian giao hàng..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="flex gap-3 justify-end pt-2">
+                  <button 
+                    type="button" 
+                    onClick={() => setIsReviewModalOpen(false)}
+                    className="px-4 py-2 border border-gray-200 text-gray-500 rounded-lg text-sm hover:bg-gray-50 font-medium"
+                  >
+                    Hủy bỏ
+                  </button>
+                  <button 
+                    type="submit" 
+                    disabled={submittingReview}
+                    className="px-5 py-2 bg-primary text-white hover:bg-primary-light rounded-lg text-sm font-bold shadow-sm cursor-pointer"
+                  >
+                    {submittingReview ? 'Đang gửi...' : 'Gửi đánh giá'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Related Books Slider */}
+        {relatedBooks.length > 0 && (
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-4">
+            <h2 className="text-lg font-bold text-gray-800 mb-6 uppercase">Gợi ý cho bạn</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {relatedBooks.map(item => (
+                <Link key={item.id} to={`/book/${item.id}`} className="block group">
+                  <div className="relative mb-2">
+                    <img src={item.imageUrl || item.image_url || 'https://placehold.co/200'} alt={item.title} className="w-full aspect-[3/4] object-cover rounded shadow-sm group-hover:shadow-md transition-shadow" />
+                    {item.discount > 0 && (
+                      <div className="absolute top-2 right-2 bg-primary text-white text-xs font-bold px-1.5 py-0.5 rounded">
+                        -{item.discount}%
+                      </div>
+                    )}
+                  </div>
+                  <h3 className="text-sm font-medium text-gray-800 line-clamp-2 min-h-[40px] group-hover:text-primary transition-colors">{item.title}</h3>
+                  <div className="mt-1 flex items-end gap-2">
+                    <span className="text-primary font-bold text-sm">{formatPrice(item.price)}</span>
+                    {item.oldPrice && <span className="text-xs text-gray-400 line-through mb-0.5">{formatPrice(item.oldPrice)}</span>}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );

@@ -12,16 +12,16 @@ export default function Cart() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
     if (cart.length === 0) return;
     
     if (!user) {
       return Swal.fire({
         icon: 'warning',
         title: 'Yêu cầu đăng nhập',
-        text: 'Vui lòng đăng nhập để tiến hành đặt hàng.',
+        text: 'Vui lòng đăng nhập để tiến hành thanh toán.',
         showCancelButton: true,
         confirmButtonText: 'Đăng nhập',
         cancelButtonText: 'Đóng',
@@ -33,38 +33,7 @@ export default function Cart() {
       });
     }
 
-    setLoading(true);
-    try {
-      // Map cart to order items structure expected by backend
-      const items = cart.map(item => ({
-        bookId: item.id,
-        quantity: item.quantity,
-        price: item.price
-      }));
-
-      const res = await axios.post(`${API_BASE_URL}/orders`, { items });
-
-      if (res.data.success) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Đặt hàng thành công',
-          text: 'Cảm ơn bạn đã mua hàng tại Grape Book! Đơn hàng của bạn đang được xử lý.',
-          confirmButtonColor: '#FF0000'
-        }).then(() => {
-          clearCart();
-          navigate('/orders'); // Navigate to user's orders page (to be created)
-        });
-      }
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Lỗi đặt hàng',
-        text: error.response?.data?.message || 'Có lỗi xảy ra khi tạo đơn hàng.',
-        confirmButtonColor: '#FF0000'
-      });
-    } finally {
-      setLoading(false);
-    }
+    navigate('/checkout');
   };
 
   if (cart.length === 0) {
@@ -115,7 +84,7 @@ export default function Cart() {
                     <div className="col-span-1 md:col-span-6 flex gap-4">
                       <Link to={`/book/${item.id}`} className="shrink-0">
                         <img 
-                          src={item.image_url || item.img || 'https://via.placeholder.com/100'} 
+                          src={item.image_url || item.img || 'https://placehold.co/100'} 
                           alt={item.title} 
                           className="w-20 h-24 object-contain border border-gray-100 rounded"
                         />
@@ -209,7 +178,7 @@ export default function Cart() {
                 disabled={loading}
                 className={`w-full bg-primary text-white font-bold py-3.5 rounded-md hover:bg-primary-light transition-colors text-center shadow-md shadow-red-200 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
-                {loading ? 'ĐANG XỬ LÝ...' : 'XÁC NHẬN ĐẶT HÀNG'}
+                {loading ? 'ĐANG CHUYỂN TRANG...' : 'TIẾN HÀNH THANH TOÁN'}
               </button>
             </div>
           </div>

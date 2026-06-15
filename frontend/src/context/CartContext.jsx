@@ -13,7 +13,7 @@ export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
   const { user } = useAuth();
   
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
   // Lấy giỏ hàng khi user đăng nhập hoặc từ localStorage nếu là khách
   useEffect(() => {
@@ -21,13 +21,13 @@ export const CartProvider = ({ children }) => {
       const fetchDBCart = async () => {
         try {
           const res = await axios.get(`${API_BASE_URL}/cart`);
-          if (res.data.success) {
+          if (res.data && res.data.items) {
             // Map the DB structure to frontend structure
-            const dbCart = res.data.data.map(item => ({
-              id: item.book_id,
-              title: item.title,
-              price: item.price,
-              img: item.image_url || 'https://via.placeholder.com/100',
+            const dbCart = res.data.items.map(item => ({
+              id: item.book.id,
+              title: item.book.title,
+              price: item.book.price,
+              img: item.book.imageUrl || item.book.image_url || 'https://placehold.co/100',
               quantity: item.quantity
             }));
             setCart(dbCart);
@@ -60,7 +60,13 @@ export const CartProvider = ({ children }) => {
           if (existing) {
             return prev.map(i => i.id === product.id ? { ...i, quantity: i.quantity + quantity } : i);
           }
-          return [...prev, { ...product, quantity }];
+          return [...prev, {
+            id: product.id,
+            title: product.title,
+            price: product.price,
+            img: product.imageUrl || product.image_url || product.img || 'https://placehold.co/100',
+            quantity
+          }];
         });
       } catch (error) {
         console.error('Error adding to DB cart', error);
@@ -73,7 +79,13 @@ export const CartProvider = ({ children }) => {
             item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
           );
         }
-        return [...prevCart, { ...product, quantity }];
+        return [...prevCart, {
+          id: product.id,
+          title: product.title,
+          price: product.price,
+          img: product.imageUrl || product.image_url || product.img || 'https://placehold.co/100',
+          quantity
+        }];
       });
     }
 

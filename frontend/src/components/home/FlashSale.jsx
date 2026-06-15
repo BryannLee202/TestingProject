@@ -3,11 +3,20 @@ import { FaBolt, FaChevronRight } from 'react-icons/fa';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 import 'swiper/css';
 import 'swiper/css/navigation';
 
 export default function FlashSale() {
   const [timeLeft, setTimeLeft] = useState({ hours: 2, minutes: 15, seconds: 30 });
+  const [flashSaleProducts, setFlashSaleProducts] = useState([
+    { id: 1, title: 'Sách giáo khoa Toán lớp 1', price: 15000, oldPrice: 20000, discount: 25, soldPercent: 85, img: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_3609.jpg' },
+    { id: 2, title: 'Tôi Thấy Hoa Vàng Trên Cỏ Xanh (Tái Bản)', price: 75000, oldPrice: 105000, discount: 28, soldPercent: 50, img: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_3609.jpg' },
+    { id: 3, title: 'Nhà Giả Kim - The Alchemist', price: 55000, oldPrice: 79000, discount: 30, soldPercent: 90, img: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_3609.jpg' },
+    { id: 4, title: 'Đắc Nhân Tâm', price: 60000, oldPrice: 86000, discount: 30, soldPercent: 70, img: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_3609.jpg' },
+  ]);
+
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -21,16 +30,34 @@ export default function FlashSale() {
     return () => clearInterval(timer);
   }, []);
 
-  const formatTime = (time) => time.toString().padStart(2, '0');
+  useEffect(() => {
+    const fetchFlashSales = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/books/discounted`);
+        if (res.data && res.data.length > 0) {
+          const mapped = res.data.map(b => {
+            const total = b.salesCount + b.stockQuantity;
+            const soldPercent = total > 0 ? Math.min(99, Math.max(10, Math.floor(b.salesCount * 100 / total))) : 10;
+            return {
+              id: b.id,
+              title: b.title,
+              price: b.price,
+              oldPrice: b.oldPrice || b.price * 1.3,
+              discount: b.discount || 15,
+              soldPercent,
+              img: b.imageUrl || 'https://placehold.co/150'
+            };
+          });
+          setFlashSaleProducts(mapped);
+        }
+      } catch (error) {
+        console.error('Error fetching flash sale products:', error);
+      }
+    };
+    fetchFlashSales();
+  }, []);
 
-  const flashSaleProducts = [
-    { id: 1, title: 'Sách giáo khoa Toán lớp 1', price: 15000, oldPrice: 20000, discount: 25, soldPercent: 85, img: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_3609.jpg' },
-    { id: 2, title: 'Tôi Thấy Hoa Vàng Trên Cỏ Xanh (Tái Bản)', price: 75000, oldPrice: 105000, discount: 28, soldPercent: 50, img: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_3609.jpg' },
-    { id: 3, title: 'Nhà Giả Kim - The Alchemist', price: 55000, oldPrice: 79000, discount: 30, soldPercent: 90, img: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_3609.jpg' },
-    { id: 4, title: 'Đắc Nhân Tâm', price: 60000, oldPrice: 86000, discount: 30, soldPercent: 70, img: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_3609.jpg' },
-    { id: 5, title: 'Lược Sử Loài Người', price: 120000, oldPrice: 165000, discount: 27, soldPercent: 40, img: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_3609.jpg' },
-    { id: 6, title: 'Tâm Lý Học Tội Phạm', price: 95000, oldPrice: 135000, discount: 29, soldPercent: 65, img: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_3609.jpg' },
-  ];
+  const formatTime = (time) => time.toString().padStart(2, '0');
 
   return (
     <div className="bg-red-50 rounded-xl overflow-hidden shadow-sm border border-red-100">

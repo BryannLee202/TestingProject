@@ -22,7 +22,8 @@ public class CartService {
     private final UserRepository userRepository;
 
     public Cart getCartByUser(String username) {
-        User user = userRepository.findByUsername(username).orElseThrow();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại hoặc phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!"));
         return cartRepository.findByUserId(user.getId())
                 .orElseGet(() -> createNewCart(user));
     }
@@ -34,7 +35,8 @@ public class CartService {
 
     public Cart addToCart(String username, CartRequest request) {
         Cart cart = getCartByUser(username);
-        Book book = bookRepository.findById(request.getBookId()).orElseThrow();
+        Book book = bookRepository.findById(request.getBookId())
+                .orElseThrow(() -> new RuntimeException("Sách (ID: " + request.getBookId() + ") không tồn tại hoặc đã ngừng kinh doanh!"));
 
         Optional<CartItem> existingItem = cart.getItems().stream()
                 .filter(item -> item.getBook().getId().equals(book.getId()))
