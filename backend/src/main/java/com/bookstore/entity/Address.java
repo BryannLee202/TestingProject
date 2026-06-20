@@ -35,8 +35,6 @@ public class Address {
     @Column(nullable = false)
     private String ward;
 
-    @Column(nullable = false)
-    private String district;
 
     @Column(nullable = false)
     private String city;

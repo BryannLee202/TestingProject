@@ -15,43 +15,23 @@ export default function AddressModal({ isOpen, onClose, addresses, onSelect, onA
     country: 'Việt Nam',
     street: '',
     ward: '',
-    district: '',
     city: '',
     isDefault: false
   });
   const [saving, setSaving] = useState(false);
 
-  const [districts, setDistricts] = useState([]);
   const [wards, setWards] = useState([]);
 
   const handleCityChange = (e) => {
     const selectedCityName = e.target.value;
-    setNewAddress({...newAddress, city: selectedCityName, district: '', ward: ''});
-    setDistricts([]);
+    setNewAddress({...newAddress, city: selectedCityName, ward: ''});
     setWards([]);
     
     if (selectedCityName) {
       const selectedProv = provincesList.find(p => p.name === selectedCityName || p.name_with_type === selectedCityName);
-      if (selectedProv && selectedProv['quan-huyen']) {
-        const dists = Object.values(selectedProv['quan-huyen']).sort((a,b) => a.name.localeCompare(b.name));
-        setDistricts(dists);
-      }
-    }
-  };
-
-  const handleDistrictChange = (e) => {
-    const selectedDistrictName = e.target.value;
-    setNewAddress({...newAddress, district: selectedDistrictName, ward: ''});
-    setWards([]);
-    
-    if (selectedDistrictName && newAddress.city) {
-      const selectedProv = provincesList.find(p => p.name === newAddress.city || p.name_with_type === newAddress.city);
-      if (selectedProv && selectedProv['quan-huyen']) {
-        const selectedDist = Object.values(selectedProv['quan-huyen']).find(d => d.name === selectedDistrictName || d.name_with_type === selectedDistrictName);
-        if (selectedDist && selectedDist['xa-phuong']) {
-          const wds = Object.values(selectedDist['xa-phuong']).sort((a,b) => a.name.localeCompare(b.name));
-          setWards(wds);
-        }
+      if (selectedProv && selectedProv['xa-phuong']) {
+        const wds = Object.values(selectedProv['xa-phuong']).sort((a,b) => a.name.localeCompare(b.name));
+        setWards(wds);
       }
     }
   };
@@ -70,7 +50,6 @@ export default function AddressModal({ isOpen, onClose, addresses, onSelect, onA
         recipientName: `${newAddress.lastName} ${newAddress.firstName}`.trim(),
         phone: newAddress.phone,
         city: newAddress.city,
-        district: newAddress.district,
         ward: newAddress.ward,
         street: newAddress.street,
         isDefault: newAddress.isDefault
@@ -147,18 +126,8 @@ export default function AddressModal({ isOpen, onClose, addresses, onSelect, onA
               </div>
 
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
-                <label className="sm:w-1/4 text-sm font-medium text-gray-700">Quận/Huyện<span className="text-red-500">*</span></label>
-                <select required value={newAddress.district} onChange={handleDistrictChange} className={`sm:w-3/4 border border-gray-200 rounded px-3 py-2.5 focus:border-red-500 focus:outline-none bg-white ${!newAddress.district ? 'text-gray-400' : 'text-gray-800'}`} disabled={!newAddress.city}>
-                  <option value="">Vui lòng chọn Quận/Huyện</option>
-                  {districts.map(d => (
-                    <option key={d.code} value={d.name}>{d.name_with_type}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
                 <label className="sm:w-1/4 text-sm font-medium text-gray-700">Xã/Phường<span className="text-red-500">*</span></label>
-                <select required value={newAddress.ward} onChange={e => setNewAddress({...newAddress, ward: e.target.value})} className={`sm:w-3/4 border border-gray-200 rounded px-3 py-2.5 focus:border-red-500 focus:outline-none bg-white ${!newAddress.ward ? 'text-gray-400' : 'text-gray-800'}`} disabled={!newAddress.district}>
+                <select required value={newAddress.ward} onChange={e => setNewAddress({...newAddress, ward: e.target.value})} className={`sm:w-3/4 border border-gray-200 rounded px-3 py-2.5 focus:border-red-500 focus:outline-none bg-white ${!newAddress.ward ? 'text-gray-400' : 'text-gray-800'}`} disabled={!newAddress.city}>
                   <option value="">Vui lòng chọn Xã/Phường</option>
                   {wards.map(w => (
                     <option key={w.code} value={w.name}>{w.name_with_type}</option>
@@ -199,7 +168,7 @@ export default function AddressModal({ isOpen, onClose, addresses, onSelect, onA
                           )}
                         </div>
                         <p className="text-gray-600">{addr.street}</p>
-                        <p className="text-gray-600">{addr.ward}, {addr.district}, {addr.city}</p>
+                        <p className="text-gray-600">{addr.ward}, {addr.city}</p>
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
                         {!addr.isDefault && (

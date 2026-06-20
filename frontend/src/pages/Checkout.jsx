@@ -23,12 +23,10 @@ export default function Checkout() {
   const [phone, setPhone] = useState('');
   const [country, setCountry] = useState('Việt Nam');
   const [city, setCity] = useState('');
-  const [district, setDistrict] = useState('');
   const [ward, setWard] = useState('');
   const [address, setAddress] = useState('');
 
   const [provinces] = useState(provincesList);
-  const [districts, setDistricts] = useState([]);
   const [wards, setWards] = useState([]);
   
   const [hasNote, setHasNote] = useState(false);
@@ -70,7 +68,6 @@ export default function Checkout() {
         setName(defaultAddr.recipientName);
         setPhone(defaultAddr.phone);
         setCity(defaultAddr.city);
-        setDistrict(defaultAddr.district);
         setWard(defaultAddr.ward);
         setAddress(defaultAddr.street);
       } else if (user) {
@@ -103,40 +100,22 @@ export default function Checkout() {
   const handleCityChange = (e) => {
     const selectedCityName = e.target.value;
     setCity(selectedCityName);
-    setDistrict('');
     setWard('');
-    setDistricts([]);
     setWards([]);
     
     if (selectedCityName) {
       const selectedProv = provincesList.find(p => p.name === selectedCityName || p.name_with_type === selectedCityName);
-      if (selectedProv && selectedProv['quan-huyen']) {
-        const dists = Object.values(selectedProv['quan-huyen']).sort((a,b) => a.name.localeCompare(b.name));
-        setDistricts(dists);
+      if (selectedProv && selectedProv['xa-phuong']) {
+        const wds = Object.values(selectedProv['xa-phuong']).sort((a,b) => a.name.localeCompare(b.name));
+        setWards(wds);
       }
     }
   };
 
-  const handleDistrictChange = (e) => {
-    const selectedDistrictName = e.target.value;
-    setDistrict(selectedDistrictName);
-    setWard('');
-    setWards([]);
-    
-    if (selectedDistrictName && city) {
-      const selectedProv = provincesList.find(p => p.name === city || p.name_with_type === city);
-      if (selectedProv && selectedProv['quan-huyen']) {
-        const selectedDist = Object.values(selectedProv['quan-huyen']).find(d => d.name === selectedDistrictName || d.name_with_type === selectedDistrictName);
-        if (selectedDist && selectedDist['xa-phuong']) {
-          const wds = Object.values(selectedDist['xa-phuong']).sort((a,b) => a.name.localeCompare(b.name));
-          setWards(wds);
-        }
-      }
-    }
-  };
+
 
   useEffect(() => {
-    if (city && district && ward) {
+    if (city && ward) {
       let isHcm = city === 'Hồ Chí Minh';
       let isHaNoiOrDaNang = city === 'Hà Nội' || city === 'Đà Nẵng';
       
@@ -156,7 +135,7 @@ export default function Checkout() {
     } else {
       setShippingFee(0);
     }
-  }, [city, district, ward, shippingMethod]);
+  }, [city, ward, shippingMethod]);
 
   const handleApplyCoupon = async (codeToApply = couponCode) => {
     const code = typeof codeToApply === 'string' ? codeToApply : couponCode;
@@ -196,7 +175,7 @@ export default function Checkout() {
   const submitOrder = async () => {
     setLoading(true);
     try {
-      const fullAddress = `${address}, ${ward}, ${district}, ${city}, ${country}`;
+      const fullAddress = `${address}, ${ward}, ${city}, ${country}`;
       const finalNote = hasNote ? note : '';
       const items = cart.map(item => ({
         bookId: item.id,
@@ -245,7 +224,7 @@ export default function Checkout() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name || !phone || !address || !city || !district || !ward) {
+    if (!name || !phone || !address || !city || !ward) {
       return showNotification('Thiếu thông tin', 'Vui lòng điền đầy đủ Địa chỉ giao hàng.', 'warning');
     }
 
@@ -298,7 +277,7 @@ export default function Checkout() {
               <div className="p-6">
                 {(user && addresses.length > 0) ? (
                   <div className="space-y-2">
-                    <p className="text-gray-500">Giao hàng đến <span className="font-semibold text-gray-800">{address ? `${address}, ${ward}, ${district}, ${city}` : ''}</span></p>
+                    <p className="text-gray-500">Giao hàng đến <span className="font-semibold text-gray-800">{address ? `${address}, ${ward}, ${city}` : ''}</span></p>
                     <p className="text-gray-500">Người nhận: <span className="font-semibold text-gray-800">{name} - {phone}</span></p>
                   </div>
                 ) : (user && addresses.length === 0) ? (
@@ -332,17 +311,8 @@ export default function Checkout() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">Quận/Huyện *</label>
-                      <select required value={district} onChange={handleDistrictChange} className={`border ${district ? 'border-gray-300 text-gray-800 bg-white' : 'border-gray-200 text-gray-400 bg-gray-50'} rounded-xl px-4 py-3.5 w-full outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer`} disabled={!city}>
-                        <option value="">Chọn Quận/Huyện</option>
-                        {districts.map(d => (
-                          <option key={d.code} value={d.name}>{d.name_with_type}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">Phường/Xã *</label>
-                      <select required value={ward} onChange={e => setWard(e.target.value)} className={`border ${ward ? 'border-gray-300 text-gray-800 bg-white' : 'border-gray-200 text-gray-400 bg-gray-50'} rounded-xl px-4 py-3.5 w-full outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer`} disabled={!district}>
+                      <select required value={ward} onChange={e => setWard(e.target.value)} className={`border ${ward ? 'border-gray-300 text-gray-800 bg-white' : 'border-gray-200 text-gray-400 bg-gray-50'} rounded-xl px-4 py-3.5 w-full outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer`} disabled={!city}>
                         <option value="">Chọn Phường/Xã</option>
                         {wards.map(w => (
                           <option key={w.code} value={w.name}>{w.name_with_type}</option>
@@ -366,7 +336,7 @@ export default function Checkout() {
                 <h2 className="text-lg font-bold text-gray-800 uppercase tracking-wide">Phương thức vận chuyển</h2>
               </div>
               <div className="p-6">
-                {city && district && ward && address ? (
+                {city && ward && address ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <label className={`flex flex-col justify-between cursor-pointer border-2 rounded-xl p-4 transition-all ${shippingMethod === 'STANDARD' ? 'border-blue-500 bg-blue-50/30 shadow-sm' : 'border-gray-100 hover:border-gray-300 hover:bg-gray-50'}`}>
                       <div className="flex items-center gap-3 mb-2">
@@ -610,7 +580,6 @@ export default function Checkout() {
           setName(addr.recipientName);
           setPhone(addr.phone);
           setCity(addr.city);
-          setDistrict(addr.district);
           setWard(addr.ward);
           setAddress(addr.street);
           setShowAddressModal(false);
@@ -621,7 +590,6 @@ export default function Checkout() {
             setName(newAddr.recipientName);
             setPhone(newAddr.phone);
             setCity(newAddr.city);
-            setDistrict(newAddr.district);
             setWard(newAddr.ward);
             setAddress(newAddr.street);
           }
