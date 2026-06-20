@@ -72,10 +72,10 @@ export default function ProductSection({ title, tabs = [], products = [], active
                 {[...Array(5)].map((_, i) => (
                   <FaStar 
                     key={i} 
-                    className={`text-[10px] ${i < (product.rating || 5) ? 'text-yellow-400' : 'text-gray-200'}`} 
+                    className={`text-[10px] ${i < Math.round(product.averageRating || 0) ? 'text-yellow-400' : 'text-gray-200'}`} 
                   />
                 ))}
-                <span className="text-xs text-gray-400 ml-1">(12)</span>
+                <span className="text-xs text-gray-400 ml-1">({product.reviewCount || 0})</span>
               </div>
               
               {/* Price */}
@@ -88,6 +88,17 @@ export default function ProductSection({ title, tabs = [], products = [], active
                     {product.oldPrice.toLocaleString('vi-VN')} đ
                   </span>
                 )}
+              </div>
+              
+              {/* Sales Count */}
+              <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
+                <div className="flex-1 bg-gray-200 rounded-full h-1.5 mr-2">
+                  <div 
+                    className="bg-red-500 h-1.5 rounded-full" 
+                    style={{ width: `${Math.min((product.salesCount / 100) * 100, 100) || 0}%` }}
+                  ></div>
+                </div>
+                <span>Đã bán {product.salesCount || 0}</span>
               </div>
               
               {/* Add to Cart Button */}

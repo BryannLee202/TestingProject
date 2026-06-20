@@ -42,6 +42,18 @@ public class ReviewService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        return reviewRepository.save(review);
+        Review savedReview = reviewRepository.save(review);
+
+        // Update book's average rating and review count
+        int count = book.getReviewCount() != null ? book.getReviewCount() : 0;
+        double currentAvg = book.getAverageRating() != null ? book.getAverageRating() : 0.0;
+        
+        double newAvg = ((currentAvg * count) + rating) / (count + 1);
+        
+        book.setReviewCount(count + 1);
+        book.setAverageRating(Math.round(newAvg * 10.0) / 10.0);
+        bookRepository.save(book);
+
+        return savedReview;
     }
 }

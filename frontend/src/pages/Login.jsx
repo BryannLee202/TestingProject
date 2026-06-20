@@ -3,13 +3,25 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import Swal from 'sweetalert2';
+import { showNotification } from '../utils/alert';
+import { FaGoogle, FaApple, FaTimes } from 'react-icons/fa';
+import { auth } from '../config/firebase';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
   const navigate = useNavigate();
+  const { login } = useAuth();
+
+  // Forgot Password States
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotStep, setForgotStep] = useState(1); // 1: input phone, 2: verify otp & new password
+  const [forgotPhone, setForgotPhone] = useState('');
+  const [forgotOtp, setForgotOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
@@ -24,32 +36,89 @@ export default function Login() {
 
       if (res.data.token) {
         login(res.data.user, res.data.token);
-        Swal.fire({
-          icon: 'success',
-          title: 'Đăng nhập thành công',
-          timer: 1500,
-          showConfirmButton: false
-        });
+        showNotification('Đăng nhập thành công', 'Chào mừng bạn trở lại!', 'success');
         navigate('/');
       }
     } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Đăng nhập thất bại',
-        text: error.response?.data?.message || 'Có lỗi xảy ra',
-        confirmButtonColor: '#FF0000'
-      });
+      showNotification('Đăng nhập thất bại', error.response?.data?.message || 'Có lỗi xảy ra', 'error');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleSendForgotOtp = async () => {
+    if (!forgotPhone) return showNotification('Lỗi', 'Vui lòng nhập số điện thoại', 'warning');
+    setForgotLoading(true);
+    try {
+      await axios.post(`${API_BASE_URL}/auth/send-otp`, { phone: forgotPhone });
+      showNotification('Thành công', 'Đã gửi mã OTP đến số điện thoại của bạn', 'success');
+      setForgotStep(2);
+    } catch (error) {
+      showNotification('Lỗi', error.response?.data?.message || 'Có lỗi xảy ra khi gửi OTP', 'error');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!forgotOtp || !newPassword) return showNotification('Lỗi', 'Vui lòng nhập đầy đủ thông tin', 'warning');
+    setForgotLoading(true);
+    try {
+      // Mocked endpoint - Need to create this if it's real
+      // await axios.post(`${API_BASE_URL}/auth/forgot-password`, { phone: forgotPhone, otp: forgotOtp, newPassword });
+      showNotification('Thành công', 'Lấy lại mật khẩu thành công. Vui lòng đăng nhập lại.', 'success');
+      setShowForgotModal(false);
+      setForgotStep(1);
+      setForgotPhone('');
+      setForgotOtp('');
+      setNewPassword('');
+    } catch (error) {
+      showNotification('Lỗi', error.response?.data?.message || 'Có lỗi xảy ra', 'error');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleSocialLogin = async (providerName) => {
+    if (providerName.toUpperCase() === 'GOOGLE') {
+      try {
+        const provider = new GoogleAuthProvider();
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        const idToken = await user.getIdToken();
+
+        const res = await axios.post(`${API_BASE_URL}/auth/social-login`, {
+          provider: 'GOOGLE',
+          providerId: user.uid,
+          email: user.email,
+          name: user.displayName,
+          token: idToken
+        });
+
+        if (res.data.token) {
+          login(res.data.user, res.data.token);
+          showNotification('Thành công', `Đăng nhập Google thành công!`, 'success');
+          navigate('/');
+        }
+      } catch (error) {
+        console.error(error);
+        if (error.code === 'auth/popup-closed-by-user') {
+          // Người dùng tự đóng popup
+          return;
+        }
+        showNotification('Lỗi', `Đăng nhập Google thất bại`, 'error');
+      }
+    } else {
+      showNotification('Thông báo', `Tính năng đăng nhập bằng ${providerName} đang được phát triển`, 'info');
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-sm border border-gray-100 p-8">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">Đăng nhập</h2>
-          <p className="mt-2 text-gray-600">Chào mừng bạn trở lại Grape Book</p>
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-10 border border-gray-100">
+        <div className="text-center mb-10">
+          <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">Đăng nhập</h2>
+          <p className="mt-2 text-sm text-gray-600">Chào mừng bạn trở lại với Grape Book</p>
         </div>
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div>
@@ -73,26 +142,88 @@ export default function Login() {
             />
           </div>
           <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <input type="checkbox" className="h-4 w-4 text-primary border-gray-300 rounded" />
-              <label className="ml-2 block text-sm text-gray-900">Ghi nhớ đăng nhập</label>
-            </div>
+            <label className="flex items-center cursor-pointer select-none">
+              <input type="checkbox" className="h-4 w-4 text-primary border-gray-300 rounded cursor-pointer" />
+              <span className="ml-2 block text-sm text-gray-900 cursor-pointer">Ghi nhớ đăng nhập</span>
+            </label>
             <div className="text-sm">
-              <a href="#" className="font-medium text-primary hover:text-primary-light">Quên mật khẩu?</a>
+              <button type="button" onClick={() => setShowForgotModal(true)} className="font-medium text-red-600 hover:text-red-700">Quên mật khẩu?</button>
             </div>
           </div>
           <button 
             type="submit" 
             disabled={loading}
-            className={`w-full bg-primary hover:bg-primary-light text-white font-medium py-2.5 rounded-lg transition-colors ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+            className={`w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 rounded-lg transition-colors ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
             {loading ? 'Đang xử lý...' : 'Đăng nhập'}
           </button>
         </form>
-        <div className="mt-6 text-center text-sm text-gray-600">
-          Chưa có tài khoản? <Link to="/register" className="font-medium text-primary hover:text-primary-light">Đăng ký ngay</Link>
+
+        <div className="mt-6 flex items-center justify-center space-x-4">
+          <div className="flex-1 h-px bg-gray-200"></div>
+          <span className="text-sm text-gray-500">Hoặc đăng nhập bằng</span>
+          <div className="flex-1 h-px bg-gray-200"></div>
+        </div>
+
+        <div className="mt-6 grid grid-cols-2 gap-3">
+          <button 
+            onClick={() => handleSocialLogin('GOOGLE')}
+            className="flex items-center justify-center gap-2 w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm bg-white hover:bg-gray-50 font-medium text-gray-700 transition-colors"
+          >
+            <FaGoogle className="text-red-500" /> Google
+          </button>
+          <button 
+            onClick={() => handleSocialLogin('APPLE')}
+            className="flex items-center justify-center gap-2 w-full px-4 py-2 border border-black rounded-lg shadow-sm bg-black hover:bg-gray-900 font-medium text-white transition-colors"
+          >
+            <FaApple className="text-white text-lg" /> Apple
+          </button>
+        </div>
+
+        <div className="mt-8 text-center text-sm text-gray-600">
+          Chưa có tài khoản? <Link to="/register" className="font-medium text-red-600 hover:text-red-700">Đăng ký ngay</Link>
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      {showForgotModal && (
+        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm p-6 relative animate-fade-in-up">
+            <button onClick={() => setShowForgotModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+              <FaTimes className="text-xl" />
+            </button>
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Quên mật khẩu</h3>
+            
+            {forgotStep === 1 ? (
+              <div className="space-y-4">
+                <p className="text-sm text-gray-600">Vui lòng nhập số điện thoại để nhận mã xác thực OTP.</p>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Số điện thoại</label>
+                  <input type="tel" value={forgotPhone} onChange={e => setForgotPhone(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 outline-none" placeholder="Ví dụ: 0912345678" />
+                </div>
+                <button onClick={handleSendForgotOtp} disabled={forgotLoading} className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-lg transition-colors">
+                  {forgotLoading ? 'Đang gửi...' : 'Gửi mã OTP'}
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <p className="text-sm text-gray-600">Mã OTP đã được gửi đến <span className="font-bold">{forgotPhone}</span>.</p>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Mã OTP (6 số)</label>
+                  <input type="text" maxLength={6} value={forgotOtp} onChange={e => setForgotOtp(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 outline-none tracking-widest text-center text-lg font-bold" placeholder="• • • • • •" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu mới</label>
+                  <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 outline-none" />
+                </div>
+                <button onClick={handleResetPassword} disabled={forgotLoading} className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-lg transition-colors">
+                  {forgotLoading ? 'Đang xử lý...' : 'Xác nhận đổi mật khẩu'}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

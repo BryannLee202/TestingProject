@@ -106,8 +106,9 @@ export default function Category() {
                       </h3>
                       <div className="flex items-center gap-1 mb-2">
                         {[...Array(5)].map((_, i) => (
-                          <FaStar key={i} className={`text-[10px] ${i < 5 ? 'text-yellow-400' : 'text-gray-200'}`} />
+                          <FaStar key={i} className={`text-[10px] ${i < Math.round(product.averageRating || 0) ? 'text-yellow-400' : 'text-gray-200'}`} />
                         ))}
+                        <span className="text-xs text-gray-400 ml-1">({product.reviewCount || 0})</span>
                       </div>
                       <div className="mt-auto flex flex-col">
                         <span className="text-primary font-bold text-lg leading-none">

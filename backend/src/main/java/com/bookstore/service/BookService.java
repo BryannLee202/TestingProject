@@ -55,6 +55,7 @@ public class BookService {
         Book book = getBookById(id);
         book.setTitle(updatedBook.getTitle());
         book.setAuthor(updatedBook.getAuthor());
+        book.setPublisher(updatedBook.getPublisher());
         book.setDescription(updatedBook.getDescription());
         book.setPrice(updatedBook.getPrice());
         book.setOldPrice(updatedBook.getOldPrice());

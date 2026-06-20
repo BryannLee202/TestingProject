@@ -242,8 +242,8 @@ export default function Header() {
             <div className="flex items-center gap-2 text-gray-600 hover:text-primary transition-colors">
               <FaRegUser className="text-2xl" />
               <div className="hidden sm:flex flex-col">
-                <span className="text-sm font-bold leading-tight">
-                  {user ? `Chào, ${user.fullName.split(' ').pop()}` : 'Tài khoản'}
+                <span className="text-sm font-bold leading-tight truncate max-w-[150px]">
+                  {user ? `Chào, ${user.fullName || user.name || ''}` : 'Tài khoản'}
                 </span>
                 <span className="text-[11px] text-gray-500">
                   {user ? 'Thành viên' : 'Đăng nhập / Đăng ký'}
@@ -256,7 +256,7 @@ export default function Header() {
               <div className="absolute right-0 top-full mt-2 w-48 bg-white shadow-lg rounded-xl border border-gray-100 overflow-hidden z-50 py-1">
                 {user ? (
                   <>
-                    <div className="block px-4 py-2 text-sm text-gray-750 border-b border-gray-100 font-bold">{user.fullName}</div>
+                    <div className="block px-4 py-2 text-sm text-gray-750 border-b border-gray-100 font-bold">{user.fullName || user.name}</div>
                     {user.role === 'ADMIN' && (
                       <Link to="/admin/dashboard" className="flex items-center gap-2 px-4 py-2 text-sm text-primary hover:bg-gray-50 font-bold border-b border-gray-100">
                         <FaShieldAlt /> Trang quản trị

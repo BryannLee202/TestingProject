@@ -47,39 +47,40 @@ public class DataSeeder implements CommandLineRunner {
         }
 
         // 2. Seed Banners
-        bannerRepository.deleteAll(); // Force refresh banners to use the new stable URLs!
-        bannerRepository.saveAll(List.of(
-            Banner.builder()
-                    .imageUrl("https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=1200&auto=format&fit=crop&q=80")
-                    .title("Manga Hot Tháng 06")
-                    .linkUrl("/category/1")
-                    .position("MAIN")
-                    .build(),
-            Banner.builder()
-                    .imageUrl("https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=1200&auto=format&fit=crop&q=80")
-                    .title("Sách Ngoại Văn Ưu Đãi")
-                    .linkUrl("/category/2")
-                    .position("MAIN")
-                    .build(),
-            Banner.builder()
-                    .imageUrl("https://images.unsplash.com/photo-1537655780520-1e392edd816a?w=1200&auto=format&fit=crop&q=80")
-                    .title("Đồ Chơi Trẻ Em")
-                    .linkUrl("/category/3")
-                    .position("MAIN")
-                    .build(),
-            Banner.builder()
-                    .imageUrl("https://images.unsplash.com/photo-1511556532299-8f662fc26c06?w=600&auto=format&fit=crop&q=80")
-                    .title("Deal Hời Mỗi Ngày")
-                    .linkUrl("/")
-                    .position("SIDE")
-                    .build(),
-            Banner.builder()
-                    .imageUrl("https://images.unsplash.com/photo-1580828343064-fde4fc206bc6?w=600&auto=format&fit=crop&q=80")
-                    .title("Thanh Toán VNPAY")
-                    .linkUrl("/")
-                    .position("SIDE")
-                    .build()
-        ));
+        if (bannerRepository.count() == 0) {
+            bannerRepository.saveAll(List.of(
+                Banner.builder()
+                        .imageUrl("https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=1200&auto=format&fit=crop&q=80")
+                        .title("Manga Hot Tháng 06")
+                        .linkUrl("/category/1")
+                        .position("MAIN")
+                        .build(),
+                Banner.builder()
+                        .imageUrl("https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=1200&auto=format&fit=crop&q=80")
+                        .title("Sách Ngoại Văn Ưu Đãi")
+                        .linkUrl("/category/2")
+                        .position("MAIN")
+                        .build(),
+                Banner.builder()
+                        .imageUrl("https://images.unsplash.com/photo-1537655780520-1e392edd816a?w=1200&auto=format&fit=crop&q=80")
+                        .title("Đồ Chơi Trẻ Em")
+                        .linkUrl("/category/3")
+                        .position("MAIN")
+                        .build(),
+                Banner.builder()
+                        .imageUrl("https://images.unsplash.com/photo-1511556532299-8f662fc26c06?w=600&auto=format&fit=crop&q=80")
+                        .title("Deal Hời Mỗi Ngày")
+                        .linkUrl("/")
+                        .position("SIDE")
+                        .build(),
+                Banner.builder()
+                        .imageUrl("https://images.unsplash.com/photo-1580828343064-fde4fc206bc6?w=600&auto=format&fit=crop&q=80")
+                        .title("Thanh Toán VNPAY")
+                        .linkUrl("/")
+                        .position("SIDE")
+                        .build()
+            ));
+        }
 
         // Seed Notifications
         if (notificationRepository.count() == 0) {
@@ -302,9 +303,6 @@ public class DataSeeder implements CommandLineRunner {
         Book existing = list.stream().filter(b -> b.getTitle().equalsIgnoreCase(book.getTitle())).findFirst().orElse(null);
         if (existing == null) {
             bookRepository.save(book);
-        } else {
-            existing.setImageUrl(book.getImageUrl());
-            bookRepository.save(existing);
         }
     }
 }

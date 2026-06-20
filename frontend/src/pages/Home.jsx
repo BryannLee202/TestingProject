@@ -3,10 +3,9 @@ import axios from 'axios';
 import HeroBanner from '../components/home/HeroBanner';
 import QuickLinks from '../components/home/QuickLinks';
 import FlashSale from '../components/home/FlashSale';
-import TrendingCategories from '../components/home/TrendingCategories';
+import BestSellersByCategory from '../components/home/BestSellersByCategory';
 import ProductSection from '../components/home/ProductSection';
 import PartnerBrands from '../components/home/PartnerBrands';
-import BestSellerRank from '../components/home/BestSellerRank';
 import ComboTrending from '../components/home/ComboTrending';
 import PersonalizedSuggestions from '../components/home/PersonalizedSuggestions';
 import { useAuth } from '../context/AuthContext';
@@ -99,12 +98,11 @@ export default function Home() {
         ) : (
           <>
             {recommendations.length > 0 && <PersonalizedSuggestions data={recommendations} />}
-            {bestSellers.length > 0 && <BestSellerRank data={bestSellers} />}
             {combos.length > 0 && <ComboTrending data={combos} />}
           </>
         )}
 
-        <TrendingCategories />
+        <BestSellersByCategory />
         
         <ProductSection 
           title="Sách Mới Nổi Bật" 

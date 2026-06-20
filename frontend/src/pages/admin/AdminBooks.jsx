@@ -26,12 +26,14 @@ export default function AdminBooks() {
   // Form states
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
+  const [publisher, setPublisher] = useState('');
   const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [price, setPrice] = useState('');
   const [oldPrice, setOldPrice] = useState('');
   const [discount, setDiscount] = useState('0');
   const [stockQuantity, setStockQuantity] = useState('');
+  const [salesCount, setSalesCount] = useState('0');
   const [imageUrl, setImageUrl] = useState('');
   const [isCombo, setIsCombo] = useState(false);
 
@@ -66,12 +68,14 @@ export default function AdminBooks() {
     setEditingBook(null);
     setTitle('');
     setAuthor('');
+    setPublisher('');
     setDescription('');
     setCategoryId(categories[0]?.id || '');
     setPrice('');
     setOldPrice('');
     setDiscount('0');
     setStockQuantity('');
+    setSalesCount('0');
     setImageUrl('');
     setIsCombo(false);
     setIsModalOpen(true);
@@ -81,13 +85,15 @@ export default function AdminBooks() {
     setEditingBook(book);
     setTitle(book.title || '');
     setAuthor(book.author || '');
+    setPublisher(book.publisher || '');
     setDescription(book.description || '');
     setCategoryId(book.category?.id || categories[0]?.id || '');
     setPrice(book.price ? book.price.toString() : '');
     setOldPrice(book.oldPrice ? book.oldPrice.toString() : '');
     setDiscount(book.discount ? book.discount.toString() : '0');
     setStockQuantity(book.stockQuantity ? book.stockQuantity.toString() : '');
-    setImageUrl(book.imageUrl || '');
+    setSalesCount(book.salesCount ? book.salesCount.toString() : '0');
+    setImageUrl(book.imageUrl || book.image_url || '');
     setIsCombo(book.isCombo || false);
     setIsModalOpen(true);
   };
@@ -139,13 +145,15 @@ export default function AdminBooks() {
     const payload = {
       title,
       author,
+      publisher,
       description,
       price: parseFloat(price),
       oldPrice: oldPrice ? parseFloat(oldPrice) : null,
       discount: parseInt(discount) || 0,
       stockQuantity: parseInt(stockQuantity) || 0,
-      imageUrl,
-      isCombo,
+      salesCount: parseInt(salesCount) || 0,
+      imageUrl: imageUrl || null,
+      isCombo: isCombo,
       category: categoryId ? { id: parseInt(categoryId) } : null
     };
 
@@ -255,6 +263,7 @@ export default function AdminBooks() {
                   <th className="px-6 py-4">Danh mục</th>
                   <th className="px-6 py-4">Đơn giá</th>
                   <th className="px-6 py-4">Kho hàng</th>
+                  <th className="px-6 py-4 text-center">Lượt bán</th>
                   <th className="px-6 py-4">Phân loại</th>
                   <th className="px-6 py-4 text-center">Hành động</th>
                 </tr>
@@ -273,7 +282,9 @@ export default function AdminBooks() {
                     </td>
                     <td className="px-6 py-4 font-medium text-gray-800 max-w-xs">
                       <div className="truncate font-semibold text-gray-900">{book.title}</div>
-                      <div className="text-xs text-gray-400 mt-1">{book.author}</div>
+                      <div className="text-xs text-gray-400 mt-1">
+                        {book.author} {book.publisher ? `- NXB: ${book.publisher}` : ''}
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-gray-650">{book.category?.name || 'Chưa phân loại'}</td>
                     <td className="px-6 py-4">
@@ -298,6 +309,9 @@ export default function AdminBooks() {
                       ) : (
                         <span className="text-gray-700 font-medium">{book.stockQuantity} cuốn</span>
                       )}
+                    </td>
+                    <td className="px-6 py-4 text-center font-bold text-red-600">
+                      {book.salesCount || 0}
                     </td>
                     <td className="px-6 py-4">
                       {book.isCombo ? (
@@ -354,8 +368,8 @@ export default function AdminBooks() {
             {/* Modal Form */}
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               
-              {/* Tiêu đề & Tác giả */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Tiêu đề, Tác giả, Nhà xuất bản */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-gray-600 uppercase">Tiêu đề sách *</label>
                   <input 
@@ -374,6 +388,16 @@ export default function AdminBooks() {
                     value={author} 
                     onChange={(e) => setAuthor(e.target.value)}
                     placeholder="Nhập tên tác giả..."
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-primary text-sm"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-600 uppercase">Nhà xuất bản</label>
+                  <input 
+                    type="text" 
+                    value={publisher} 
+                    onChange={(e) => setPublisher(e.target.value)}
+                    placeholder="Nhập nhà xuất bản..."
                     className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-primary text-sm"
                   />
                 </div>
@@ -474,7 +498,20 @@ export default function AdminBooks() {
                   />
                 </div>
 
-                <div className="space-y-1 sm:col-span-2">
+                <div className="space-y-1 sm:col-span-1">
+                  <label className="text-xs font-bold text-gray-600 uppercase">Lượt bán</label>
+                  <input 
+                    type="number"
+                    value={salesCount}
+                    onChange={(e) => setSalesCount(e.target.value)}
+                    min="0"
+                    placeholder="0"
+                    title="Chỉnh sửa để xếp hạng Best Seller"
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-red-500 text-sm"
+                  />
+                </div>
+
+                <div className="space-y-1 sm:col-span-1">
                   <label className="text-xs font-bold text-gray-600 uppercase">Đường dẫn ảnh bìa (URL)</label>
                   <input 
                     type="text"

@@ -11,7 +11,8 @@ import {
   FaSignOutAlt, 
   FaBars, 
   FaTimes,
-  FaShieldAlt
+  FaShieldAlt,
+  FaUsers
 } from 'react-icons/fa';
 
 export default function AdminLayout() {
@@ -42,7 +43,8 @@ export default function AdminLayout() {
     { to: '/admin/books', icon: <FaBook />, label: 'Quản lý Sách' },
     { to: '/admin/categories', icon: <FaThList />, label: 'Quản lý Danh mục' },
     { to: '/admin/banners', icon: <FaImages />, label: 'Quản lý Banner' },
-    { to: '/admin/orders', icon: <FaShoppingBag />, label: 'Quản lý Đơn hàng' }
+    { to: '/admin/orders', icon: <FaShoppingBag />, label: 'Quản lý Đơn hàng' },
+    { to: '/admin/users', icon: <FaUsers />, label: 'Quản lý Tài khoản' }
   ];
 
   return (

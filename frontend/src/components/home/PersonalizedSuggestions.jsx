@@ -51,7 +51,7 @@ export default function PersonalizedSuggestions({ data = [] }) {
                 {/* Image */}
                 <div className="relative pt-[100%] mb-3 overflow-hidden rounded-md bg-gray-50 mt-4">
                   <img 
-                    src={product.image_url || product.img || 'https://placehold.co/150'} 
+                    src={product.imageUrl || product.img || 'https://placehold.co/150'} 
                     alt={product.title} 
                     className="absolute inset-0 w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-300" 
                   />
@@ -67,9 +67,10 @@ export default function PersonalizedSuggestions({ data = [] }) {
                   {[...Array(5)].map((_, i) => (
                     <FaStar 
                       key={i} 
-                      className={`text-[10px] ${i < (product.rating || 5) ? 'text-yellow-400' : 'text-gray-200'}`} 
+                      className={`text-[10px] ${i < Math.round(product.averageRating || 0) ? 'text-yellow-400' : 'text-gray-200'}`} 
                     />
                   ))}
+                  <span className="text-xs text-gray-400 ml-1">({product.reviewCount || 0})</span>
                 </div>
                 
                 {/* Price */}
@@ -78,9 +79,9 @@ export default function PersonalizedSuggestions({ data = [] }) {
                     <span className="text-primary font-bold text-lg leading-none mb-1">
                       {product.price ? product.price.toLocaleString('vi-VN') : '0'} đ
                     </span>
-                    {product.original_price && (
+                    {product.oldPrice && (
                       <span className="text-gray-400 text-xs line-through">
-                        {product.original_price.toLocaleString('vi-VN')} đ
+                        {product.oldPrice.toLocaleString('vi-VN')} đ
                       </span>
                     )}
                   </div>

@@ -23,6 +23,7 @@ import AdminBooks from './pages/admin/AdminBooks';
 import AdminCategories from './pages/admin/AdminCategories';
 import AdminBanners from './pages/admin/AdminBanners';
 import AdminOrders from './pages/admin/AdminOrders';
+import AdminUsers from './pages/admin/AdminUsers';
 
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
@@ -58,6 +59,7 @@ function App() {
               <Route path="categories" element={<AdminCategories />} />
               <Route path="banners" element={<AdminBanners />} />
               <Route path="orders" element={<AdminOrders />} />
+              <Route path="users" element={<AdminUsers />} />
             </Route>
 
             {/* Fallback */}

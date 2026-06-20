@@ -12,11 +12,11 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api'
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [expandedDesc, setExpandedDesc] = useState(false);
   const [book, setBook] = useState(null);
   const [relatedBooks, setRelatedBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
-  const [expandedDesc, setExpandedDesc] = useState(false);
   const { addToCart } = useCart();
   const { user } = useAuth();
   const [reviews, setReviews] = useState([]);
@@ -345,14 +345,8 @@ export default function ProductDetail() {
         {/* Description Section */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-4">
           <h2 className="text-lg font-bold text-gray-800 mb-4 uppercase">Mô tả sản phẩm</h2>
-          <div className={`text-sm text-gray-700 leading-relaxed overflow-hidden ${expandedDesc ? '' : 'max-h-40 relative'}`}>
+          <div className={`text-sm text-gray-700 leading-relaxed overflow-hidden relative ${expandedDesc ? '' : 'max-h-40'}`}>
             <div className="whitespace-pre-wrap">{book.description || 'Chưa có thông tin mô tả chi tiết cho sản phẩm này.'}</div>
-            <p className="mt-4 font-bold">QUY CÁCH:</p>
-            <ul className="list-dash pl-4 mt-2 space-y-1">
-              <li>Trọn bộ gồm 8 tập</li>
-              <li>Bìa mềm với thiết kế đồng bộ, cán mờ phủ UV, có tay gấp</li>
-              <li>Hộp 8 cuốn với thiết kế đồng bộ, sử dụng giấy Ivory 400</li>
-            </ul>
             
             {!expandedDesc && (
               <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>

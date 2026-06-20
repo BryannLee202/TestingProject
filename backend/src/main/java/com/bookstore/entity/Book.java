@@ -26,6 +26,9 @@ public class Book {
     @Column(length = 255)
     private String author;
 
+    @Column(length = 255)
+    private String publisher;
+
     @Column(columnDefinition = "NVARCHAR(MAX)")
     private String description;
 
@@ -41,8 +44,14 @@ public class Book {
     @Column(name = "stock_quantity", nullable = false)
     private Integer stockQuantity = 0;
     
-    @Column(name = "image_url")
+    @Column(name = "image_url", columnDefinition = "NVARCHAR(MAX)")
     private String imageUrl;
+
+    @Column(name = "average_rating")
+    private Double averageRating = 0.0;
+
+    @Column(name = "review_count")
+    private Integer reviewCount = 0;
 
     @Column(name = "sales_count")
     private Integer salesCount = 0;

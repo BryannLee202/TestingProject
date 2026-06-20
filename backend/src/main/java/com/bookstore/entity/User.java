@@ -29,14 +29,22 @@ public class User implements UserDetails {
     private String username;
 
     @com.fasterxml.jackson.annotation.JsonIgnore
-    @Column(nullable = false)
     private String password;
 
     @Column(nullable = false)
     private String fullName;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true)
     private String email;
+
+    @Column
+    private String phone;
+
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private AuthProvider provider = AuthProvider.LOCAL;
+
+    private String providerId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
