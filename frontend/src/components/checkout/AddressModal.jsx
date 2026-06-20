@@ -3,8 +3,30 @@ import { FaTimes, FaMapMarkerAlt, FaCheckCircle, FaPlus } from 'react-icons/fa';
 import axios from 'axios';
 import { showNotification } from '../../utils/alert';
 import treeData from '../../data/provinces.json';
+import Select from 'react-select';
 
 const provincesList = Object.values(treeData).sort((a,b) => a.name.localeCompare(b.name));
+
+const customSelectStyles = {
+  control: (provided, state) => ({
+    ...provided,
+    borderColor: state.isFocused ? '#ef4444' : '#e5e7eb',
+    boxShadow: state.isFocused ? '0 0 0 1px #ef4444' : 'none',
+    '&:hover': {
+      borderColor: state.isFocused ? '#ef4444' : '#d1d5db'
+    },
+    padding: '2px',
+    borderRadius: '0.25rem'
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isSelected ? '#ef4444' : state.isFocused ? '#fef2f2' : 'white',
+    color: state.isSelected ? 'white' : '#374151',
+    '&:active': {
+      backgroundColor: '#ef4444'
+    }
+  })
+};
 
 export default function AddressModal({ isOpen, onClose, addresses, onSelect, onAddAddress, onDeleteAddress, onSetDefaultAddress, API_BASE_URL }) {
   const [showAddForm, setShowAddForm] = useState(false);
@@ -22,8 +44,10 @@ export default function AddressModal({ isOpen, onClose, addresses, onSelect, onA
 
   const [wards, setWards] = useState([]);
 
-  const handleCityChange = (e) => {
-    const selectedCityName = e.target.value;
+  const [wards, setWards] = useState([]);
+
+  const handleCityChange = (selectedOption) => {
+    const selectedCityName = selectedOption ? selectedOption.value : '';
     setNewAddress({...newAddress, city: selectedCityName, ward: ''});
     setWards([]);
     
@@ -117,22 +141,33 @@ export default function AddressModal({ isOpen, onClose, addresses, onSelect, onA
 
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
                 <label className="sm:w-1/4 text-sm font-medium text-gray-700">Tỉnh/Thành phố<span className="text-red-500">*</span></label>
-                <select required value={newAddress.city} onChange={handleCityChange} className={`sm:w-3/4 border border-gray-200 rounded px-3 py-2.5 focus:border-red-500 focus:outline-none bg-white ${!newAddress.city ? 'text-gray-400' : 'text-gray-800'}`}>
-                  <option value="">Vui lòng chọn Tỉnh/Thành phố</option>
-                  {provincesList.map(p => (
-                    <option key={p.code} value={p.name}>{p.name_with_type}</option>
-                  ))}
-                </select>
+                <div className="sm:w-3/4">
+                  <Select
+                    options={provincesList.map(p => ({ value: p.name, label: p.name_with_type }))}
+                    value={newAddress.city ? { value: newAddress.city, label: provincesList.find(p => p.name === newAddress.city)?.name_with_type } : null}
+                    onChange={handleCityChange}
+                    placeholder="Vui lòng chọn Tỉnh/Thành phố"
+                    styles={customSelectStyles}
+                    isClearable
+                    required
+                  />
+                </div>
               </div>
 
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
                 <label className="sm:w-1/4 text-sm font-medium text-gray-700">Xã/Phường<span className="text-red-500">*</span></label>
-                <select required value={newAddress.ward} onChange={e => setNewAddress({...newAddress, ward: e.target.value})} className={`sm:w-3/4 border border-gray-200 rounded px-3 py-2.5 focus:border-red-500 focus:outline-none bg-white ${!newAddress.ward ? 'text-gray-400' : 'text-gray-800'}`} disabled={!newAddress.city}>
-                  <option value="">Vui lòng chọn Xã/Phường</option>
-                  {wards.map(w => (
-                    <option key={w.code} value={w.name}>{w.name_with_type}</option>
-                  ))}
-                </select>
+                <div className="sm:w-3/4">
+                  <Select
+                    options={wards.map(w => ({ value: w.name, label: w.name_with_type }))}
+                    value={newAddress.ward ? { value: newAddress.ward, label: wards.find(w => w.name === newAddress.ward)?.name_with_type || newAddress.ward } : null}
+                    onChange={(selectedOption) => setNewAddress({...newAddress, ward: selectedOption ? selectedOption.value : ''})}
+                    placeholder="Vui lòng chọn Xã/Phường"
+                    styles={customSelectStyles}
+                    isDisabled={!newAddress.city}
+                    isClearable
+                    required
+                  />
+                </div>
               </div>
 
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">

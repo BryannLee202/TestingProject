@@ -9,8 +9,31 @@ import { QRCodeCanvas } from 'qrcode.react';
 import { FaCreditCard, FaMoneyBillWave, FaMapMarkerAlt, FaTruck, FaTags, FaClipboardList, FaTimes, FaShippingFast, FaCcVisa, FaCcMastercard, FaRegCreditCard } from 'react-icons/fa';
 import treeData from '../data/provinces.json';
 import AddressModal from '../components/checkout/AddressModal';
+import Select from 'react-select';
 
 const provincesList = Object.values(treeData).sort((a,b) => a.name.localeCompare(b.name));
+
+const customSelectStyles = {
+  control: (provided, state) => ({
+    ...provided,
+    borderColor: state.isFocused ? '#3b82f6' : '#e5e7eb',
+    boxShadow: state.isFocused ? '0 0 0 2px #dbeafe' : 'none',
+    '&:hover': {
+      borderColor: state.isFocused ? '#3b82f6' : '#d1d5db'
+    },
+    padding: '6px',
+    borderRadius: '0.75rem',
+    backgroundColor: state.isDisabled ? '#f9fafb' : 'white'
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isSelected ? '#3b82f6' : state.isFocused ? '#eff6ff' : 'white',
+    color: state.isSelected ? 'white' : '#1f2937',
+    '&:active': {
+      backgroundColor: '#3b82f6'
+    }
+  })
+};
 
 export default function Checkout() {
   const { cart, getCartTotal, clearCart } = useCart();
@@ -97,8 +120,8 @@ export default function Checkout() {
       .catch(err => console.error(err));
   }, [user, navigate, API_BASE_URL]);
 
-  const handleCityChange = (e) => {
-    const selectedCityName = e.target.value;
+  const handleCityChange = (selectedOption) => {
+    const selectedCityName = selectedOption ? selectedOption.value : '';
     setCity(selectedCityName);
     setWard('');
     setWards([]);
@@ -303,21 +326,28 @@ export default function Checkout() {
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">Tỉnh/Thành phố *</label>
-                      <select required value={city} onChange={handleCityChange} className={`border ${city ? 'border-gray-300 text-gray-800 bg-white' : 'border-gray-200 text-gray-400 bg-gray-50'} rounded-xl px-4 py-3.5 w-full outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer`}>
-                        <option value="">Chọn Tỉnh/Thành phố</option>
-                        {provinces.map(p => (
-                          <option key={p.code} value={p.name}>{p.name_with_type}</option>
-                        ))}
-                      </select>
+                      <Select
+                        options={provinces.map(p => ({ value: p.name, label: p.name_with_type }))}
+                        value={city ? { value: city, label: provinces.find(p => p.name === city)?.name_with_type } : null}
+                        onChange={handleCityChange}
+                        placeholder="Chọn Tỉnh/Thành phố"
+                        styles={customSelectStyles}
+                        isClearable
+                        required
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">Phường/Xã *</label>
-                      <select required value={ward} onChange={e => setWard(e.target.value)} className={`border ${ward ? 'border-gray-300 text-gray-800 bg-white' : 'border-gray-200 text-gray-400 bg-gray-50'} rounded-xl px-4 py-3.5 w-full outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer`} disabled={!city}>
-                        <option value="">Chọn Phường/Xã</option>
-                        {wards.map(w => (
-                          <option key={w.code} value={w.name}>{w.name_with_type}</option>
-                        ))}
-                      </select>
+                      <Select
+                        options={wards.map(w => ({ value: w.name, label: w.name_with_type }))}
+                        value={ward ? { value: ward, label: wards.find(w => w.name === ward)?.name_with_type || ward } : null}
+                        onChange={(selectedOption) => setWard(selectedOption ? selectedOption.value : '')}
+                        placeholder="Chọn Phường/Xã"
+                        styles={customSelectStyles}
+                        isDisabled={!city}
+                        isClearable
+                        required
+                      />
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-sm font-semibold text-gray-700 mb-1">Địa chỉ chi tiết (Số nhà, Tên đường) *</label>
