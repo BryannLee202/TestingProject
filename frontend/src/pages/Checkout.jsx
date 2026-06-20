@@ -4,7 +4,8 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import Swal from 'sweetalert2';
 import axios from 'axios';
-import { FaMapMarkerAlt, FaPhoneAlt, FaRegFileAlt, FaCreditCard, FaTruck, FaArrowLeft } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaPhoneAlt, FaRegFileAlt, FaCreditCard, FaTruck, FaArrowLeft, FaCheck, FaMoneyBillWave, FaQrcode, FaTags, FaCopy } from 'react-icons/fa';
+import { showNotification } from '../utils/alert';
 
 export default function Checkout() {
   const { cart, getCartTotal, clearCart } = useCart();
@@ -24,6 +25,7 @@ export default function Checkout() {
   const [discountAmount, setDiscountAmount] = useState(0);
   const [couponError, setCouponError] = useState('');
   const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [availableCoupons, setAvailableCoupons] = useState([]);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
@@ -37,31 +39,35 @@ export default function Checkout() {
       setPhone(user.phoneNumber || '');
       setAddress(user.address || '');
     }
+
+    const fetchCoupons = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/coupons`);
+        setAvailableCoupons(res.data || []);
+      } catch (error) {
+        console.error('Error fetching coupons:', error);
+      }
+    };
+    fetchCoupons();
   }, [user, cart, navigate]);
 
-  const handleApplyCoupon = async () => {
-    if (!couponCode.trim()) return;
+  const handleApplyCoupon = async (codeToApply = couponCode) => {
+    const code = typeof codeToApply === 'string' ? codeToApply : couponCode;
+    if (!code.trim()) return;
     setValidatingCoupon(true);
     setCouponError('');
     try {
       const res = await axios.get(`${API_BASE_URL}/coupons/validate`, {
         params: {
-          code: couponCode.trim(),
+          code: code.trim(),
           amount: cartTotal
         }
       });
       if (res.data.valid) {
         setAppliedCoupon(res.data.coupon);
         setDiscountAmount(res.data.discountAmount);
-        Swal.fire({
-          icon: 'success',
-          title: 'Áp dụng thành công!',
-          text: `Bạn được giảm ${res.data.discountAmount.toLocaleString('vi-VN')} đ`,
-          toast: true,
-          position: 'top-end',
-          showConfirmButton: false,
-          timer: 2000
-        });
+        setCouponCode(res.data.coupon.code);
+        showNotification('Áp dụng thành công!', `Bạn được giảm ${res.data.discountAmount.toLocaleString('vi-VN')} đ`, 'success');
       } else {
         setCouponError(res.data.message || 'Mã giảm giá không hợp lệ.');
         setAppliedCoupon(null);
@@ -85,12 +91,7 @@ export default function Checkout() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name || !phone || !address) {
-      return Swal.fire({
-        icon: 'warning',
-        title: 'Thiếu thông tin',
-        text: 'Vui lòng điền đầy đủ Tên, Số điện thoại và Địa chỉ nhận hàng.',
-        confirmButtonColor: '#3085d6'
-      });
+      return showNotification('Thiếu thông tin', 'Vui lòng điền đầy đủ Tên, Số điện thoại và Địa chỉ nhận hàng.', 'warning');
     }
 
     setLoading(true);
@@ -114,23 +115,12 @@ export default function Checkout() {
       const res = await axios.post(`${API_BASE_URL}/orders`, orderBody);
 
       if (res.data.id) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Đặt hàng thành công!',
-          text: 'Đơn hàng của bạn đã được ghi nhận và đang chuẩn bị giao.',
-          confirmButtonColor: '#10B981'
-        }).then(() => {
-          clearCart();
-          navigate('/orders');
-        });
+        showNotification('Đặt hàng thành công!', 'Đơn hàng của bạn đã được ghi nhận.', 'success');
+        clearCart();
+        setTimeout(() => navigate('/orders'), 2000);
       }
     } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Đặt hàng thất bại',
-        text: error.response?.data?.message || 'Không thể tạo đơn hàng. Vui lòng thử lại.',
-        confirmButtonColor: '#EF4444'
-      });
+      showNotification('Đặt hàng thất bại', error.response?.data?.message || 'Không thể tạo đơn hàng. Vui lòng thử lại.', 'error');
     } finally {
       setLoading(false);
     }
@@ -396,6 +386,43 @@ export default function Checkout() {
                   </div>
                 )}
                 {couponError && <p className="text-red-500 text-xs mt-1 font-medium">{couponError}</p>}
+
+                {/* Danh sách mã khả dụng */}
+                {!appliedCoupon && availableCoupons.length > 0 && (
+                  <div className="mt-4">
+                    <div className="text-xs font-semibold text-gray-500 mb-2">Mã khuyến mãi dành cho bạn:</div>
+                    <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                      {availableCoupons.map(coupon => {
+                        const isValid = cartTotal >= coupon.minOrderAmount;
+                        return (
+                          <div 
+                            key={coupon.id} 
+                            onClick={() => isValid && handleApplyCoupon(coupon.code)}
+                            className={`p-2.5 border rounded-lg flex items-center justify-between transition-colors ${isValid ? 'border-primary/30 bg-primary/5 hover:bg-primary/10 cursor-pointer' : 'border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed'}`}
+                          >
+                            <div className="flex-1">
+                              <div className="font-bold text-primary font-mono text-xs">{coupon.code}</div>
+                              <div className="text-[10px] text-gray-500 mt-0.5">
+                                Giảm {coupon.discountType === 'PERCENTAGE' ? `${coupon.discountValue}%` : `${coupon.discountValue.toLocaleString('vi-VN')}đ`}
+                                {coupon.minOrderAmount > 0 && ` cho đơn từ ${coupon.minOrderAmount.toLocaleString('vi-VN')}đ`}
+                              </div>
+                            </div>
+                            {isValid ? (
+                              <button 
+                                type="button"
+                                className="text-xs font-bold text-primary bg-white px-3 py-1 rounded border border-primary/20 hover:bg-primary hover:text-white transition-colors"
+                              >
+                                DÙNG
+                              </button>
+                            ) : (
+                              <span className="text-[10px] text-red-500 font-semibold px-2 bg-red-50 rounded py-1">Chưa đủ ĐK</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Calc details */}

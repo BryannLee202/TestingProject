@@ -6,8 +6,10 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import 'swiper/css';
 import 'swiper/css/navigation';
+import { useCart } from '../../context/CartContext';
 
 export default function FlashSale() {
+  const { addToCart } = useCart();
   const [timeLeft, setTimeLeft] = useState({ hours: 2, minutes: 15, seconds: 30 });
   const [flashSaleProducts, setFlashSaleProducts] = useState([
     { id: 1, title: 'Sách giáo khoa Toán lớp 1', price: 15000, oldPrice: 20000, discount: 25, soldPercent: 85, img: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_3609.jpg' },
@@ -142,6 +144,17 @@ export default function FlashSale() {
                     </span>
                   </div>
                 </div>
+                
+                {/* Add to Cart Button */}
+                <button 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    addToCart(product, 1);
+                  }}
+                  className="w-full mt-3 py-1.5 border border-primary text-primary text-sm font-semibold rounded hover:bg-primary hover:text-white transition-colors flex items-center justify-center gap-2"
+                >
+                  Thêm giỏ hàng
+                </button>
               </Link>
             </SwiperSlide>
           ))}

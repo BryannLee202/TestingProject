@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import Swal from 'sweetalert2';
 import { FaTicketAlt, FaCopy, FaCheck } from 'react-icons/fa';
+import { showNotification } from '../utils/alert';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
@@ -30,16 +30,7 @@ export default function Coupons() {
     navigator.clipboard.writeText(code);
     setCopiedCode(code);
     
-    Swal.fire({
-      icon: 'success',
-      title: 'Đã sao chép mã!',
-      text: `Mã giảm giá "${code}" đã được lưu vào bộ nhớ tạm.`,
-      toast: true,
-      position: 'top-end',
-      showConfirmButton: false,
-      timer: 1500,
-      timerProgressBar: true
-    });
+    showNotification('Đã sao chép!', `Mã giảm giá "${code}" đã được lưu vào bộ nhớ tạm.`, 'success');
 
     setTimeout(() => {
       setCopiedCode('');

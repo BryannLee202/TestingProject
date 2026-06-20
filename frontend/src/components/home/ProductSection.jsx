@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { FaStar } from 'react-icons/fa';
+import { FaStar, FaShoppingCart } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import { useCart } from '../../context/CartContext';
 
 export default function ProductSection({ title, tabs = [], products = [], activeTab, onTabChange, loading }) {
+  const { addToCart } = useCart();
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5">
@@ -87,6 +89,17 @@ export default function ProductSection({ title, tabs = [], products = [], active
                   </span>
                 )}
               </div>
+              
+              {/* Add to Cart Button */}
+              <button 
+                onClick={(e) => {
+                  e.preventDefault();
+                  addToCart(product, 1);
+                }}
+                className="w-full mt-3 py-1.5 border border-primary text-primary text-sm font-semibold rounded hover:bg-primary hover:text-white transition-colors flex items-center justify-center gap-2"
+              >
+                Thêm giỏ hàng
+              </button>
             </Link>
           ))}
         </div>

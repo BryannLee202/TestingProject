@@ -4,6 +4,7 @@ import axios from 'axios';
 import { FaStar, FaShoppingCart, FaMinus, FaPlus, FaChevronRight, FaRegThumbsUp, FaExclamationCircle } from 'react-icons/fa';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { showNotification } from '../utils/alert';
 import Swal from 'sweetalert2';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
@@ -23,6 +24,8 @@ export default function ProductDetail() {
   const [newRating, setNewRating] = useState(5);
   const [newComment, setNewComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [availableCoupons, setAvailableCoupons] = useState([]);
+  const [deliveryAddress, setDeliveryAddress] = useState('Hà Nội');
 
   useEffect(() => {
     const fetchBookDetail = async () => {
@@ -51,10 +54,53 @@ export default function ProductDetail() {
       }
     };
 
+    const fetchCoupons = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/coupons`);
+        setAvailableCoupons(res.data || []);
+      } catch (error) {
+        console.error('Error fetching coupons:', error);
+      }
+    };
+
     fetchBookDetail();
     fetchReviews();
+    fetchCoupons();
     window.scrollTo(0, 0);
   }, [id]);
+
+  useEffect(() => {
+    if (user && user.address) {
+      setDeliveryAddress(user.address);
+    }
+  }, [user]);
+
+  const getExpectedDeliveryDate = () => {
+    const today = new Date();
+    today.setDate(today.getDate() + 3);
+    const days = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
+    return `${days[today.getDay()]} - ${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}`;
+  };
+
+  const handleChangeAddress = async () => {
+    const { value: newAddress } = await Swal.fire({
+      title: 'Nhập địa chỉ giao hàng',
+      input: 'text',
+      inputPlaceholder: 'Ví dụ: Quận 1, Hồ Chí Minh',
+      inputValue: deliveryAddress !== 'Hà Nội' ? deliveryAddress : '',
+      showCancelButton: true,
+      confirmButtonText: 'Cập nhật',
+      cancelButtonText: 'Hủy',
+      inputValidator: (value) => {
+        if (!value) return 'Vui lòng nhập địa chỉ!';
+      }
+    });
+
+    if (newAddress) {
+      setDeliveryAddress(newAddress);
+      showNotification('Đã cập nhật', 'Địa chỉ giao hàng đã được cập nhật tạm thời.', 'success');
+    }
+  };
 
   const handleSubmitReview = async (e) => {
     e.preventDefault();
@@ -193,11 +239,11 @@ export default function ProductDetail() {
 
             <div className="flex items-center gap-3 text-sm mb-4">
               <div className="flex items-center text-yellow-400 text-sm">
-                {[...Array(5)].map((_, i) => <FaStar key={i} className={i < 5 ? 'text-yellow-400' : 'text-gray-200'} />)}
+                {[...Array(5)].map((_, i) => <FaStar key={i} className={i < Math.round(Number(averageRating)) ? 'text-yellow-400' : 'text-gray-200'} />)}
               </div>
-              <span className="text-yellow-500 font-medium">(1 đánh giá)</span>
+              <span className="text-yellow-500 font-medium">({totalReviewsCount} đánh giá)</span>
               <span className="text-gray-300">|</span>
-              <span className="text-gray-500">Đã bán {book.salesCount || 10}</span>
+              <span className="text-gray-500">Đã bán {book.salesCount || 0}</span>
             </div>
 
             {/* Price Block */}
@@ -226,9 +272,9 @@ export default function ProductDetail() {
             {/* Delivery Info */}
             <div className="border-t border-gray-100 pt-4 mb-4">
               <h3 className="font-bold text-gray-800 mb-2">Thông tin vận chuyển</h3>
-              <div className="text-sm text-gray-600 mb-2 flex justify-between">
-                <span>Giao hàng đến <span className="font-bold text-gray-800">Phường Bến Nghé, Quận 1, Hồ Chí Minh</span></span>
-                <button className="text-blue-600 hover:underline">Thay đổi</button>
+              <div className="text-sm text-gray-600 mb-2 flex justify-between gap-4">
+                <span className="flex-1 truncate">Giao hàng đến <span className="font-bold text-gray-800">{deliveryAddress}</span></span>
+                <button onClick={handleChangeAddress} className="text-blue-600 hover:underline shrink-0">Thay đổi</button>
               </div>
               <div className="flex gap-2 items-start mt-3">
                 <div className="mt-1 text-green-600">
@@ -236,32 +282,34 @@ export default function ProductDetail() {
                 </div>
                 <div>
                   <div className="font-bold text-gray-800 text-sm">Giao hàng tiêu chuẩn</div>
-                  <div className="text-sm text-gray-600">Dự kiến giao <span className="font-bold">Thứ tư - 17/06</span></div>
+                  <div className="text-sm text-gray-600">Dự kiến giao <span className="font-bold text-green-700">{getExpectedDeliveryDate()}</span></div>
                 </div>
               </div>
             </div>
 
             {/* Promotions */}
-            <div className="border-t border-gray-100 pt-4 mb-6">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="font-bold text-gray-800">Ưu đãi liên quan</h3>
-                <button className="text-blue-600 text-sm hover:underline flex items-center gap-1">Xem thêm <FaChevronRight className="text-[10px]" /></button>
+            {availableCoupons.length > 0 && (
+              <div className="border-t border-gray-100 pt-4 mb-6">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="font-bold text-gray-800">Ưu đãi liên quan</h3>
+                </div>
+                <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
+                  {availableCoupons.map(coupon => (
+                    <div 
+                      key={coupon.id}
+                      onClick={() => {
+                        navigator.clipboard.writeText(coupon.code);
+                        showNotification('Đã sao chép!', `Mã giảm giá ${coupon.code} đã được lưu vào bộ nhớ tạm.`, 'success');
+                      }}
+                      className="border border-green-200 bg-green-50 rounded flex items-center gap-2 p-1.5 px-3 whitespace-nowrap text-sm cursor-pointer shadow-sm hover:border-green-400 hover:bg-green-100 transition-colors"
+                    >
+                      <div className="w-6 h-6 bg-green-500 rounded text-white flex items-center justify-center font-bold text-xs">%</div>
+                      <span className="font-medium text-green-700">Mã {coupon.code}: giảm {coupon.discountType === 'PERCENTAGE' ? `${coupon.discountValue}%` : `${coupon.discountValue / 1000}k`}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
-                <div className="border border-blue-200 bg-white rounded flex items-center gap-2 p-1.5 px-3 whitespace-nowrap text-sm cursor-pointer shadow-sm hover:border-blue-400">
-                  <div className="w-6 h-6 bg-blue-500 rounded text-white flex items-center justify-center font-bold text-xs">Z</div>
-                  <span>Zalopay: giảm 50...</span>
-                </div>
-                <div className="border border-pink-200 bg-white rounded flex items-center gap-2 p-1.5 px-3 whitespace-nowrap text-sm cursor-pointer shadow-sm hover:border-pink-400">
-                  <div className="w-6 h-6 bg-pink-500 rounded text-white flex items-center justify-center font-bold text-xs">M</div>
-                  <span>Momo: giảm 12k...</span>
-                </div>
-                <div className="border border-orange-200 bg-white rounded flex items-center gap-2 p-1.5 px-3 whitespace-nowrap text-sm cursor-pointer shadow-sm hover:border-orange-400">
-                  <div className="w-6 h-6 bg-orange-500 rounded text-white flex items-center justify-center font-bold text-xs">S</div>
-                  <span>Shopeepay: giảm...</span>
-                </div>
-              </div>
-            </div>
+            )}
 
             {/* Quantity */}
             <div className="flex items-center gap-6 mt-4">

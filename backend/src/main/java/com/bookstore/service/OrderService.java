@@ -55,9 +55,13 @@ public class OrderService {
             order.getItems().add(orderItem);
             subtotal += itemReq.getPrice() * itemReq.getQuantity();
             
-            // Trừ tồn kho
+            // Trừ tồn kho và tăng số lượng đã bán
             if (book.getStockQuantity() >= itemReq.getQuantity()) {
                 book.setStockQuantity(book.getStockQuantity() - itemReq.getQuantity());
+                
+                int currentSales = book.getSalesCount() == null ? 0 : book.getSalesCount();
+                book.setSalesCount(currentSales + itemReq.getQuantity());
+                
                 bookRepository.save(book);
             } else {
                 throw new RuntimeException("Sách " + book.getTitle() + " không đủ số lượng tồn kho!");
@@ -126,5 +130,9 @@ public class OrderService {
             throw new RuntimeException("Không tìm thấy đơn hàng!");
         }
         orderRepository.deleteById(id);
+    }
+
+    public void deleteMultipleOrders(List<Long> ids) {
+        orderRepository.deleteAllById(ids);
     }
 }

@@ -3,10 +3,12 @@ import { FaRobot, FaStar } from 'react-icons/fa';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import { Link } from 'react-router-dom';
+import { useCart } from '../../context/CartContext';
 import 'swiper/css';
 import 'swiper/css/navigation';
 
 export default function PersonalizedSuggestions({ data = [] }) {
+  const { addToCart } = useCart();
   return (
     <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl overflow-hidden shadow-sm border border-indigo-100 p-4 sm:p-5">
       {/* Header */}
@@ -83,6 +85,17 @@ export default function PersonalizedSuggestions({ data = [] }) {
                     )}
                   </div>
                 </div>
+                
+                {/* Add to Cart Button */}
+                <button 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    addToCart(product, 1);
+                  }}
+                  className="w-full mt-3 py-1.5 border border-primary text-primary text-sm font-semibold rounded hover:bg-primary hover:text-white transition-colors flex items-center justify-center gap-2"
+                >
+                  Thêm giỏ hàng
+                </button>
               </Link>
             </SwiperSlide>
           ))}

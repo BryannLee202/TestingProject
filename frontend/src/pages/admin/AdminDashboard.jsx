@@ -42,9 +42,9 @@ export default function AdminDashboard() {
         const allBooks = booksRes.data || [];
         const allCategories = categoriesRes.data || [];
 
-        // Tính doanh thu (không tính các đơn bị HỦY)
+        // Tính doanh thu (chỉ tính khi đã giao hàng thành công và đã thanh toán)
         const revenue = allOrders
-          .filter(o => o.status !== 'CANCELLED')
+          .filter(o => o.shippingStatus === 'DELIVERED')
           .reduce((sum, o) => sum + o.totalAmount, 0);
 
         const outOfStockCount = allBooks.filter(b => b.stockQuantity <= 0).length;

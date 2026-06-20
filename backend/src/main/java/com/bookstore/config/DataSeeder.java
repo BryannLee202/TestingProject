@@ -159,7 +159,7 @@ public class DataSeeder implements CommandLineRunner {
                 .discount(31)
                 .stockQuantity(100)
                 .imageUrl("https://bizweb.dktcdn.net/100/197/269/products/de-men-phieu-luu-ky-bia-cung.jpg")
-                .salesCount(500)
+                .salesCount(0)
                 .isCombo(false)
                 .category(thieuNhi)
                 .build());
@@ -173,7 +173,7 @@ public class DataSeeder implements CommandLineRunner {
                 .discount(16)
                 .stockQuantity(50)
                 .imageUrl("https://m.media-amazon.com/images/I/41xShlnTZTL._SX376_BO1,204,203,200_.jpg")
-                .salesCount(120)
+                .salesCount(0)
                 .isCombo(false)
                 .category(khoaHoc)
                 .build());
@@ -187,7 +187,7 @@ public class DataSeeder implements CommandLineRunner {
                 .discount(28)
                 .stockQuantity(200)
                 .imageUrl("https://nhanam.vn/goc-nhin/wp-content/uploads/2021/05/NhaGiaKim-cover.jpg")
-                .salesCount(1500)
+                .salesCount(0)
                 .isCombo(false)
                 .category(tieuThuyet)
                 .build());
@@ -201,7 +201,7 @@ public class DataSeeder implements CommandLineRunner {
                 .discount(16)
                 .stockQuantity(20)
                 .imageUrl("https://m.media-amazon.com/images/I/81YOuOGFC5L.jpg")
-                .salesCount(45)
+                .salesCount(0)
                 .isCombo(true)
                 .category(combo)
                 .build());
@@ -215,7 +215,7 @@ public class DataSeeder implements CommandLineRunner {
                 .discount(16)
                 .stockQuantity(1000)
                 .imageUrl("https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=600&auto=format&fit=crop&q=80")
-                .salesCount(1200)
+                .salesCount(0)
                 .isCombo(false)
                 .category(vanPhongPham)
                 .build());
@@ -229,7 +229,7 @@ public class DataSeeder implements CommandLineRunner {
                 .discount(28)
                 .stockQuantity(30)
                 .imageUrl("https://images.unsplash.com/photo-1566698627439-7755f6a97c23?w=600&auto=format&fit=crop&q=80")
-                .salesCount(15)
+                .salesCount(0)
                 .isCombo(false)
                 .category(doChoi)
                 .build());
@@ -243,7 +243,7 @@ public class DataSeeder implements CommandLineRunner {
                 .discount(16)
                 .stockQuantity(300)
                 .imageUrl("https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600&auto=format&fit=crop&q=80")
-                .salesCount(5000)
+                .salesCount(0)
                 .isCombo(false)
                 .category(mangaComic)
                 .build());
@@ -257,7 +257,7 @@ public class DataSeeder implements CommandLineRunner {
                 .discount(21)
                 .stockQuantity(80)
                 .imageUrl("https://m.media-amazon.com/images/I/81m9fP%2B7GgL.jpg")
-                .salesCount(60)
+                .salesCount(0)
                 .isCombo(false)
                 .category(sachNgoaiVan)
                 .build());
@@ -271,7 +271,7 @@ public class DataSeeder implements CommandLineRunner {
                 .discount(28)
                 .stockQuantity(150)
                 .imageUrl("https://images.unsplash.com/photo-1629131726692-1accd0c73df0?w=600&auto=format&fit=crop&q=80")
-                .salesCount(80)
+                .salesCount(0)
                 .isCombo(false)
                 .category(quaLuNiem)
                 .build());
@@ -285,7 +285,7 @@ public class DataSeeder implements CommandLineRunner {
                 .discount(26)
                 .stockQuantity(60)
                 .imageUrl("https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=600&auto=format&fit=crop&q=80")
-                .salesCount(40)
+                .salesCount(0)
                 .isCombo(false)
                 .category(bachHoa)
                 .build());

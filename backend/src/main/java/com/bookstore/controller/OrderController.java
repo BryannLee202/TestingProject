@@ -52,4 +52,10 @@ public class OrderController {
         orderService.deleteOrder(id);
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/bulk")
+    public ResponseEntity<Void> deleteMultipleOrders(@RequestParam List<Long> ids) {
+        orderService.deleteMultipleOrders(ids);
+        return ResponseEntity.noContent().build();
+    }
 }

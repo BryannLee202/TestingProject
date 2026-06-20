@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
+import { showNotification } from '../utils/alert';
 
 const CartContext = createContext();
 
@@ -89,15 +90,7 @@ export const CartProvider = ({ children }) => {
       });
     }
 
-    Swal.fire({
-      icon: 'success',
-      title: 'Đã thêm vào giỏ hàng',
-      text: `${product.title} (x${quantity})`,
-      timer: 1500,
-      showConfirmButton: false,
-      toast: true,
-      position: 'top-end'
-    });
+    showNotification('Thêm vào giỏ thành công', `${product.title} (x${quantity})`, 'success');
   };
 
   const updateQuantity = async (productId, newQuantity) => {

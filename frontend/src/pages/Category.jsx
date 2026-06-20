@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { FaStar } from 'react-icons/fa';
+import { useCart } from '../context/CartContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
@@ -9,6 +10,7 @@ export default function Category() {
   const { categoryId } = useParams();
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { addToCart } = useCart();
 
   useEffect(() => {
     const fetchCategoryBooks = async () => {
@@ -117,6 +119,15 @@ export default function Category() {
                           </span>
                         )}
                       </div>
+                      <button 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          addToCart(product, 1);
+                        }}
+                        className="w-full mt-3 py-1.5 border border-primary text-primary text-sm font-semibold rounded hover:bg-primary hover:text-white transition-colors flex items-center justify-center gap-2"
+                      >
+                        Thêm giỏ hàng
+                      </button>
                     </Link>
                   ))}
                 </div>

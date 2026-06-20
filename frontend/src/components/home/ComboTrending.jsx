@@ -1,8 +1,10 @@
 import React from 'react';
-import { FaStar } from 'react-icons/fa';
+import { FaStar, FaLayerGroup } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import { useCart } from '../../context/CartContext';
 
 export default function ComboTrending({ data = [] }) {
+  const { addToCart } = useCart();
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5">
       <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-5 border-b border-gray-100 pb-4">
@@ -62,6 +64,17 @@ export default function ComboTrending({ data = [] }) {
                   </span>
                 )}
               </div>
+              
+              {/* Add to Cart Button */}
+              <button 
+                onClick={(e) => {
+                  e.preventDefault();
+                  addToCart(product, 1);
+                }}
+                className="w-full mt-3 py-1.5 border border-primary text-primary text-sm font-semibold rounded hover:bg-primary hover:text-white transition-colors flex items-center justify-center gap-2"
+              >
+                Thêm giỏ hàng
+              </button>
             </Link>
           );
         })}

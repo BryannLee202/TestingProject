@@ -92,10 +92,13 @@ export default function Search() {
                 </div>
                 
                 <button 
-                  onClick={() => addToCart(book)}
-                  className="w-full flex items-center justify-center gap-2 bg-primary/10 text-primary hover:bg-primary hover:text-white py-2 rounded-lg transition-colors font-medium text-sm"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    addToCart(book, 1);
+                  }}
+                  className="w-full mt-2 py-1.5 border border-primary text-primary text-sm font-semibold rounded hover:bg-primary hover:text-white transition-colors flex items-center justify-center gap-2"
                 >
-                  <FaShoppingCart /> Thêm
+                  Thêm giỏ hàng
                 </button>
               </div>
             </div>

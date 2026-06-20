@@ -21,6 +21,7 @@ export default function AdminOrders() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [selectedOrderIds, setSelectedOrderIds] = useState([]);
 
   // Modal detail states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -133,6 +134,55 @@ export default function AdminOrders() {
     });
   };
 
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedOrderIds(filteredOrders.map(order => order.id));
+    } else {
+      setSelectedOrderIds([]);
+    }
+  };
+
+  const handleSelectOrder = (id) => {
+    setSelectedOrderIds(prev => 
+      prev.includes(id) ? prev.filter(orderId => orderId !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedOrderIds.length === 0) return;
+
+    Swal.fire({
+      title: 'Xóa các đơn hàng đã chọn?',
+      text: `Bạn chuẩn bị xóa ${selectedOrderIds.length} đơn hàng. Hành động này không thể hoàn tác!`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#EF4444',
+      cancelButtonColor: '#9CA3AF',
+      confirmButtonText: 'Có, xóa ngay!',
+      cancelButtonText: 'Hủy'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await axios.delete(`${API_BASE_URL}/orders/bulk`, {
+            params: { ids: selectedOrderIds.join(',') }
+          });
+          Swal.fire({
+            title: 'Đã xóa!',
+            text: `Đã xóa thành công ${selectedOrderIds.length} đơn hàng.`,
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false
+          });
+          setSelectedOrderIds([]);
+          fetchOrders();
+        } catch (error) {
+          console.error('Error deleting orders:', error);
+          Swal.fire('Lỗi!', 'Không thể xóa các đơn hàng lúc này.', 'error');
+        }
+      }
+    });
+  };
+
   const formatPrice = (price) => {
     return (price || 0).toLocaleString('vi-VN') + ' đ';
   };
@@ -217,6 +267,16 @@ export default function AdminOrders() {
             <option value="CANCELLED">Đã hủy</option>
           </select>
         </div>
+
+        {/* Bulk Delete Button */}
+        {selectedOrderIds.length > 0 && (
+          <button
+            onClick={handleBulkDelete}
+            className="w-full sm:w-auto px-4 py-2.5 bg-red-50 text-red-600 font-semibold rounded-lg border border-red-200 hover:bg-red-100 transition-colors flex items-center justify-center gap-2 text-sm"
+          >
+            <FaTrash /> Xóa {selectedOrderIds.length} đơn
+          </button>
+        )}
       </div>
 
       {/* Main Table */}
@@ -232,6 +292,14 @@ export default function AdminOrders() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50 text-xs font-bold text-gray-400 uppercase border-b border-gray-250">
+                  <th className="px-6 py-4 w-10">
+                    <input 
+                      type="checkbox" 
+                      className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                      checked={filteredOrders.length > 0 && selectedOrderIds.length === filteredOrders.length}
+                      onChange={handleSelectAll}
+                    />
+                  </th>
                   <th className="px-6 py-4">Mã đơn</th>
                   <th className="px-6 py-4">Khách hàng</th>
                   <th className="px-6 py-4">Ngày tạo</th>
@@ -244,6 +312,14 @@ export default function AdminOrders() {
               <tbody className="divide-y divide-gray-100 text-sm">
                 {filteredOrders.map((order) => (
                   <tr key={order.id} className="hover:bg-gray-50/40">
+                    <td className="px-6 py-4">
+                      <input 
+                        type="checkbox" 
+                        className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                        checked={selectedOrderIds.includes(order.id)}
+                        onChange={() => handleSelectOrder(order.id)}
+                      />
+                    </td>
                     <td className="px-6 py-4 font-bold text-gray-800">#{order.id}</td>
                     <td className="px-6 py-4">
                       <div className="font-semibold text-gray-900">{order.user?.fullName || 'Khách vãng lai'}</div>
