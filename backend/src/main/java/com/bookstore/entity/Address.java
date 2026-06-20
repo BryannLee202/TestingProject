@@ -35,6 +35,9 @@ public class Address {
     @Column(nullable = false)
     private String ward;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private String district = "";
 
     @Column(nullable = false)
     private String city;
