@@ -8,7 +8,9 @@ import Register from './pages/Register';
 import Checkout from './pages/Checkout';
 import Orders from './pages/Orders';
 import OrderDetail from './pages/OrderDetail';
+import OrderSuccess from './pages/OrderSuccess';
 import Notifications from './pages/Notifications';
+import Profile from './pages/Profile';
 
 import Category from './pages/Category';
 import ProductDetail from './pages/ProductDetail';
@@ -24,6 +26,8 @@ import AdminCategories from './pages/admin/AdminCategories';
 import AdminBanners from './pages/admin/AdminBanners';
 import AdminOrders from './pages/admin/AdminOrders';
 import AdminUsers from './pages/admin/AdminUsers';
+import AdminCoupons from './pages/admin/AdminCoupons';
+import AdminRewardVouchers from './pages/admin/AdminRewardVouchers';
 
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
@@ -43,7 +47,9 @@ function App() {
               <Route path="checkout" element={<Checkout />} />
               <Route path="orders" element={<Orders />} />
               <Route path="orders/:id" element={<OrderDetail />} />
+              <Route path="order-success/:id" element={<OrderSuccess />} />
               <Route path="notifications" element={<Notifications />} />
+              <Route path="profile" element={<Profile />} />
               <Route path="login" element={<Login />} />
               <Route path="register" element={<Register />} />
               <Route path="search" element={<Search />} />
@@ -60,6 +66,8 @@ function App() {
               <Route path="banners" element={<AdminBanners />} />
               <Route path="orders" element={<AdminOrders />} />
               <Route path="users" element={<AdminUsers />} />
+              <Route path="coupons" element={<AdminCoupons />} />
+              <Route path="rewards" element={<AdminRewardVouchers />} />
             </Route>
 
             {/* Fallback */}

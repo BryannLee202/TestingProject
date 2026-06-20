@@ -60,7 +60,7 @@ export default function Coupons() {
           </div>
           <div>
             <h1 className="text-2xl font-black uppercase tracking-wide">Kho Voucher Khuyến Mãi</h1>
-            <p className="text-purple-100 text-sm mt-1">Lấy mã ngay, mua sắm tiết kiệm cùng Grape Book!</p>
+            <p className="text-purple-100 text-sm mt-1">Lấy mã ngay, mua sắm tiết kiệm cùng YiYi Book!</p>
           </div>
         </div>
 
@@ -86,7 +86,7 @@ export default function Coupons() {
                   <div>
                     <h3 className="font-bold text-gray-800 text-base leading-snug">
                       {coupon.discountType === 'PERCENTAGE' 
-                        ? `Giảm ${coupon.discountValue}% tổng đơn hàng`
+                        ? `Giảm ${coupon.discountValue}% tổng đơn hàng${coupon.maxDiscountAmount > 0 ? ` (Tối đa ${coupon.maxDiscountAmount.toLocaleString('vi-VN')}đ)` : ''}`
                         : `Giảm ${coupon.discountValue.toLocaleString('vi-VN')} đ`
                       }
                     </h3>

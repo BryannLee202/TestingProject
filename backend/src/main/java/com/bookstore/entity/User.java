@@ -40,6 +40,25 @@ public class User implements UserDetails {
     @Column
     private String phone;
 
+    @Column
+    private String gender;
+
+    @Column
+    private String birthday;
+
+    @com.fasterxml.jackson.annotation.JsonProperty("yPoints")
+    @Column(name = "y_points")
+    @Builder.Default
+    private Integer yPoints = 0;
+
+    @Column(name = "total_spent")
+    @Builder.Default
+    private Double totalSpent = 0.0;
+
+    @Column(name = "free_ship_coupons")
+    @Builder.Default
+    private Integer freeShipCoupons = 0;
+
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private AuthProvider provider = AuthProvider.LOCAL;

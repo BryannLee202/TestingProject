@@ -104,9 +104,11 @@ export default function FlashSale() {
                 className="flex flex-col h-full bg-white p-3 rounded-lg border border-gray-100 hover:shadow-md transition-shadow cursor-pointer relative group"
               >
                 {/* Discount Badge */}
-                <div className="absolute top-2 left-2 z-10 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm">
-                  -{product.discount}%
-                </div>
+                {product.discount > 0 && (
+                  <div className="absolute top-2 left-2 z-10 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm">
+                    -{product.discount}%
+                  </div>
+                )}
                 
                 {/* Image */}
                 <div className="relative pt-[100%] mb-3 overflow-hidden rounded-md bg-gray-50">

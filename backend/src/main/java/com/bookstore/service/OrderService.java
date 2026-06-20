@@ -3,7 +3,9 @@ package com.bookstore.service;
 import com.bookstore.dto.OrderRequest;
 import com.bookstore.entity.*;
 import com.bookstore.repository.BookRepository;
+import com.bookstore.repository.CouponRepository;
 import com.bookstore.repository.OrderRepository;
+import com.bookstore.repository.PointTransactionRepository;
 import com.bookstore.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,39 @@ public class OrderService {
     private final BookRepository bookRepository;
     private final CartService cartService;
     private final CouponService couponService;
+    private final PointTransactionRepository pointTransactionRepository;
+
+    private void updatePointsAndSpent(User user, double orderTotal) {
+        if (user.getTotalSpent() == null) user.setTotalSpent(0.0);
+        if (user.getYPoints() == null) user.setYPoints(0);
+
+        double rate = 0.005; // Bạc 0.5%
+        if (user.getYPoints() >= 100000) {
+            rate = 0.02; // Kim Cương 2%
+        } else if (user.getYPoints() >= 30000) {
+            rate = 0.01; // Vàng 1%
+        }
+        
+        int earnedPoints = (int) (orderTotal * rate);
+        int oldBalance = user.getYPoints();
+        int newBalance = oldBalance + earnedPoints;
+        
+        user.setTotalSpent(user.getTotalSpent() + orderTotal);
+        user.setYPoints(newBalance);
+        userRepository.save(user);
+
+        // Log transaction for earning points
+        PointTransaction earnTx = PointTransaction.builder()
+                .user(user)
+                .action("EARN_ORDER")
+                .description("Điểm thưởng từ hóa đơn mua hàng")
+                .previousBalance(oldBalance)
+                .transactionValue(earnedPoints)
+                .newBalance(newBalance)
+                .createdAt(LocalDateTime.now())
+                .build();
+        pointTransactionRepository.save(earnTx);
+    }
 
     public Order createOrder(String username, OrderRequest request) {
         User user = userRepository.findByUsername(username)
@@ -80,12 +115,50 @@ public class OrderService {
             }
         }
         
-        order.setTotalAmount(subtotal - discountAmount + shippingFee);
+        // Handling Y-Points spending
+        int pointsUsed = 0;
+        if (request.getSpentPoints() != null && request.getSpentPoints() > 0) {
+            if (user.getYPoints() == null || user.getYPoints() < request.getSpentPoints()) {
+                throw new RuntimeException("Bạn không đủ Y-Point để thanh toán!");
+            }
+            pointsUsed = request.getSpentPoints();
+            
+            // 1 Y-Point = 1 VND
+            double pointsDiscount = pointsUsed;
+            // Prevent discount from exceeding total
+            if (pointsDiscount > (subtotal - discountAmount + shippingFee)) {
+                pointsDiscount = subtotal - discountAmount + shippingFee;
+                pointsUsed = (int) pointsDiscount;
+            }
+            
+            int oldBalance = user.getYPoints();
+            int newBalance = oldBalance - pointsUsed;
+            user.setYPoints(newBalance);
+            userRepository.save(user);
+            
+            order.setPointsUsed(pointsUsed);
+            
+            // Log transaction for spending points
+            PointTransaction spendTx = PointTransaction.builder()
+                    .user(user)
+                    .action("SPEND_ORDER")
+                    .description("Thanh toán dùng điểm")
+                    .previousBalance(oldBalance)
+                    .transactionValue(-pointsUsed)
+                    .newBalance(newBalance)
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            pointTransactionRepository.save(spendTx);
+        }
+        
+        order.setTotalAmount(subtotal - discountAmount - pointsUsed + shippingFee);
         
         // Xóa giỏ hàng sau khi đặt thành công
         cartService.clearCart(username);
 
-        return orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+        updatePointsAndSpent(user, savedOrder.getTotalAmount());
+        return savedOrder;
     }
 
     public List<Order> getOrdersByUser(String username) {

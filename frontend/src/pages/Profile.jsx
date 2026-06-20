@@ -1,0 +1,976 @@
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
+import { showNotification } from '../utils/alert';
+import { 
+  FaRegUserCircle, FaMapMarkerAlt, FaLock, FaFileInvoice, FaGift, 
+  FaClipboardList, FaTicketAlt, FaCoins, FaRegBell, FaHeart, 
+  FaBookOpen, FaStar, FaCrown, FaTimes 
+} from 'react-icons/fa';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
+
+export default function Profile() {
+  const { user, updateProfile } = useAuth();
+  const [activeTab, setActiveTab] = useState('profile');
+
+  // ---- PROFILE STATE ----
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [gender, setGender] = useState('Nam');
+  const [day, setDay] = useState('');
+  const [month, setMonth] = useState('');
+  const [year, setYear] = useState('');
+  const [loadingInfo, setLoadingInfo] = useState(false);
+
+  // ---- PASSWORD STATE ----
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loadingPwd, setLoadingPwd] = useState(false);
+
+  // ---- ADDRESS STATE ----
+  const [addresses, setAddresses] = useState([]);
+  const [showAddAddress, setShowAddAddress] = useState(false);
+  const [addrForm, setAddrForm] = useState({
+    firstName: '', lastName: '', phone: '', city: '', district: '', ward: '', street: '', isDefault: false
+  });
+  const [loadingAddr, setLoadingAddr] = useState(false);
+
+  // ---- VAT INVOICE STATE ----
+  const [vatForm, setVatForm] = useState({
+    type: 'Cá nhân', companyName: '', companyAddress: '', taxCode: '', email: ''
+  });
+  const [loadingVat, setLoadingVat] = useState(false);
+
+  // ---- WISHLIST & REVIEWS STATE ----
+  const [wishlist, setWishlist] = useState([]);
+  const [reviews, setReviews] = useState([]);
+
+  // ---- LIVE STATS STATE ----
+  const [liveUser, setLiveUser] = useState(user);
+  const [orderCount, setOrderCount] = useState(0);
+
+  useEffect(() => {
+    if (user) {
+      if (user.fullName) {
+        const parts = user.fullName.split(' ');
+        if (parts.length > 1) {
+          setFirstName(parts[parts.length - 1]);
+          setLastName(parts.slice(0, parts.length - 1).join(' '));
+        } else {
+          setLastName('');
+          setFirstName(user.fullName);
+        }
+      }
+      setPhone(user.phone || user.phoneNumber || '');
+      setEmail(user.email || '');
+      setGender(user.gender || 'Nam');
+      
+      if (user.birthday) {
+        const d = user.birthday.split('-');
+        if (d.length === 3) {
+          setYear(d[0]);
+          setMonth(d[1]);
+          setDay(d[2]);
+        }
+      }
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user && activeTab === 'address') fetchAddresses();
+    if (user && activeTab === 'vat') fetchVat();
+    if (user && activeTab === 'wishlist') fetchWishlist();
+    if (user && activeTab === 'reviews') fetchReviews();
+    if (user && activeTab === 'member') fetchMyOrders();
+  }, [user, activeTab]);
+
+  useEffect(() => {
+    if (user) {
+      const fetchProfile = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const res = await axios.get(`${API_BASE_URL}/users/profile`, { headers: { Authorization: `Bearer ${token}` } });
+          setLiveUser(res.data);
+        } catch(e) { console.error(e); }
+      };
+      fetchProfile();
+    }
+  }, [user]);
+
+  // ---- API CALLS ----
+  const fetchAddresses = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_BASE_URL}/addresses/my-addresses`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setAddresses(res.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const fetchVat = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_BASE_URL}/vat-invoices`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data) {
+        setVatForm({
+          type: res.data.type || 'Cá nhân',
+          companyName: res.data.companyName || '',
+          companyAddress: res.data.companyAddress || '',
+          taxCode: res.data.taxCode || '',
+          email: res.data.email || ''
+        });
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const fetchWishlist = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_BASE_URL}/wishlists`, { headers: { Authorization: `Bearer ${token}` }});
+      setWishlist(res.data);
+    } catch (error) { console.error(error); }
+  };
+
+  const fetchReviews = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_BASE_URL}/reviews/my-reviews`, { headers: { Authorization: `Bearer ${token}` }});
+      setReviews(res.data);
+    } catch (error) { console.error(error); }
+  };
+
+  const fetchMyOrders = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_BASE_URL}/orders/my-orders`, { headers: { Authorization: `Bearer ${token}` }});
+      setOrderCount(res.data.length);
+    } catch (error) { console.error(error); }
+  };
+
+  const handleUpdateInfo = async (e) => {
+    e.preventDefault();
+    if (!firstName.trim() || !lastName.trim()) return showNotification('Lỗi', 'Vui lòng nhập đầy đủ Họ và Tên.', 'warning');
+    setLoadingInfo(true);
+    try {
+      const token = localStorage.getItem('token');
+      const fullName = `${lastName.trim()} ${firstName.trim()}`;
+      let birthdayStr = '';
+      if (year && month && day) birthdayStr = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+      
+      const res = await axios.put(`${API_BASE_URL}/users/profile`, { 
+        fullName, phone, gender, birthday: birthdayStr 
+      }, { headers: { Authorization: `Bearer ${token}` }});
+      updateProfile(res.data);
+      showNotification('Thành công', 'Cập nhật hồ sơ cá nhân thành công!', 'success');
+    } catch (error) {
+      const msg = error.response?.data?.message || 'Lỗi khi cập nhật thông tin.';
+      showNotification('Lỗi', msg, 'error');
+    } finally {
+      setLoadingInfo(false);
+    }
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    if (!oldPassword || !newPassword || !confirmPassword) return showNotification('Lỗi', 'Vui lòng nhập đầy đủ.', 'warning');
+    if (newPassword !== confirmPassword) return showNotification('Lỗi', 'Mật khẩu mới không khớp.', 'warning');
+    setLoadingPwd(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.put(`${API_BASE_URL}/users/password`, { oldPassword, newPassword }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      showNotification('Thành công', res.data.message || 'Đổi mật khẩu thành công!', 'success');
+      setOldPassword(''); setNewPassword(''); setConfirmPassword('');
+    } catch (error) {
+      showNotification('Lỗi', error.response?.data?.message || 'Lỗi khi đổi mật khẩu.', 'error');
+    } finally {
+      setLoadingPwd(false);
+    }
+  };
+
+  const handleSaveAddress = async (e) => {
+    e.preventDefault();
+    if (!addrForm.firstName || !addrForm.lastName || !addrForm.phone || !addrForm.city || !addrForm.district || !addrForm.ward || !addrForm.street) {
+      return showNotification('Lỗi', 'Vui lòng nhập đầy đủ thông tin bắt buộc (*)', 'warning');
+    }
+    setLoadingAddr(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_BASE_URL}/addresses`, {
+        recipientName: `${addrForm.lastName.trim()} ${addrForm.firstName.trim()}`,
+        phone: addrForm.phone,
+        city: addrForm.city,
+        district: addrForm.district,
+        ward: addrForm.ward,
+        street: addrForm.street,
+        isDefault: addrForm.isDefault
+      }, { headers: { Authorization: `Bearer ${token}` }});
+      showNotification('Thành công', 'Thêm địa chỉ thành công!', 'success');
+      setShowAddAddress(false);
+      setAddrForm({ firstName: '', lastName: '', phone: '', city: '', district: '', ward: '', street: '', isDefault: false });
+      fetchAddresses();
+    } catch (error) {
+      showNotification('Lỗi', 'Lỗi khi thêm địa chỉ', 'error');
+    } finally {
+      setLoadingAddr(false);
+    }
+  };
+
+  const handleDeleteAddress = async (id) => {
+    if (!window.confirm('Bạn có chắc muốn xóa địa chỉ này?')) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_BASE_URL}/addresses/${id}`, { headers: { Authorization: `Bearer ${token}` }});
+      showNotification('Thành công', 'Đã xóa địa chỉ', 'success');
+      fetchAddresses();
+    } catch (error) {
+      showNotification('Lỗi', 'Lỗi khi xóa địa chỉ', 'error');
+    }
+  };
+
+  const handleSetDefaultAddress = async (id) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${API_BASE_URL}/addresses/${id}/default`, {}, { headers: { Authorization: `Bearer ${token}` }});
+      showNotification('Thành công', 'Đã đặt làm địa chỉ mặc định', 'success');
+      fetchAddresses();
+    } catch (error) {
+      showNotification('Lỗi', 'Lỗi khi cập nhật', 'error');
+    }
+  };
+
+  const handleSaveVat = async (e) => {
+    e.preventDefault();
+    if (!vatForm.email) return showNotification('Lỗi', 'Email nhận hóa đơn là bắt buộc', 'warning');
+    setLoadingVat(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_BASE_URL}/vat-invoices`, vatForm, { headers: { Authorization: `Bearer ${token}` }});
+      showNotification('Thành công', 'Lưu thông tin xuất hóa đơn thành công!', 'success');
+    } catch (error) {
+      showNotification('Lỗi', 'Lỗi khi lưu thông tin', 'error');
+    } finally {
+      setLoadingVat(false);
+    }
+  };
+
+  if (!user) {
+    return <div className="flex justify-center items-center h-64 text-gray-500">Vui lòng đăng nhập để xem thông tin.</div>;
+  }
+
+  const getRankDetails = (points) => {
+    if (user?.role === 'ADMIN' || points >= 100000) return { name: 'Thành viên Kim Cương', color: 'bg-gray-800 text-yellow-500', iconColor: 'text-gray-800', id: 'kimcuong' };
+    if (points >= 30000) return { name: 'Thành viên Vàng', color: 'bg-yellow-400 text-white', iconColor: 'text-yellow-500', id: 'vang' };
+    return { name: 'Thành viên Bạc', color: 'bg-gray-300 text-gray-700', iconColor: 'text-gray-400', id: 'bac' };
+  };
+
+  const rank = getRankDetails(liveUser?.yPoints || 0);
+
+  const getNextRankText = (points) => {
+    if (user?.role === 'ADMIN' || points >= 100000) return 'Bạn đã đạt mức hạng cao nhất';
+    if (points >= 30000) return `Thêm ${(100000 - points).toLocaleString()} để nâng hạng Kim Cương`;
+    return `Thêm ${(30000 - points).toLocaleString()} để nâng hạng Vàng`;
+  };
+
+  return (
+    <div className="bg-gray-100 min-h-screen pt-6 pb-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-6">
+        
+        {/* Sidebar */}
+        <div className="w-full md:w-64 shrink-0">
+          <div className="bg-white p-4 rounded-lg shadow-sm mb-4 text-center">
+            <div className="relative inline-block mb-3">
+              <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center border-4 border-gray-100 mx-auto overflow-hidden">
+                <FaCrown className={`text-4xl ${rank.iconColor}`} />
+              </div>
+            </div>
+            <div className={`${rank.color} text-xs font-bold px-3 py-1 rounded-full inline-block mb-2`}>{rank.name}</div>
+            <div className="text-sm font-medium text-gray-700">Y-Point tích lũy {(liveUser?.yPoints || 0).toLocaleString()}</div>
+            <div className="text-xs text-gray-500 mb-2">{getNextRankText(liveUser?.yPoints || 0)}</div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm py-2">
+            <div className="text-[#C92127] font-bold text-sm px-4 py-3 flex items-center gap-3">
+              <FaRegUserCircle className="text-lg" /> Thông tin tài khoản
+            </div>
+            <div className="pl-12 flex flex-col gap-1 mb-2 border-l-2 border-transparent relative">
+              <button onClick={() => setActiveTab('profile')} className={`text-left text-sm py-1.5 transition-colors ${activeTab === 'profile' ? 'text-[#C92127] font-bold' : 'text-gray-600 hover:text-[#C92127]'}`}>Hồ sơ cá nhân</button>
+              <button onClick={() => setActiveTab('address')} className={`text-left text-sm py-1.5 transition-colors ${activeTab === 'address' ? 'text-[#C92127] font-bold' : 'text-gray-600 hover:text-[#C92127]'}`}>Số địa chỉ</button>
+              <button onClick={() => setActiveTab('password')} className={`text-left text-sm py-1.5 transition-colors ${activeTab === 'password' ? 'text-[#C92127] font-bold' : 'text-gray-600 hover:text-[#C92127]'}`}>Đổi mật khẩu</button>
+              <button onClick={() => setActiveTab('vat')} className={`text-left text-sm py-1.5 transition-colors ${activeTab === 'vat' ? 'text-[#C92127] font-bold' : 'text-gray-600 hover:text-[#C92127]'}`}>Thông tin xuất hóa đơn GTGT</button>
+              <button onClick={() => setActiveTab('member')} className={`text-left text-sm py-1.5 transition-colors ${activeTab === 'member' ? 'text-[#C92127] font-bold' : 'text-gray-600 hover:text-[#C92127]'}`}>Ưu đãi thành viên</button>
+            </div>
+
+            <div className="border-t border-gray-100 my-1"></div>
+            
+            <Link to="/orders" className="w-full px-4 py-3 text-sm text-gray-700 hover:text-[#C92127] transition-colors flex items-center gap-3">
+              <FaClipboardList className="text-gray-400 text-lg" /> Đơn hàng của tôi
+            </Link>
+            <Link to="/coupons" className="w-full px-4 py-3 text-sm text-gray-700 hover:text-[#C92127] transition-colors flex items-center gap-3 relative">
+              <FaTicketAlt className="text-gray-400 text-lg" /> Ví voucher
+              <span className="absolute right-4 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">1</span>
+            </Link>
+            <button onClick={() => setActiveTab('ypoint')} className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-3 ${activeTab === 'ypoint' ? 'text-[#C92127] font-bold' : 'text-gray-700 hover:text-[#C92127]'}`}>
+              <div className="w-4 h-4 bg-yellow-400 text-white rounded-full flex items-center justify-center text-[10px] font-bold">Y</div> Tài khoản Y-Point / Freeship
+            </button>
+            <Link to="/notifications" className="w-full px-4 py-3 text-sm text-gray-700 hover:text-[#C92127] transition-colors flex items-center gap-3">
+              <FaRegBell className="text-gray-400 text-lg" /> Thông Báo
+            </Link>
+            <button onClick={() => setActiveTab('wishlist')} className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-3 ${activeTab === 'wishlist' ? 'text-[#C92127] font-bold' : 'text-gray-700 hover:text-[#C92127]'}`}>
+              <FaHeart className="text-gray-400 text-lg" /> Sản phẩm yêu thích
+            </button>
+            <Link to="/products?category=combo" className="w-full px-4 py-3 text-sm text-gray-700 hover:text-[#C92127] transition-colors flex items-center gap-3">
+              <FaBookOpen className="text-gray-400 text-lg" /> Sách theo bộ
+            </Link>
+            <button onClick={() => setActiveTab('reviews')} className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-3 ${activeTab === 'reviews' ? 'text-[#C92127] font-bold' : 'text-gray-700 hover:text-[#C92127]'}`}>
+              <FaStar className="text-gray-400 text-lg" /> Nhận xét của tôi
+            </button>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1">
+          <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 min-h-[500px]">
+            
+            {/* HỒ SƠ CÁ NHÂN */}
+            {activeTab === 'profile' && (
+              <div>
+                <h2 className="text-xl font-normal text-gray-800 mb-8">Hồ sơ cá nhân</h2>
+                <form onSubmit={handleUpdateInfo} className="max-w-2xl">
+                  <div className="flex items-center mb-6">
+                    <label className="w-32 text-sm text-gray-600">Họ<span className="text-red-500">*</span></label>
+                    <div className="flex-1">
+                      <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-200 rounded text-gray-800 outline-none focus:border-blue-400 transition-colors" />
+                    </div>
+                  </div>
+                  <div className="flex items-center mb-6">
+                    <label className="w-32 text-sm text-gray-600">Tên<span className="text-red-500">*</span></label>
+                    <div className="flex-1">
+                      <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-200 rounded text-gray-800 outline-none focus:border-blue-400 transition-colors" />
+                    </div>
+                  </div>
+                  <div className="flex items-center mb-6">
+                    <label className="w-32 text-sm text-gray-600">Số điện thoại</label>
+                    <div className="flex-1 flex gap-4 items-center border border-gray-200 rounded px-4 py-2 focus-within:border-blue-400">
+                      <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Chưa có số điện thoại" className="flex-1 outline-none text-gray-800" />
+                      <button type="button" className="text-blue-500 text-sm whitespace-nowrap hover:underline">Thay đổi</button>
+                    </div>
+                  </div>
+                  <div className="flex items-center mb-6">
+                    <label className="w-32 text-sm text-gray-600">Email</label>
+                    <div className="flex-1 flex gap-4 items-center border border-gray-200 rounded px-4 py-2 focus-within:border-blue-400 bg-gray-50">
+                      <input type="email" value={email} readOnly disabled placeholder="Chưa có email" className="flex-1 outline-none text-gray-500 bg-transparent" />
+                      <button type="button" className="text-blue-500 text-sm whitespace-nowrap hover:underline">{email ? 'Thay đổi' : 'Thêm mới'}</button>
+                    </div>
+                  </div>
+                  <div className="flex items-center mb-6">
+                    <label className="w-32 text-sm text-gray-600">Giới tính<span className="text-red-500">*</span></label>
+                    <div className="flex-1 flex items-center gap-6">
+                      <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="gender" value="Nam" checked={gender === 'Nam'} onChange={(e) => setGender(e.target.value)} className="w-4 h-4 text-[#C92127] accent-[#C92127]" /><span className="text-sm text-gray-700">Nam</span></label>
+                      <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="gender" value="Nữ" checked={gender === 'Nữ'} onChange={(e) => setGender(e.target.value)} className="w-4 h-4 text-[#C92127] accent-[#C92127]" /><span className="text-sm text-gray-700">Nữ</span></label>
+                    </div>
+                  </div>
+                  <div className="flex items-center mb-8">
+                    <label className="w-32 text-sm text-gray-600">Birthday<span className="text-red-500">*</span></label>
+                    <div className="flex-1 flex items-center gap-2">
+                      <input type="text" placeholder="DD" value={day} onChange={(e) => setDay(e.target.value)} className="w-full text-center px-2 py-2 border border-gray-200 rounded text-gray-800 outline-none focus:border-blue-400 placeholder-gray-300" maxLength="2" />
+                      <input type="text" placeholder="MM" value={month} onChange={(e) => setMonth(e.target.value)} className="w-full text-center px-2 py-2 border border-gray-200 rounded text-gray-800 outline-none focus:border-blue-400 placeholder-gray-300" maxLength="2" />
+                      <input type="text" placeholder="YYYY" value={year} onChange={(e) => setYear(e.target.value)} className="w-full text-center px-2 py-2 border border-gray-200 rounded text-gray-800 outline-none focus:border-blue-400 placeholder-gray-300" maxLength="4" />
+                    </div>
+                  </div>
+                  <div className="flex justify-center mt-8">
+                    <button type="submit" disabled={loadingInfo} className="bg-[#C92127] text-white px-10 py-2.5 rounded-md font-bold hover:bg-red-800 transition-colors disabled:opacity-70 shadow-sm">{loadingInfo ? 'Đang lưu...' : 'Lưu thay đổi'}</button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* SỐ ĐỊA CHỈ */}
+            {activeTab === 'address' && (
+              <div>
+                {!showAddAddress ? (
+                  <>
+                    <h2 className="text-xl font-normal text-gray-800 mb-6">Số địa chỉ</h2>
+                    <div className="border border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center mb-6">
+                      <button onClick={() => setShowAddAddress(true)} className="flex items-center gap-2 text-[#C92127] font-bold hover:text-red-800">
+                        <span className="text-xl">+</span> Thêm địa chỉ mới
+                      </button>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {addresses.map((addr) => (
+                        <div key={addr.id} className="border border-gray-200 rounded-lg p-4 relative">
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="font-bold text-gray-800 uppercase">{addr.recipientName}</div>
+                            <div className="flex gap-4 text-sm">
+                              {!addr.default && (
+                                <button onClick={() => handleSetDefaultAddress(addr.id)} className="text-blue-500 hover:underline">Thiết lập mặc định</button>
+                              )}
+                              <button className="text-blue-500 hover:underline">Sửa</button>
+                              <button onClick={() => handleDeleteAddress(addr.id)} className="text-red-500 hover:underline">Xóa</button>
+                            </div>
+                          </div>
+                          <div className="text-sm text-gray-600 mb-1">Địa chỉ: {addr.street}, {addr.ward}, {addr.district}, {addr.city}</div>
+                          <div className="text-sm text-gray-600 mb-2">Điện thoại: {addr.phone}</div>
+                          {addr.default && (
+                            <span className="inline-block bg-[#C92127] text-white text-xs px-2 py-1 rounded">Mặc định</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="text-xl font-normal text-gray-800 mb-6">Thêm địa chỉ mới</h2>
+                    <form onSubmit={handleSaveAddress} className="max-w-2xl">
+                      <div className="flex items-center mb-4">
+                        <label className="w-32 text-sm text-gray-600">Họ<span className="text-red-500">*</span></label>
+                        <input type="text" value={addrForm.lastName} onChange={(e) => setAddrForm({...addrForm, lastName: e.target.value})} placeholder="Họ*" className="flex-1 px-4 py-2 border border-gray-200 rounded outline-none focus:border-blue-400" />
+                      </div>
+                      <div className="flex items-center mb-4">
+                        <label className="w-32 text-sm text-gray-600">Tên<span className="text-red-500">*</span></label>
+                        <input type="text" value={addrForm.firstName} onChange={(e) => setAddrForm({...addrForm, firstName: e.target.value})} placeholder="Tên*" className="flex-1 px-4 py-2 border border-gray-200 rounded outline-none focus:border-blue-400" />
+                      </div>
+                      <div className="flex items-center mb-4">
+                        <label className="w-32 text-sm text-gray-600">Điện thoại<span className="text-red-500">*</span></label>
+                        <input type="text" value={addrForm.phone} onChange={(e) => setAddrForm({...addrForm, phone: e.target.value})} placeholder="Ex: 0972xxxx" className="flex-1 px-4 py-2 border border-gray-200 rounded outline-none focus:border-blue-400" />
+                      </div>
+                      <div className="flex items-center mb-4">
+                        <label className="w-32 text-sm text-gray-600">Quốc gia<span className="text-red-500">*</span></label>
+                        <select className="flex-1 px-4 py-2 border border-gray-200 rounded outline-none focus:border-blue-400 bg-white">
+                          <option>Việt Nam</option>
+                        </select>
+                      </div>
+                      <div className="flex items-center mb-4">
+                        <label className="w-32 text-sm text-gray-600">Tỉnh/Thành phố<span className="text-red-500">*</span></label>
+                        <input type="text" value={addrForm.city} onChange={(e) => setAddrForm({...addrForm, city: e.target.value})} placeholder="Vui lòng nhập Tỉnh/Thành phố" className="flex-1 px-4 py-2 border border-gray-200 rounded outline-none focus:border-blue-400" />
+                      </div>
+                      <div className="flex items-center mb-4">
+                        <label className="w-32 text-sm text-gray-600">Quận/Huyện<span className="text-red-500">*</span></label>
+                        <input type="text" value={addrForm.district} onChange={(e) => setAddrForm({...addrForm, district: e.target.value})} placeholder="Vui lòng nhập Quận/Huyện" className="flex-1 px-4 py-2 border border-gray-200 rounded outline-none focus:border-blue-400" />
+                      </div>
+                      <div className="flex items-center mb-4">
+                        <label className="w-32 text-sm text-gray-600">Xã/Phường<span className="text-red-500">*</span></label>
+                        <input type="text" value={addrForm.ward} onChange={(e) => setAddrForm({...addrForm, ward: e.target.value})} placeholder="Vui lòng nhập Xã/Phường" className="flex-1 px-4 py-2 border border-gray-200 rounded outline-none focus:border-blue-400" />
+                      </div>
+                      <div className="flex items-center mb-4">
+                        <label className="w-32 text-sm text-gray-600">Địa chỉ<span className="text-red-500">*</span></label>
+                        <input type="text" value={addrForm.street} onChange={(e) => setAddrForm({...addrForm, street: e.target.value})} placeholder="Địa chỉ" className="flex-1 px-4 py-2 border border-gray-200 rounded outline-none focus:border-blue-400" />
+                      </div>
+                      
+                      <div className="flex justify-between items-center mt-8">
+                        <button type="button" onClick={() => setShowAddAddress(false)} className="text-blue-500 text-sm hover:underline">« Quay lại</button>
+                        <button type="submit" disabled={loadingAddr} className="bg-[#C92127] text-white px-8 py-2.5 rounded-md font-bold hover:bg-red-800 transition-colors disabled:opacity-70 shadow-sm">
+                          {loadingAddr ? 'Đang lưu...' : 'LƯU ĐỊA CHỈ'}
+                        </button>
+                      </div>
+                    </form>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* ĐỔI MẬT KHẨU */}
+            {activeTab === 'password' && (
+              <div>
+                <h2 className="text-xl font-normal text-gray-800 mb-8">Đổi mật khẩu</h2>
+                <form onSubmit={handleChangePassword} className="max-w-2xl">
+                  <div className="flex items-center mb-6">
+                    <label className="w-40 text-sm text-gray-600">Mật khẩu hiện tại<span className="text-red-500">*</span></label>
+                    <input type="password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} placeholder="Mật khẩu hiện tại" className="flex-1 px-4 py-2 border border-gray-200 rounded outline-none focus:border-blue-400" />
+                  </div>
+                  <div className="flex items-center mb-6">
+                    <label className="w-40 text-sm text-gray-600">Mật khẩu mới<span className="text-red-500">*</span></label>
+                    <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Mật khẩu mới" className="flex-1 px-4 py-2 border border-gray-200 rounded outline-none focus:border-blue-400" />
+                  </div>
+                  <div className="flex items-center mb-8">
+                    <label className="w-40 text-sm text-gray-600">Nhập lại mật khẩu mới<span className="text-red-500">*</span></label>
+                    <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Nhập lại mật khẩu mới" className="flex-1 px-4 py-2 border border-gray-200 rounded outline-none focus:border-blue-400" />
+                  </div>
+                  <div className="flex justify-center">
+                    <button type="submit" disabled={loadingPwd} className="bg-[#C92127] text-white px-10 py-2.5 rounded-md font-bold hover:bg-red-800 transition-colors disabled:opacity-70 shadow-sm">{loadingPwd ? 'Đang lưu...' : 'Lưu thay đổi'}</button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* THÔNG TIN XUẤT HÓA ĐƠN GTGT */}
+            {activeTab === 'vat' && (
+              <div>
+                <h2 className="text-xl font-normal text-gray-800 mb-8">Thông tin xuất hóa đơn GTGT</h2>
+                <form onSubmit={handleSaveVat} className="max-w-2xl">
+                  <div className="flex items-center gap-6 mb-6">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="radio" name="vatType" value="Cá nhân" checked={vatForm.type === 'Cá nhân'} onChange={(e) => setVatForm({...vatForm, type: e.target.value})} className="w-4 h-4 text-[#C92127] accent-[#C92127]" />
+                      <span className="text-sm text-gray-700">Cá nhân</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="radio" name="vatType" value="Doanh nghiệp" checked={vatForm.type === 'Doanh nghiệp'} onChange={(e) => setVatForm({...vatForm, type: e.target.value})} className="w-4 h-4 text-[#C92127] accent-[#C92127]" />
+                      <span className="text-sm text-gray-700">Doanh nghiệp</span>
+                    </label>
+                  </div>
+                  
+                  <div className="flex items-center mb-4">
+                    <label className="w-40 text-sm text-gray-600">Họ tên người mua hàng</label>
+                    <input type="text" value={vatForm.companyName} onChange={(e) => setVatForm({...vatForm, companyName: e.target.value})} placeholder="Nhập họ tên người mua hàng" className="flex-1 px-4 py-2 border border-gray-200 rounded outline-none focus:border-blue-400" />
+                  </div>
+                  <div className="flex items-center mb-4">
+                    <label className="w-40 text-sm text-gray-600">Địa chỉ cá nhân</label>
+                    <input type="text" value={vatForm.companyAddress} onChange={(e) => setVatForm({...vatForm, companyAddress: e.target.value})} placeholder="Nhập địa chỉ cá nhân" className="flex-1 px-4 py-2 border border-gray-200 rounded outline-none focus:border-blue-400" />
+                  </div>
+                  <div className="flex items-center mb-4">
+                    <label className="w-40 text-sm text-gray-600">Căn cước công dân</label>
+                    <input type="text" value={vatForm.taxCode} onChange={(e) => setVatForm({...vatForm, taxCode: e.target.value})} placeholder="Nhập căn cước công dân" className="flex-1 px-4 py-2 border border-gray-200 rounded outline-none focus:border-blue-400" />
+                  </div>
+                  <div className="flex items-center mb-6">
+                    <label className="w-40 text-sm text-gray-600">Email nhận hóa đơn <span className="text-red-500">*</span></label>
+                    <input type="email" value={vatForm.email} onChange={(e) => setVatForm({...vatForm, email: e.target.value})} placeholder="Nhập email nhận hóa đơn" className="flex-1 px-4 py-2 border border-gray-200 rounded outline-none focus:border-blue-400" />
+                  </div>
+                  
+                  <div className="flex justify-center mt-8">
+                    <button type="submit" disabled={loadingVat} className="bg-[#C92127] text-white px-10 py-2.5 rounded-md font-bold hover:bg-red-800 transition-colors disabled:opacity-70 shadow-sm">{loadingVat ? 'Đang lưu...' : 'Lưu thay đổi'}</button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* ƯU ĐÃI THÀNH VIÊN */}
+            {activeTab === 'member' && (
+              <MemberPrivileges liveUser={liveUser} orderCount={orderCount} />
+            )}
+
+            {/* TÀI KHOẢN Y-POINT */}
+            {activeTab === 'ypoint' && (
+              <YPointAccount liveUser={liveUser} setLiveUser={setLiveUser} updateProfile={updateProfile} />
+            )}
+            
+            {/* WISHLIST */}
+            {activeTab === 'wishlist' && (
+              <div>
+                <h2 className="text-xl font-normal text-gray-800 mb-8">Sản phẩm yêu thích</h2>
+                {wishlist.length === 0 ? (
+                  <div className="text-gray-500 text-center py-10">Bạn chưa có sản phẩm yêu thích nào.</div>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {wishlist.map(item => (
+                      <Link to={`/book/${item.book.id}`} key={item.id} className="border border-gray-200 rounded p-4 hover:shadow-md transition">
+                        <img src={item.book.imageUrl || 'https://via.placeholder.com/150'} alt={item.book.title} className="w-full h-40 object-cover mb-2" />
+                        <h3 className="text-sm font-bold text-gray-800 line-clamp-2">{item.book.title}</h3>
+                        <p className="text-[#C92127] font-bold mt-2">{item.book.price?.toLocaleString()} đ</p>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* REVIEWS */}
+            {activeTab === 'reviews' && (
+              <div>
+                <h2 className="text-xl font-normal text-gray-800 mb-8">Nhận xét của tôi</h2>
+                {reviews.length === 0 ? (
+                  <div className="text-gray-500 text-center py-10">Bạn chưa viết nhận xét nào.</div>
+                ) : (
+                  <div className="space-y-4">
+                    {reviews.map(review => (
+                      <div key={review.id} className="border border-gray-200 rounded p-4">
+                        <div className="flex gap-4">
+                          <img src={review.book?.imageUrl || 'https://via.placeholder.com/150'} alt={review.book?.title} className="w-16 h-20 object-cover" />
+                          <div className="flex-1">
+                            <Link to={`/book/${review.book?.id}`} className="font-bold text-gray-800 hover:text-primary">{review.book?.title}</Link>
+                            <div className="flex text-yellow-400 text-xs my-1">
+                              {[...Array(5)].map((_, i) => <FaStar key={i} color={i < review.rating ? '#ffc107' : '#e4e5e9'} />)}
+                            </div>
+                            <p className="text-sm text-gray-600 mt-2">{review.comment}</p>
+                            <p className="text-xs text-gray-400 mt-2">{new Date(review.createdAt).toLocaleDateString('vi-VN')}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Subcomponent for Member Privileges to make file cleaner
+function MemberPrivileges({ liveUser, orderCount }) {
+  const userRankPoints = liveUser?.yPoints || 0;
+  const initialRank = (liveUser?.role === 'ADMIN' || userRankPoints >= 100000) ? 'kimcuong' : (userRankPoints >= 30000 ? 'vang' : 'bac');
+  const [activeRank, setActiveRank] = useState(initialRank);
+  const [showRules, setShowRules] = useState(false);
+
+  useEffect(() => {
+    setActiveRank(initialRank);
+  }, [initialRank]);
+  
+  const renderPrivileges = () => {
+    switch (activeRank) {
+      case 'bac':
+        return (
+          <>
+            <p>- Quà tặng sinh nhật: <strong>x</strong></p>
+            <p>- Ưu đãi freeship và mã giảm giá: <strong>x</strong></p>
+            <p>- Tỉ lệ tích luỹ Y-Point trên giá trị đơn hàng: <strong>0,5%</strong></p>
+          </>
+        );
+      case 'vang':
+        return (
+          <>
+            <p>- Quà tặng sinh nhật: <strong>100.000 Y-Point</strong></p>
+            <p>- Ưu đãi freeship và mã giảm giá: <strong>2 lần</strong></p>
+            <p>- Tỉ lệ tích luỹ Y-Point trên giá trị đơn hàng: <strong>1%</strong></p>
+          </>
+        );
+      case 'kimcuong':
+        return (
+          <>
+            <p>- Quà tặng sinh nhật: <strong>300.000 Y-Point</strong></p>
+            <p>- Ưu đãi freeship và mã giảm giá: <strong>5 lần</strong></p>
+            <p>- Tỉ lệ tích luỹ Y-Point trên giá trị đơn hàng: <strong>2%</strong></p>
+          </>
+        );
+      default: return null;
+    }
+  };
+
+  return (
+    <div>
+      <div className="bg-gray-100 rounded-lg p-8 mb-8 text-center flex flex-col items-center">
+        <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center border-4 border-gray-200 mb-4 overflow-hidden relative shadow-sm">
+          <FaCrown className={`text-5xl ${initialRank === 'kimcuong' ? 'text-gray-800' : initialRank === 'vang' ? 'text-yellow-500' : 'text-gray-400'}`} />
+        </div>
+        <button onClick={() => setShowRules(true)} className="bg-white text-gray-700 text-sm font-bold px-4 py-1.5 rounded-full inline-block shadow-sm hover:bg-gray-50 transition-colors">Thành viên {initialRank === 'kimcuong' ? 'Kim Cương' : initialRank === 'vang' ? 'Vàng' : 'Bạc'} {'>'}</button>
+      </div>
+
+      <div className="flex gap-4 mb-8">
+        <div className="flex-1 border border-gray-200 rounded-lg p-4">
+          <h3 className="text-gray-700 mb-4 text-sm font-medium">Ưu đãi của bạn</h3>
+          <div className="flex gap-4">
+            <div className="flex-1 bg-gray-50 rounded p-3">
+              <div className="text-xs text-gray-500 mb-1">Y-Point hiện có</div>
+              <div className="text-[#C92127] font-bold text-lg">{(liveUser?.yPoints || 0).toLocaleString()}</div>
+            </div>
+            <div className="flex-1 bg-gray-50 rounded p-3">
+              <div className="text-xs text-gray-500 mb-1">Freeship hiện có</div>
+              <div className="text-[#C92127] font-bold text-lg">{liveUser?.freeShipCoupons || 0} lần</div>
+            </div>
+          </div>
+        </div>
+        <div className="flex-1 border border-gray-200 rounded-lg p-4">
+          <h3 className="text-gray-700 mb-4 text-sm font-medium">Thành tích năm 2025</h3>
+          <div className="flex gap-4">
+            <div className="flex-1 bg-gray-50 rounded p-3">
+              <div className="text-xs text-gray-500 mb-1">Số đơn hàng</div>
+              <div className="text-[#C92127] font-bold text-lg">{orderCount} đơn hàng</div>
+            </div>
+            <div className="flex-1 bg-gray-50 rounded p-3">
+              <div className="text-xs text-gray-500 mb-1">Đã thanh toán</div>
+              <div className="text-[#C92127] font-bold text-lg">{(liveUser?.totalSpent || 0).toLocaleString()} đ</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3 className="text-gray-800 font-bold mb-4">Quyền lợi thành viên tại YiYi Book</h3>
+      <div className="flex border-b border-gray-200 mb-4">
+        <button onClick={() => setActiveRank('bac')} className={`px-6 py-2 font-medium rounded-t flex items-center gap-2 relative ${activeRank === 'bac' ? 'bg-white border border-b-0 border-gray-200 text-gray-700' : 'bg-gray-100 text-gray-600'}`}>
+          <FaCrown className="text-gray-400" /> Hạng Bạc
+          {activeRank === 'bac' && <div className="absolute bottom-[-1px] left-0 w-full h-0.5 bg-[#C92127]"></div>}
+        </button>
+        <button onClick={() => setActiveRank('vang')} className={`px-6 py-2 font-medium rounded-t flex items-center gap-2 relative ${activeRank === 'vang' ? 'bg-white border border-b-0 border-gray-200 text-gray-700' : 'bg-gray-100 text-gray-600'}`}>
+          <FaCrown className="text-yellow-500" /> Hạng Vàng
+          {activeRank === 'vang' && <div className="absolute bottom-[-1px] left-0 w-full h-0.5 bg-[#C92127]"></div>}
+        </button>
+        <button onClick={() => setActiveRank('kimcuong')} className={`px-6 py-2 font-medium rounded-t flex items-center gap-2 relative ${activeRank === 'kimcuong' ? 'bg-white border border-b-0 border-gray-200 text-gray-700' : 'bg-gray-100 text-gray-600'}`}>
+          <FaCrown className="text-gray-800" /> Kim cương
+          {activeRank === 'kimcuong' && <div className="absolute bottom-[-1px] left-0 w-full h-0.5 bg-[#C92127]"></div>}
+        </button>
+      </div>
+      <div className="bg-white border border-gray-100 rounded p-4 text-sm text-gray-700 leading-relaxed shadow-sm min-h-[100px]">
+        {renderPrivileges()}
+      </div>
+      {showRules && <MemberRulesModal onClose={() => setShowRules(false)} />}
+    </div>
+  );
+}
+
+// Subcomponent for YPoint Account
+function YPointAccount({ liveUser, setLiveUser, updateProfile }) {
+  const [pointHistory, setPointHistory] = useState([]);
+  const [voucherCode, setVoucherCode] = useState('');
+  const [redeemError, setRedeemError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchHistory();
+  }, []);
+
+  const fetchHistory = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_BASE_URL}/rewards/history`, { headers: { Authorization: `Bearer ${token}` }});
+      setPointHistory(res.data);
+    } catch (e) {
+      console.error('Error fetching history:', e);
+    }
+  };
+
+  const handleRedeem = async (e) => {
+    e.preventDefault();
+    if (!voucherCode.trim()) return;
+    setLoading(true);
+    setRedeemError('');
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_BASE_URL}/rewards/redeem`, { code: voucherCode }, { headers: { Authorization: `Bearer ${token}` }});
+      showNotification('Thành công', 'Nạp điểm thành công!', 'success');
+      setVoucherCode('');
+      fetchHistory();
+      
+      const userRes = await axios.get(`${API_BASE_URL}/users/profile`, { headers: { Authorization: `Bearer ${token}` } });
+      setLiveUser(userRes.data);
+      if (updateProfile) updateProfile(userRes.data);
+    } catch (error) {
+      setRedeemError(error.response?.data?.message || 'Có lỗi xảy ra');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div>
+      <h2 className="text-xl font-normal text-gray-800 mb-6">Tài khoản Y-Point / Freeship</h2>
+      
+      <div className="bg-white border border-gray-200 rounded p-6 mb-8 shadow-sm">
+        <div className="flex flex-col md:flex-row gap-6 items-start md:items-center mb-6 border-b border-gray-100 pb-6">
+          <div className="w-48 text-gray-600 text-sm">Y-Point hiện có</div>
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 bg-yellow-400 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-sm">Y</div>
+            <span className="text-[#C92127] font-bold text-xl">{(liveUser?.yPoints || 0).toLocaleString()} Y-Point</span>
+          </div>
+        </div>
+
+        <form onSubmit={handleRedeem} className="flex flex-col md:flex-row gap-6 items-start md:items-center">
+          <div className="w-48 text-gray-600 text-sm">Nạp điểm Y-Point / Freeship</div>
+          <div className="flex-1 flex flex-col">
+            <div className="flex gap-4">
+              <input 
+                type="text" 
+                value={voucherCode}
+                onChange={(e) => setVoucherCode(e.target.value)}
+                placeholder="Nhập mã của bạn..." 
+                className="flex-1 px-4 py-2 border border-gray-200 rounded outline-none focus:border-red-400 uppercase text-gray-800 shadow-sm"
+              />
+              <button 
+                type="submit" 
+                disabled={loading}
+                className="bg-[#C92127] hover:bg-red-800 text-white font-bold py-2 px-8 rounded transition disabled:opacity-70 shadow-sm whitespace-nowrap"
+              >
+                {loading ? 'Đang nạp...' : 'Nạp điểm'}
+              </button>
+            </div>
+            {redeemError && <div className="text-[#C92127] text-sm mt-3 font-medium">Lỗi: {redeemError}</div>}
+          </div>
+        </form>
+      </div>
+
+      <div className="overflow-x-auto bg-white rounded shadow-sm border border-gray-100">
+        <table className="w-full text-left text-sm text-gray-600">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-200 text-gray-700">
+              <th className="p-4 font-medium w-40">Thời gian</th>
+              <th className="p-4 font-medium min-w-[200px]">Hành động</th>
+              <th className="p-4 font-medium text-right w-24">Số dư trước</th>
+              <th className="p-4 font-medium text-center w-32">Giá trị giao dịch</th>
+              <th className="p-4 font-medium text-right w-24">Số dư sau</th>
+            </tr>
+          </thead>
+          <tbody>
+            {pointHistory.length === 0 ? (
+              <tr>
+                <td colSpan="5" className="p-10 text-center text-gray-500 bg-white">Chưa có giao dịch điểm nào</td>
+              </tr>
+            ) : (
+              pointHistory.map((tx) => (
+                <tr key={tx.id} className="border-b border-gray-100 hover:bg-gray-50 bg-white transition-colors">
+                  <td className="p-4 text-xs text-gray-500">{new Date(tx.createdAt).toLocaleString('vi-VN', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'})}</td>
+                  <td className="p-4 font-medium text-gray-800">{tx.description}</td>
+                  <td className="p-4 text-right">{tx.previousBalance?.toLocaleString() || 0}</td>
+                  <td className={`p-4 text-center font-bold ${tx.transactionValue > 0 ? 'text-green-600' : 'text-[#C92127]'}`}>
+                    {tx.transactionValue > 0 ? '+' : ''}{tx.transactionValue?.toLocaleString() || 0}
+                  </td>
+                  <td className="p-4 text-right font-medium">{tx.newBalance?.toLocaleString() || 0}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function MemberRulesModal({ onClose }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
+      <div className="bg-white rounded-2xl shadow-2xl relative z-10 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-fade-in-up">
+        <div className="bg-[#C92127] text-white px-6 py-4 flex justify-between items-center shrink-0">
+          <h2 className="text-xl font-bold uppercase tracking-wide">Quy định & Chính sách Thành Viên</h2>
+          <button onClick={onClose} className="text-white/80 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors">
+            <FaTimes />
+          </button>
+        </div>
+        
+        <div className="p-6 overflow-y-auto flex-1 custom-scrollbar text-gray-700 text-sm leading-relaxed space-y-6">
+          <section>
+            <h3 className="font-bold text-lg text-gray-900 mb-3 border-b pb-2">Cập nhật mới về cách tính khuyến mãi Y-Point tại YiYi Book từ ngày 01/07/2025</h3>
+            <p className="mb-2">Kính gửi quý khách hàng,</p>
+            <p className="mb-4">YiYi Book trân trọng thông báo về việc cập nhật cách tính chiết khấu bán hàng, giảm giá sản phẩm, nhằm tuân thủ Thông tư 39/2025/TT-BCT mới nhất từ Bộ Công Thương, có hiệu lực từ ngày 01 tháng 7 năm 2025. Việc điều chỉnh này được thực hiện dựa trên quy định tại Điều 3 của Thông tư 39/2025/TT-BCT về hạn mức tối đa về giá trị hàng hóa, dịch vụ dùng để khuyến mại, cụ thể như sau:</p>
+            <ul className="list-disc pl-5 mb-4 space-y-2">
+              <li>Hạn mức chiết khấu trên từng sản phẩm: Giá trị chiết khấu hoặc khuyến mại cho một đơn vị hàng hóa, dịch vụ không được vượt quá 50% giá bán ngay trước thời gian khuyến mại của sản phẩm đó.</li>
+              <li>Hạn mức tổng giá trị chiết khấu trong chương trình: Tổng giá trị của hàng hóa, dịch vụ dùng để khuyến mại trong một chương trình không được vượt quá 50% tổng giá trị của hàng hóa, dịch vụ được khuyến mại.</li>
+            </ul>
+            <p className="font-semibold mb-2">Để Quý Khách hàng dễ hình dung, YiYi Book xin đưa ra một vài ví dụ minh họa:</p>
+            
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-4 space-y-3">
+              <div>
+                <strong className="text-gray-800">Ví dụ 1:</strong>
+                <ul className="list-disc pl-5 mt-1 space-y-1">
+                  <li>Sản phẩm A có giá bìa 100.000 VNĐ, giá bán 50.000 VNĐ (tức đã giảm 50% so với giá bìa).</li>
+                  <li>Trong trường hợp này, Quý khách không thể áp dụng thêm mã giảm giá hoặc Y-Point để giảm tiếp cho đơn hàng, vì sản phẩm đã đạt mức chiết khấu tối đa cho phép theo quy định.</li>
+                </ul>
+              </div>
+              <div>
+                <strong className="text-gray-800">Ví dụ 2:</strong>
+                <ul className="list-disc pl-5 mt-1 space-y-1">
+                  <li>Sản phẩm A có giá bìa 100.000 VNĐ, giá bán 51.000 VNĐ.</li>
+                  <li>Sản phẩm B có giá bìa 100.000 VNĐ, giá bán 80.000 VNĐ.</li>
+                  <li>Tổng giá bìa của 2 sản phẩm là 200.000 VNĐ.</li>
+                  <li>Tổng giá trị giảm giá tối đa cho đơn hàng này là: 50% của 200.000 VNĐ = 100.000 VNĐ.</li>
+                  <li>Tổng giá trị giảm giá thực tế của đơn hàng hiện tại là: (100.000 VNĐ - 51.000 VNĐ) + (100.000 VNĐ - 80.000 VNĐ) = 49.000 VNĐ + 20.000 VNĐ = 69.000 VNĐ.</li>
+                  <li>Như vậy, Quý khách có thể sử dụng thêm tối đa 31.000 VNĐ (100.000 VNĐ - 69.000 VNĐ) cho mã giảm giá và Y-Point để áp dụng cho đơn hàng này.</li>
+                </ul>
+              </div>
+            </div>
+            
+            <p className="mb-2">Những quy định trên nhằm đảm bảo sự minh bạch và công bằng trong các hoạt động khuyến mại, đồng thời bảo vệ quyền lợi của người tiêu dùng theo quy định của pháp luật.</p>
+            <p className="mb-2">YiYi Book hiểu rằng sự thay đổi này có thể ảnh hưởng đến Quý Khách hàng, do đó chúng tôi sẽ chủ động rà soát và điều chỉnh các chính sách chiết khấu hiện hành để đảm bảo tuân thủ đầy đủ Thông tư mới. Chúng tôi cam kết sẽ tiếp tục mang đến những sản phẩm và dịch vụ chất lượng tốt nhất cùng với các chính sách ưu đãi phù hợp trong khuôn khổ pháp luật cho phép.</p>
+            <p>Nếu Quý Khách hàng có bất kỳ thắc mắc nào về chính sách mới này, xin vui lòng liên hệ với bộ phận Chăm sóc Khách hàng hoặc qua Hotline 1900xxxx của YiYi Book để được hỗ trợ và giải đáp chi tiết.</p>
+          </section>
+
+          <section>
+            <h3 className="font-bold text-lg text-gray-900 mb-3 border-b pb-2">CÁC QUI ĐỊNH CHUNG VỀ Y-POINT</h3>
+            <div className="space-y-4">
+              <div>
+                <strong className="text-[#C92127]">1/ CÁCH THỨC TÍNH ĐIỂM Y-POINT:</strong>
+                <ul className="list-disc pl-5 mt-2 space-y-1">
+                  <li>Y-Point được cập nhật chính thức sau khi đơn hàng được giao thành công.</li>
+                  <li>Y-Point có thể được sử dụng tương đương như tiền để thanh toán khi mua hàng tại website/ứng dụng YiYi Book.</li>
+                  <li>Y-Point được tính từ tổng số tiền thanh toán trên hóa đơn, với tỷ lệ quy đổi khác nhau theo từng hạng thành viên.</li>
+                </ul>
+                <div className="bg-gray-50 p-3 mt-2 rounded-lg border border-gray-200">
+                  <span className="font-semibold text-gray-800">Ví dụ:</span> Tài khoản mua hàng của khách hàng đã thanh toán hoàn tất là 100.000 đồng thì sẽ được quy đổi như sau:
+                  <ul className="list-disc pl-5 mt-1 text-gray-600">
+                    <li>Thành viên BẠC: 0.5% x 100.000 đồng = 500 Y-Point</li>
+                    <li>Thành viên VÀNG: 1.0% x 100.000 đồng = 1.000 Y-Point</li>
+                    <li>Thành viên KIM CƯƠNG: 2.0% x 100.000 đồng = 2.000 Y-Point</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div>
+                <strong className="text-[#C92127]">2/ QUY TRÌNH NÂNG HẠNG THÀNH VIÊN DỰA THEO ĐIỂM Y-POINT:</strong>
+                <p className="mt-1"><span className="font-semibold">ĐIỂM Y-POINT TÍCH LŨY:</span> Tổng số Y-Point khách hàng đã tích lũy trong năm thông qua việc mua sắm tại YiYi Book.</p>
+                <ul className="list-disc pl-5 mt-2 space-y-1">
+                  <li>Hạng thành viên sẽ được YiYi Book xét duyệt dựa trên điểm Y-Point tích lũy được trong năm. Hạng thành viên có thể tăng/giảm/giữ nguyên dựa vào mức phát sinh tổng số điểm Y-Point Tích Lũy của khách hàng.</li>
+                  <li>Thời gian chốt điểm tích lũy Y-Point để xét duyệt hạng thành viên là ngày 31.12 hàng năm.</li>
+                  <li>Quá trình tích luỹ điểm Y-Point cho chu kỳ mới được tính bắt đầu từ ngày 01.01.</li>
+                  <li>Hạng thành viên mới và các quyền lợi tương ứng sẽ được cập nhật và áp dụng từ ngày 15.01.</li>
+                  <li>Quà tặng tháng sinh nhật của khách hàng hạng Vàng và Kim Cương sẽ được cộng vào tài khoản Y-Point vào đầu tháng sinh nhật của khách hàng.</li>
+                  <li>Để duy trì hạng thành viên, khách hàng phải tích lũy mua hàng trong năm để đảm bảo điểm tích lũy Y-Point của bạn đạt đủ các mốc thành viên trước ngày nâng hạng thành viên là 31.12. Nếu không đạt được thì hạng thành viên sẽ được xét duyệt theo điểm tích lũy Y-Point thực tế của bạn trong năm đó.</li>
+                  <li>Trong trường hợp khách hàng không duy trì được thứ hạng và bị giảm thứ hạng thành viên, khách hàng vẫn được nhận trọn ưu đãi của thứ hạng hiện tại khách hàng đang sở hữu.</li>
+                </ul>
+              </div>
+
+              <div>
+                <strong className="text-[#C92127]">3/ QUYỀN LỢI ƯU ĐÃI KHI ĐẶT HÀNG THÀNH CÔNG LẦN ĐẦU:</strong>
+                <ul className="list-disc pl-5 mt-2 space-y-1">
+                  <li>Tặng 20.000 Y-Point và 01 lần Freeship (Áp dụng từ ngày 27.10.2025)</li>
+                </ul>
+              </div>
+
+              <div className="bg-red-50 p-4 rounded-xl border border-red-100 text-red-900">
+                <strong className="text-[#C92127]">* LƯU Ý:</strong>
+                <ul className="list-disc pl-5 mt-2 space-y-1">
+                  <li>Sau ngày 31.12 là ngày tổng kết điểm Y-Point, hệ thống sẽ cập nhật thông tin vào tài khoản của mỗi khách hàng trong thời gian từ 10 - 15 ngày làm việc. Khách hàng vẫn được sử dụng số Y-Point đã tích lũy trước khi được nâng hạng để mua hàng tại YiYi Book.</li>
+                  <li>Việc tích lũy điểm không áp dụng khi mua mặt hàng phiếu quà tặng, sách Ngoại văn. Khách hàng mua Phiếu quà tặng cũng không được sử dụng Y-Point để thanh toán.</li>
+                  <li>Từ ngày 15.01.2025, YiYi Book sẽ cập nhật cách quy đổi mới: Số lần Freeship = Voucher Freeship có thời hạn sử dụng.</li>
+                  <li>Thời hạn sử dụng Voucher Freeship: trong vòng 1 năm tính từ ngày 15.01 hàng năm.</li>
+                  <li>YiYi Book không chịu trách nhiệm giải quyết các quyền lợi của khách hàng nếu thông tin do khách hàng cung cấp không đầy đủ và không chính xác, hoặc nếu quá thời hạn nhận quyền lợi theo quy định tại thể lệ chương trình.</li>
+                  <li>YiYi Book có quyền quyết định bất kỳ lúc nào về việc chỉnh sửa, xét duyệt nâng hạng hoặc chấm dứt chương trình khách hàng thành viên mà không cần báo trước.</li>
+                  <li>YiYi Book là bên có quyền quyết định cuối cùng trong mọi vấn đề tranh chấp phát sinh.</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <h3 className="font-bold text-lg text-gray-900 mb-3 border-b pb-2">QUY ĐỊNH VỀ TÀI KHOẢN THÀNH VIÊN YIYI BOOK</h3>
+            <div className="space-y-4">
+              <div>
+                <strong className="text-gray-800">1. Số điện thoại tạo lập tài khoản thành viên:</strong>
+                <p className="mt-1">Số điện thoại là thông tin quan trọng trong việc quản lý tài khoản thành viên.</p>
+                <p>YiYi Book vẫn hỗ trợ thay đổi số điện thoại, tuy nhiên Quý khách cần xác thực OTP từ số điện thoại tạo lập ban đầu để đảm bảo tính bảo mật. Mỗi số điện thoại chính chủ chỉ có thể dùng để tạo một tài khoản thành viên.</p>
+              </div>
+
+              <div>
+                <strong className="text-gray-800">2. Xác minh chính chủ khi hỗ trợ tài khoản:</strong>
+                <p className="mt-1">Nếu gặp bất kỳ vấn đề về tài khoản, Quý khách vui lòng liên hệ bộ phận CSKH của YiYi Book, cung cấp số điện thoại hoặc email để được hỗ trợ.</p>
+                <p>Trong trường hợp Quý khách không thể cung cấp số điện thoại hoặc email chính chủ, YiYi Book không thể hỗ trợ khôi phục mật khẩu, vì việc xác minh chính chủ là bắt buộc nhằm bảo vệ an toàn cho tài khoản.</p>
+              </div>
+
+              <div>
+                <strong className="text-gray-800">3. Quy định về tham gia trò chơi và nhận Y-Point:</strong>
+                <p className="mt-1">Đối với các chương trình Game trên App/Web, nếu YiYi Book phát hiện tài khoản có dấu hiệu gian lận (cheating), YiYi Book có quyền áp dụng các biện pháp giới hạn tài khoản, bao gồm nhưng không giới hạn ở: thu hồi Y-Point phát sinh từ hành vi vi phạm, giới hạn tham gia chương trình, hoặc các giới hạn khác theo điều khoản sử dụng của YiYi Book.</p>
+              </div>
+
+              <div>
+                <strong className="text-gray-800">4. Xử lý tài khoản vi phạm chính sách:</strong>
+                <p className="mt-1">Nếu hệ thống hoặc bộ phận kiểm duyệt của YiYi Book xác định tài khoản có dấu hiệu vi phạm chính sách thành viên, bao gồm nhưng không giới hạn ở: gian lận, tạo nhiều tài khoản bằng thông tin không chính chủ, sử dụng phần mềm can thiệp vào hệ thống, lợi dụng chương trình khuyến mãi, hoặc hành vi gây ảnh hưởng đến sự công bằng của hệ thống, YiYi Book có quyền áp dụng các biện pháp giới hạn tài khoản hoặc khóa vĩnh viễn theo mức độ vi phạm.</p>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end shrink-0">
+          <button onClick={onClose} className="px-6 py-2.5 bg-[#C92127] text-white font-bold rounded-lg hover:bg-red-800 transition-colors shadow-sm">
+            Đã hiểu
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

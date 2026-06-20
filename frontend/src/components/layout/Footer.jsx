@@ -19,7 +19,7 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="text-center md:text-left">
             <h3 className="text-xl font-bold text-gray-800 uppercase mb-1">Đăng ký nhận bản tin</h3>
-            <p className="text-gray-600 text-sm">Đừng bỏ lỡ các chương trình khuyến mãi hấp dẫn từ Bookstore</p>
+            <p className="text-gray-600 text-sm">Đừng bỏ lỡ các chương trình khuyến mãi hấp dẫn từ YiYi Book</p>
           </div>
           <form className="flex w-full md:w-auto max-w-md" onSubmit={(e) => e.preventDefault()}>
             <input 
@@ -45,8 +45,8 @@ export default function Footer() {
           {/* Col 1: Company Info */}
           <div>
             <Link to="/" className="flex items-center text-primary font-bold text-2xl gap-2 mb-4">
-              <FaBookOpen />
-              <span>BOOKSTORE</span>
+              <img src="/src/assets/logo_YiYi.png" alt="YiYi Book" className="h-10 object-contain" />
+              <span>YiYi Book</span>
             </Link>
             <ul className="space-y-3 text-sm text-gray-600">
               <li className="flex items-start gap-3">
@@ -55,7 +55,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-3">
                 <FaEnvelope className="text-gray-400 shrink-0" />
-                <span>cskh@bookstore.com</span>
+                <span>cskh@yiyibook.com</span>
               </li>
               <li className="flex items-center gap-3">
                 <FaPhone className="text-gray-400 shrink-0" />
@@ -83,7 +83,7 @@ export default function Footer() {
               <li><Link to="/profile" className="text-gray-600 hover:text-primary transition-colors">Cập nhật tài khoản</Link></li>
               <li><Link to="/orders" className="text-gray-600 hover:text-primary transition-colors">Lịch sử mua hàng</Link></li>
               <li><Link to="/wishlist" className="text-gray-600 hover:text-primary transition-colors">Danh sách yêu thích</Link></li>
-              <li><Link to="/points" className="text-gray-600 hover:text-primary transition-colors">Điểm thưởng Bookstore</Link></li>
+              <li><Link to="/points" className="text-gray-600 hover:text-primary transition-colors">Điểm thưởng YiYi Book</Link></li>
             </ul>
           </div>
 
@@ -121,7 +121,7 @@ export default function Footer() {
       {/* Bottom Section: Copyright */}
       <div className="bg-gray-50 border-t border-gray-200 py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left text-xs text-gray-500">
-          <p>&copy; {new Date().getFullYear()} Công Ty Cổ Phần Phát Hành Sách Bookstore. Tất cả các quyền được bảo lưu.</p>
+          <p>&copy; {new Date().getFullYear()} Công Ty Cổ Phần Phát Hành Sách YiYi Book. Tất cả các quyền được bảo lưu.</p>
           <div className="flex flex-col items-center md:items-end">
             <p className="mb-1">Giấy chứng nhận ĐKKD số: 123456789 do Sở KH & ĐT TP.HCM cấp</p>
             {/* Fake Bo Cong Thuong logo */}

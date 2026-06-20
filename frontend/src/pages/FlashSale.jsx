@@ -172,9 +172,11 @@ export default function FlashSale() {
                         className="flex flex-col bg-white p-3 rounded-xl border border-gray-100 hover:border-primary/20 hover:shadow-md transition-all group cursor-pointer relative"
                       >
                         {/* Discount Badge */}
-                        <div className="absolute top-2 left-2 z-10 bg-red-500 text-white text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">
-                          -{product.discount || 15}%
-                        </div>
+                        {product.discount > 0 && (
+                          <div className="absolute top-2 left-2 z-10 bg-red-500 text-white text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">
+                            -{product.discount}%
+                          </div>
+                        )}
                         
                         {/* Image */}
                         <div className="relative pt-[100%] mb-3 overflow-hidden rounded-lg bg-gray-50">
@@ -196,7 +198,7 @@ export default function FlashSale() {
                             <span className="text-primary font-bold text-base sm:text-lg leading-none mb-1">
                               {product.price.toLocaleString('vi-VN')} đ
                             </span>
-                            {product.oldPrice && (
+                            {product.oldPrice > 0 && (
                               <span className="text-gray-400 text-[10px] sm:text-xs line-through">
                                 {product.oldPrice.toLocaleString('vi-VN')} đ
                               </span>

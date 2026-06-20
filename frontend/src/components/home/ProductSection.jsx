@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { FaStar, FaShoppingCart } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 
-export default function ProductSection({ title, tabs = [], products = [], activeTab, onTabChange, loading }) {
+export default function ProductSection({ title, tabs = [], products = [], activeTab, onTabChange, loading, viewMoreLink = '/search' }) {
   const { addToCart } = useCart();
+  const navigate = useNavigate();
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5">
@@ -83,7 +84,7 @@ export default function ProductSection({ title, tabs = [], products = [], active
                 <span className="text-primary font-bold text-lg leading-none">
                   {product.price.toLocaleString('vi-VN')} đ
                 </span>
-                {product.oldPrice && (
+                {product.oldPrice > 0 && (
                   <span className="text-gray-400 text-xs line-through mt-1">
                     {product.oldPrice.toLocaleString('vi-VN')} đ
                   </span>
@@ -118,7 +119,10 @@ export default function ProductSection({ title, tabs = [], products = [], active
       
       {/* View more button */}
       <div className="mt-6 text-center">
-        <button className="px-8 py-2 border border-primary text-primary font-medium rounded-md hover:bg-primary hover:text-white transition-colors">
+        <button 
+          onClick={() => navigate(viewMoreLink)}
+          className="px-8 py-2 border border-primary text-primary font-medium rounded-md hover:bg-primary hover:text-white transition-colors"
+        >
           Xem Thêm
         </button>
       </div>

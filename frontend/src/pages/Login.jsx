@@ -17,10 +17,11 @@ export default function Login() {
 
   // Forgot Password States
   const [showForgotModal, setShowForgotModal] = useState(false);
-  const [forgotStep, setForgotStep] = useState(1); // 1: input phone, 2: verify otp & new password
-  const [forgotPhone, setForgotPhone] = useState('');
+  const [forgotStep, setForgotStep] = useState(1); // 1: input email, 2: verify otp, 3: new password
+  const [forgotEmail, setForgotEmail] = useState('');
   const [forgotOtp, setForgotOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
@@ -36,7 +37,7 @@ export default function Login() {
 
       if (res.data.token) {
         login(res.data.user, res.data.token);
-        showNotification('Đăng nhập thành công', 'Chào mừng bạn trở lại!', 'success');
+        showNotification('Đăng nhập thành công', `Chào mừng ${res.data.user.fullName}!`, 'success');
         navigate('/');
       }
     } catch (error) {
@@ -47,11 +48,11 @@ export default function Login() {
   };
 
   const handleSendForgotOtp = async () => {
-    if (!forgotPhone) return showNotification('Lỗi', 'Vui lòng nhập số điện thoại', 'warning');
+    if (!forgotEmail) return showNotification('Lỗi', 'Vui lòng nhập Email', 'warning');
     setForgotLoading(true);
     try {
-      await axios.post(`${API_BASE_URL}/auth/send-otp`, { phone: forgotPhone });
-      showNotification('Thành công', 'Đã gửi mã OTP đến số điện thoại của bạn', 'success');
+      await axios.post(`${API_BASE_URL}/auth/send-otp`, { phone: forgotEmail, email: forgotEmail });
+      showNotification('Thành công', 'Đã gửi mã OTP đến Email của bạn', 'success');
       setForgotStep(2);
     } catch (error) {
       showNotification('Lỗi', error.response?.data?.message || 'Có lỗi xảy ra khi gửi OTP', 'error');
@@ -60,18 +61,34 @@ export default function Login() {
     }
   };
 
-  const handleResetPassword = async () => {
-    if (!forgotOtp || !newPassword) return showNotification('Lỗi', 'Vui lòng nhập đầy đủ thông tin', 'warning');
+  const handleVerifyForgotOtp = async () => {
+    if (!forgotOtp) return showNotification('Lỗi', 'Vui lòng nhập mã OTP', 'warning');
     setForgotLoading(true);
     try {
-      // Mocked endpoint - Need to create this if it's real
-      // await axios.post(`${API_BASE_URL}/auth/forgot-password`, { phone: forgotPhone, otp: forgotOtp, newPassword });
+      await axios.post(`${API_BASE_URL}/auth/verify-forgot-otp`, { email: forgotEmail, otp: forgotOtp });
+      showNotification('Thành công', 'Xác thực OTP thành công', 'success');
+      setForgotStep(3);
+    } catch (error) {
+      showNotification('Lỗi', error.response?.data?.message || 'Mã OTP không chính xác', 'error');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!newPassword || !confirmNewPassword) return showNotification('Lỗi', 'Vui lòng nhập đầy đủ thông tin', 'warning');
+    if (newPassword !== confirmNewPassword) return showNotification('Lỗi', 'Mật khẩu xác nhận không khớp', 'warning');
+    
+    setForgotLoading(true);
+    try {
+      await axios.post(`${API_BASE_URL}/auth/reset-password`, { email: forgotEmail, otp: forgotOtp, newPassword });
       showNotification('Thành công', 'Lấy lại mật khẩu thành công. Vui lòng đăng nhập lại.', 'success');
       setShowForgotModal(false);
       setForgotStep(1);
-      setForgotPhone('');
+      setForgotEmail('');
       setForgotOtp('');
       setNewPassword('');
+      setConfirmNewPassword('');
     } catch (error) {
       showNotification('Lỗi', error.response?.data?.message || 'Có lỗi xảy ra', 'error');
     } finally {
@@ -97,7 +114,7 @@ export default function Login() {
 
         if (res.data.token) {
           login(res.data.user, res.data.token);
-          showNotification('Thành công', `Đăng nhập Google thành công!`, 'success');
+          showNotification('Đăng nhập thành công', `Chào mừng ${res.data.user.fullName}!`, 'success');
           navigate('/');
         }
       } catch (error) {
@@ -118,7 +135,7 @@ export default function Login() {
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-10 border border-gray-100">
         <div className="text-center mb-10">
           <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">Đăng nhập</h2>
-          <p className="mt-2 text-sm text-gray-600">Chào mừng bạn trở lại với Grape Book</p>
+          <p className="mt-2 text-sm text-gray-600">Chào mừng bạn trở lại với YiYi Book</p>
         </div>
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div>
@@ -194,27 +211,42 @@ export default function Login() {
             </button>
             <h3 className="text-xl font-bold text-gray-900 mb-4">Quên mật khẩu</h3>
             
-            {forgotStep === 1 ? (
+            {forgotStep === 1 && (
               <div className="space-y-4">
-                <p className="text-sm text-gray-600">Vui lòng nhập số điện thoại để nhận mã xác thực OTP.</p>
+                <p className="text-sm text-gray-600">Vui lòng nhập Email để nhận mã xác thực OTP.</p>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Số điện thoại</label>
-                  <input type="tel" value={forgotPhone} onChange={e => setForgotPhone(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 outline-none" placeholder="Ví dụ: 0912345678" />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Địa chỉ Email</label>
+                  <input type="email" value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 outline-none" placeholder="Ví dụ: emailcuaban@gmail.com" />
                 </div>
                 <button onClick={handleSendForgotOtp} disabled={forgotLoading} className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-lg transition-colors">
                   {forgotLoading ? 'Đang gửi...' : 'Gửi mã OTP'}
                 </button>
               </div>
-            ) : (
+            )}
+            
+            {forgotStep === 2 && (
               <div className="space-y-4">
-                <p className="text-sm text-gray-600">Mã OTP đã được gửi đến <span className="font-bold">{forgotPhone}</span>.</p>
+                <p className="text-sm text-gray-600">Mã OTP đã được gửi đến <span className="font-bold">{forgotEmail}</span>.</p>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Mã OTP (6 số)</label>
                   <input type="text" maxLength={6} value={forgotOtp} onChange={e => setForgotOtp(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 outline-none tracking-widest text-center text-lg font-bold" placeholder="• • • • • •" />
                 </div>
+                <button onClick={handleVerifyForgotOtp} disabled={forgotLoading} className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-lg transition-colors">
+                  {forgotLoading ? 'Đang xác thực...' : 'Tiếp tục'}
+                </button>
+              </div>
+            )}
+
+            {forgotStep === 3 && (
+              <div className="space-y-4">
+                <p className="text-sm text-gray-600">Mã OTP hợp lệ! Vui lòng đặt lại mật khẩu mới của bạn.</p>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu mới</label>
-                  <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 outline-none" />
+                  <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 outline-none" placeholder="Nhập mật khẩu mới" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Xác nhận mật khẩu mới</label>
+                  <input type="password" value={confirmNewPassword} onChange={e => setConfirmNewPassword(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 outline-none" placeholder="Nhập lại mật khẩu mới" />
                 </div>
                 <button onClick={handleResetPassword} disabled={forgotLoading} className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-lg transition-colors">
                   {forgotLoading ? 'Đang xử lý...' : 'Xác nhận đổi mật khẩu'}

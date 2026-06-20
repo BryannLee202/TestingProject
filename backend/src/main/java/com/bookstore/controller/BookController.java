@@ -3,8 +3,15 @@ package com.bookstore.controller;
 import com.bookstore.entity.Book;
 import com.bookstore.service.BookService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import com.bookstore.utils.ExcelHelper;
 
 import java.util.List;
 
@@ -75,5 +82,28 @@ public class BookController {
     @GetMapping("/search")
     public ResponseEntity<List<Book>> searchBooks(@RequestParam String keyword) {
         return ResponseEntity.ok(bookService.searchBooks(keyword));
+    }
+
+    @GetMapping("/import/template")
+    public ResponseEntity<Resource> getImportTemplate() {
+        InputStreamResource file = new InputStreamResource(ExcelHelper.generateBooksTemplate());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=books_template.xlsx")
+                .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+                .body(file);
+    }
+
+    @PostMapping("/import")
+    public ResponseEntity<?> importBooks(@RequestParam("file") MultipartFile file) {
+        if (ExcelHelper.hasExcelFormat(file)) {
+            try {
+                bookService.importBooksFromExcel(file);
+                return ResponseEntity.ok().body("{\"message\": \"Tải tệp thành công và đã lưu dữ liệu\"}");
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body("{\"message\": \"Lỗi: " + e.getMessage() + "\"}");
+            }
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"message\": \"Vui lòng upload tệp Excel (.xlsx)\"}");
     }
 }

@@ -35,4 +35,26 @@ public class CouponController {
     }
 
     public record CouponResponse(boolean valid, Coupon coupon, Double discountAmount, String message) {}
+
+    // Admin endpoints
+    @GetMapping("/all")
+    public ResponseEntity<List<Coupon>> getAllCouponsAdmin() {
+        return ResponseEntity.ok(couponService.getAllCouponsAdmin());
+    }
+
+    @PostMapping
+    public ResponseEntity<Coupon> createCoupon(@RequestBody Coupon coupon) {
+        return ResponseEntity.ok(couponService.createCoupon(coupon));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Coupon> updateCoupon(@PathVariable Long id, @RequestBody Coupon couponDetails) {
+        return ResponseEntity.ok(couponService.updateCoupon(id, couponDetails));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCoupon(@PathVariable Long id) {
+        couponService.deleteCoupon(id);
+        return ResponseEntity.ok().build();
+    }
 }

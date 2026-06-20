@@ -50,4 +50,23 @@ public class OtpService {
         }
         return false;
     }
+
+    // Dành riêng cho Quên mật khẩu
+    private final Map<String, Boolean> resetPasswordSessions = new ConcurrentHashMap<>();
+
+    public boolean verifyOtpForReset(String email, String otp) {
+        boolean isValid = verifyOtp(email, otp);
+        if (isValid) {
+            resetPasswordSessions.put(email, true);
+        }
+        return isValid;
+    }
+
+    public boolean hasResetSession(String email) {
+        return resetPasswordSessions.getOrDefault(email, false);
+    }
+
+    public void clearResetSession(String email) {
+        resetPasswordSessions.remove(email);
+    }
 }

@@ -179,12 +179,12 @@ export default function BestSellersByCategory() {
                     <span className="text-2xl font-bold text-red-600">
                       {selectedBook.price?.toLocaleString('vi-VN')} đ
                     </span>
-                    {selectedBook.oldPrice && (
+                    {selectedBook.oldPrice > 0 && (
                       <span className="text-sm text-gray-400 line-through">
                         {selectedBook.oldPrice.toLocaleString('vi-VN')} đ
                       </span>
                     )}
-                    {(selectedBook.discount > 0 || (selectedBook.oldPrice && selectedBook.oldPrice > selectedBook.price)) && (
+                    {(selectedBook.discount > 0 || (selectedBook.oldPrice > 0 && selectedBook.oldPrice > selectedBook.price)) && (
                       <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
                         -{selectedBook.discount || Math.round((selectedBook.oldPrice - selectedBook.price)/selectedBook.oldPrice*100)}%
                       </span>

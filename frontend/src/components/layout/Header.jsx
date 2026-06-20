@@ -9,7 +9,14 @@ import {
   FaRegBell, 
   FaShoppingCart, 
   FaRegUser,
-  FaShieldAlt
+  FaShieldAlt,
+  FaClipboardList,
+  FaHeart,
+  FaTicketAlt,
+  FaCoins,
+  FaSignOutAlt,
+  FaCrown,
+  FaChevronRight
 } from 'react-icons/fa';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
@@ -105,9 +112,9 @@ export default function Header() {
     <header className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center text-primary font-bold text-2xl gap-2">
-          <FaBookOpen />
-          <span>GRAPE BOOK</span>
+        <Link to="/" className="flex items-center gap-2 text-2xl font-bold text-primary mr-4">
+          <img src="/src/assets/logo_YiYi.png" alt="YiYi Book" className="h-10 object-contain" />
+          <span>YiYi Book</span>
         </Link>
 
         {/* Category Dropdown (Placeholder) */}
@@ -245,26 +252,50 @@ export default function Header() {
                 <span className="text-sm font-bold leading-tight truncate max-w-[150px]">
                   {user ? `Chào, ${user.fullName || user.name || ''}` : 'Tài khoản'}
                 </span>
-                <span className="text-[11px] text-gray-500">
-                  {user ? 'Thành viên' : 'Đăng nhập / Đăng ký'}
+                <span className="text-[11px] font-bold">
+                  {user ? (user.role === 'ADMIN' || (user.yPoints || 0) >= 100000 ? 'Kim Cương' : (user.yPoints || 0) >= 30000 ? 'Vàng' : 'Bạc') : 'Đăng nhập / Đăng ký'}
                 </span>
               </div>
             </div>
 
             {/* User Dropdown */}
             {isUserMenuOpen && (
-              <div className="absolute right-0 top-full mt-2 w-48 bg-white shadow-lg rounded-xl border border-gray-100 overflow-hidden z-50 py-1">
+              <div className="absolute right-0 top-full mt-2 w-64 bg-white shadow-lg rounded-xl border border-gray-100 overflow-hidden z-50 py-2">
                 {user ? (
                   <>
-                    <div className="block px-4 py-2 text-sm text-gray-750 border-b border-gray-100 font-bold">{user.fullName || user.name}</div>
+                    <Link to="/profile" className="flex items-center justify-between px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${(user.role === 'ADMIN' || (user.yPoints || 0) >= 100000) ? 'bg-gray-800 text-yellow-500' : (user.yPoints || 0) >= 30000 ? 'bg-yellow-100 text-yellow-500' : 'bg-gray-100 text-gray-500'}`}>
+                          <FaCrown size={20} />
+                        </div>
+                        <span className="font-bold text-gray-700">Thành viên {user.role === 'ADMIN' || (user.yPoints || 0) >= 100000 ? 'Kim Cương' : (user.yPoints || 0) >= 30000 ? 'Vàng' : 'Bạc'}</span>
+                      </div>
+                      <FaChevronRight className="text-gray-400" />
+                    </Link>
+                    
                     {user.role === 'ADMIN' && (
-                      <Link to="/admin/dashboard" className="flex items-center gap-2 px-4 py-2 text-sm text-primary hover:bg-gray-50 font-bold border-b border-gray-100">
-                        <FaShieldAlt /> Trang quản trị
+                      <Link to="/admin/dashboard" className="flex items-center gap-3 px-4 py-3 text-sm text-primary hover:bg-gray-50 font-bold border-b border-gray-100">
+                        <FaShieldAlt className="text-gray-400 text-lg" /> Trang quản trị
                       </Link>
                     )}
-                    <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary">Trang cá nhân</Link>
-                    <Link to="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary">Đơn hàng của tôi</Link>
-                    <button onClick={logout} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50">Đăng xuất</button>
+                    
+                    <Link to="/orders" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors">
+                      <FaClipboardList className="text-gray-400 text-lg" /> Đơn hàng của tôi
+                    </Link>
+                    <Link to="/profile" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors">
+                      <FaHeart className="text-gray-400 text-lg" /> Sản phẩm yêu thích
+                    </Link>
+                    <Link to="/profile" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors">
+                      <FaTicketAlt className="text-gray-400 text-lg" /> Wallet Voucher
+                    </Link>
+                    <Link to="/profile" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors">
+                      <FaCoins className="text-gray-400 text-lg" /> Tài khoản Y-Point
+                    </Link>
+                    
+                    <div className="border-t border-gray-100 mt-1"></div>
+                    <button onClick={logout} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-red-500 transition-colors text-left">
+                      <FaSignOutAlt className="text-gray-400 text-lg" /> Thoát tài khoản
+                    </button>
                   </>
                 ) : (
                   <>

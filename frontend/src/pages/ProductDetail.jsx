@@ -6,6 +6,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { showNotification } from '../utils/alert';
 import Swal from 'sweetalert2';
+import AddressModal from '../components/checkout/AddressModal';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
@@ -20,12 +21,33 @@ export default function ProductDetail() {
   const { addToCart } = useCart();
   const { user } = useAuth();
   const [reviews, setReviews] = useState([]);
+  const [selectedImage, setSelectedImage] = useState(0);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [newRating, setNewRating] = useState(5);
   const [newComment, setNewComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
   const [availableCoupons, setAvailableCoupons] = useState([]);
   const [deliveryAddress, setDeliveryAddress] = useState('Hà Nội');
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [addresses, setAddresses] = useState([]);
+
+  const fetchAddresses = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/addresses/my-addresses`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      setAddresses(res.data);
+      const defaultAddr = res.data.find(a => a.default) || res.data[0];
+      if (defaultAddr) {
+        setDeliveryAddress(`${defaultAddr.ward}, ${defaultAddr.district}, ${defaultAddr.city}`);
+      } else if (user?.address) {
+        setDeliveryAddress(user.address);
+      }
+    } catch (err) {
+      console.error(err);
+      if (user?.address) setDeliveryAddress(user.address);
+    }
+  };
 
   useEffect(() => {
     const fetchBookDetail = async () => {
@@ -34,6 +56,7 @@ export default function ProductDetail() {
         const res = await axios.get(`${API_BASE_URL}/books/${id}`);
         if (res.data && res.data.id) {
           setBook(res.data);
+          setSelectedImage(0);
           // Fetch related books based on category or just latest
           const relatedRes = await axios.get(`${API_BASE_URL}/books/latest`);
           setRelatedBooks(relatedRes.data.filter(b => b.id !== res.data.id).slice(0, 5));
@@ -70,8 +93,11 @@ export default function ProductDetail() {
   }, [id]);
 
   useEffect(() => {
-    if (user && user.address) {
-      setDeliveryAddress(user.address);
+    if (user) {
+      fetchAddresses();
+    } else {
+      setAddresses([]);
+      setDeliveryAddress('Hà Nội');
     }
   }, [user]);
 
@@ -83,23 +109,11 @@ export default function ProductDetail() {
   };
 
   const handleChangeAddress = async () => {
-    const { value: newAddress } = await Swal.fire({
-      title: 'Nhập địa chỉ giao hàng',
-      input: 'text',
-      inputPlaceholder: 'Ví dụ: Quận 1, Hồ Chí Minh',
-      inputValue: deliveryAddress !== 'Hà Nội' ? deliveryAddress : '',
-      showCancelButton: true,
-      confirmButtonText: 'Cập nhật',
-      cancelButtonText: 'Hủy',
-      inputValidator: (value) => {
-        if (!value) return 'Vui lòng nhập địa chỉ!';
-      }
-    });
-
-    if (newAddress) {
-      setDeliveryAddress(newAddress);
-      showNotification('Đã cập nhật', 'Địa chỉ giao hàng đã được cập nhật tạm thời.', 'success');
+    if (!user) {
+      Swal.fire('Vui lòng đăng nhập', 'Bạn cần đăng nhập để quản lý địa chỉ giao hàng.', 'warning');
+      return;
     }
+    setShowAddressModal(true);
   };
 
   const handleSubmitReview = async (e) => {
@@ -174,6 +188,8 @@ export default function ProductDetail() {
     );
   }
 
+  const allImages = book ? [book.imageUrl || book.image_url, ...(book.additionalImages || [])].filter(Boolean) : [];
+
   return (
     <div className="bg-[#f0f0f0] min-h-screen pb-10 font-sans">
       <div className="max-w-[1200px] mx-auto px-4 pt-4">
@@ -192,20 +208,26 @@ export default function ProductDetail() {
           <div className="w-full md:w-[40%] lg:w-[35%] flex flex-col">
             <div className="border border-gray-100 rounded-lg p-2 mb-4 flex items-center justify-center relative">
               <img 
-                src={book.imageUrl || book.image_url || 'https://placehold.co/400'} 
+                src={allImages[selectedImage] || 'https://placehold.co/400'} 
                 alt={book.title} 
                 className="w-full h-auto object-contain max-h-[350px]"
               />
             </div>
             
-            {/* Thumbnails (Mocked) */}
-            <div className="flex gap-2 mb-6">
-              {[1, 2, 3, 4].map(i => (
-                <div key={i} className={`border ${i===1 ? 'border-primary' : 'border-gray-200'} rounded p-1 w-1/4 cursor-pointer hover:border-primary`}>
-                  <img src={book.imageUrl || 'https://placehold.co/100'} alt="thumb" className="w-full h-auto object-cover" />
-                </div>
-              ))}
-            </div>
+            {/* Thumbnails */}
+            {allImages.length > 0 && (
+              <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-thin">
+                {allImages.map((img, i) => (
+                  <div 
+                    key={i} 
+                    onClick={() => setSelectedImage(i)}
+                    className={`border ${i === selectedImage ? 'border-primary' : 'border-gray-200'} rounded p-1 w-1/4 min-w-[70px] cursor-pointer hover:border-primary transition-colors`}
+                  >
+                    <img src={img} alt="thumb" className="w-full aspect-square object-contain" />
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Buttons */}
             <div className="flex gap-3 mt-auto pt-4">
@@ -252,7 +274,7 @@ export default function ProductDetail() {
                 <span className="text-3xl font-bold text-primary">
                   {formatPrice(book.price || 0)}
                 </span>
-                {book.oldPrice && (
+                {book.oldPrice > 0 && (
                   <span className="text-gray-400 line-through text-sm mb-1">
                     {formatPrice(book.oldPrice)}
                   </span>
@@ -528,13 +550,51 @@ export default function ProductDetail() {
                   <h3 className="text-sm font-medium text-gray-800 line-clamp-2 min-h-[40px] group-hover:text-primary transition-colors">{item.title}</h3>
                   <div className="mt-1 flex items-end gap-2">
                     <span className="text-primary font-bold text-sm">{formatPrice(item.price)}</span>
-                    {item.oldPrice && <span className="text-xs text-gray-400 line-through mb-0.5">{formatPrice(item.oldPrice)}</span>}
+                    {item.oldPrice > 0 && <span className="text-xs text-gray-400 line-through mb-0.5">{formatPrice(item.oldPrice)}</span>}
                   </div>
                 </Link>
               ))}
             </div>
           </div>
         )}
+
+        <AddressModal
+          isOpen={showAddressModal}
+          onClose={() => setShowAddressModal(false)}
+          addresses={addresses}
+          onSelect={(addr) => {
+            setDeliveryAddress(`${addr.ward}, ${addr.district}, ${addr.city}`);
+            setShowAddressModal(false);
+          }}
+          onAddAddress={(newAddr) => {
+            setAddresses([...addresses, newAddr]);
+            if (addresses.length === 0 || newAddr.isDefault) {
+              setDeliveryAddress(`${newAddr.ward}, ${newAddr.district}, ${newAddr.city}`);
+            }
+          }}
+          onDeleteAddress={async (id) => {
+            if (!window.confirm('Bạn có chắc muốn xóa địa chỉ này?')) return;
+            try {
+              await axios.delete(`${API_BASE_URL}/addresses/${id}`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+              });
+              setAddresses(addresses.filter(a => a.id !== id));
+            } catch (e) {
+              showNotification('Lỗi', 'Không thể xóa địa chỉ', 'error');
+            }
+          }}
+          onSetDefaultAddress={async (id) => {
+            try {
+              await axios.put(`${API_BASE_URL}/addresses/${id}/default`, {}, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+              });
+              fetchAddresses();
+            } catch (e) {
+              showNotification('Lỗi', 'Không thể đặt mặc định', 'error');
+            }
+          }}
+          API_BASE_URL={API_BASE_URL}
+        />
 
       </div>
     </div>

@@ -38,4 +38,19 @@ public class AuthController {
     public ResponseEntity<AuthResponse> socialLogin(@RequestBody com.bookstore.dto.SocialLoginRequest request) {
         return ResponseEntity.ok(authService.socialLogin(request));
     }
+
+    @PostMapping("/verify-forgot-otp")
+    public ResponseEntity<?> verifyForgotOtp(@RequestBody com.bookstore.dto.ResetPasswordRequest request) {
+        boolean isValid = authService.verifyForgotOtp(request.getEmail(), request.getOtp());
+        if (!isValid) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Mã OTP không chính xác!"));
+        }
+        return ResponseEntity.ok().body(Map.of("message", "Xác thực OTP thành công!"));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody com.bookstore.dto.ResetPasswordRequest request) {
+        authService.resetPassword(request);
+        return ResponseEntity.ok().body(Map.of("message", "Đặt lại mật khẩu thành công!"));
+    }
 }

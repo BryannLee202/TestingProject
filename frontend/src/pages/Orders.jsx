@@ -125,7 +125,7 @@ export default function Orders() {
                     <div>
                       <span className="block text-xs text-gray-400">Ngày đặt:</span>
                       <span className="font-semibold text-gray-800">
-                        {new Date(order.createdAt).toLocaleDateString('vi-VN')}
+                        {new Date(order.createdAt).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
                   </div>

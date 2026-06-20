@@ -23,6 +23,14 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.getReviewsByBookId(bookId));
     }
 
+    @GetMapping("/my-reviews")
+    public ResponseEntity<List<Review>> getMyReviews(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(reviewService.getReviewsByUsername(authentication.getName()));
+    }
+
     @PostMapping("/book/{bookId}")
     public ResponseEntity<Review> createReview(
             Authentication authentication,

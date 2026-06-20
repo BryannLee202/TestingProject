@@ -12,6 +12,8 @@ import java.util.List;
 public interface BookRepository extends JpaRepository<Book, Long> {
 
     List<Book> findByCategoryId(Long categoryId);
+    
+    java.util.Optional<Book> findFirstByTitle(String title);
 
     List<Book> findTop10ByOrderBySalesCountDesc();
 

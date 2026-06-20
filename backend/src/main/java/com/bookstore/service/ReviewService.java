@@ -24,6 +24,12 @@ public class ReviewService {
         return reviewRepository.findByBookIdOrderByCreatedAtDesc(bookId);
     }
 
+    public List<Review> getReviewsByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng!"));
+        return reviewRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
+    }
+
     public Review createReview(String username, Long bookId, Integer rating, String comment) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng!"));

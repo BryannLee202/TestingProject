@@ -37,9 +37,38 @@ public class CouponService {
 
     public Double calculateDiscount(Coupon coupon, Double orderAmount) {
         if (coupon.getDiscountType() == DiscountType.PERCENTAGE) {
-            return orderAmount * (coupon.getDiscountValue() / 100.0);
+            Double discount = orderAmount * (coupon.getDiscountValue() / 100.0);
+            if (coupon.getMaxDiscountAmount() != null && coupon.getMaxDiscountAmount() > 0) {
+                discount = Math.min(discount, coupon.getMaxDiscountAmount());
+            }
+            return discount;
         } else {
             return Math.min(coupon.getDiscountValue(), orderAmount); // Không giảm quá tổng tiền
         }
+    }
+
+    public List<Coupon> getAllCouponsAdmin() {
+        return couponRepository.findAll();
+    }
+
+    public Coupon createCoupon(Coupon coupon) {
+        return couponRepository.save(coupon);
+    }
+
+    public Coupon updateCoupon(Long id, Coupon couponDetails) {
+        Coupon coupon = couponRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Coupon not found with id " + id));
+        coupon.setCode(couponDetails.getCode());
+        coupon.setDiscountType(couponDetails.getDiscountType());
+        coupon.setDiscountValue(couponDetails.getDiscountValue());
+        coupon.setMinOrderAmount(couponDetails.getMinOrderAmount());
+        coupon.setExpirationDate(couponDetails.getExpirationDate());
+        coupon.setIsActive(couponDetails.getIsActive());
+        coupon.setMaxDiscountAmount(couponDetails.getMaxDiscountAmount());
+        return couponRepository.save(coupon);
+    }
+
+    public void deleteCoupon(Long id) {
+        couponRepository.deleteById(id);
     }
 }

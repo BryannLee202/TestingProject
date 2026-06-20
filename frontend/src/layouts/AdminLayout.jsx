@@ -12,7 +12,9 @@ import {
   FaBars, 
   FaTimes,
   FaShieldAlt,
-  FaUsers
+  FaUsers,
+  FaTicketAlt,
+  FaGift
 } from 'react-icons/fa';
 
 export default function AdminLayout() {
@@ -44,7 +46,9 @@ export default function AdminLayout() {
     { to: '/admin/categories', icon: <FaThList />, label: 'Quản lý Danh mục' },
     { to: '/admin/banners', icon: <FaImages />, label: 'Quản lý Banner' },
     { to: '/admin/orders', icon: <FaShoppingBag />, label: 'Quản lý Đơn hàng' },
-    { to: '/admin/users', icon: <FaUsers />, label: 'Quản lý Tài khoản' }
+    { to: '/admin/users', icon: <FaUsers />, label: 'Quản lý Tài khoản' },
+    { to: '/admin/coupons', icon: <FaTicketAlt />, label: 'Quản lý Voucher' },
+    { to: '/admin/rewards', icon: <FaGift />, label: 'Quản lý Mã Sự Kiện' }
   ];
 
   return (
@@ -115,7 +119,7 @@ export default function AdminLayout() {
             >
               <FaBars />
             </button>
-            <h1 className="text-lg font-bold text-gray-800 hidden sm:block">Hệ thống Quản trị Bookstore</h1>
+            <h1 className="text-lg font-bold text-gray-800 hidden sm:block">Hệ thống Quản trị YiYi Book</h1>
           </div>
 
           <div className="flex items-center gap-4">

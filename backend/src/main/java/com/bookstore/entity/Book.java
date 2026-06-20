@@ -62,4 +62,9 @@ public class Book {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id")
     private Category category;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "book_additional_images", joinColumns = @JoinColumn(name = "book_id"))
+    @Column(name = "image_url", columnDefinition = "NVARCHAR(MAX)")
+    private java.util.List<String> additionalImages = new java.util.ArrayList<>();
 }

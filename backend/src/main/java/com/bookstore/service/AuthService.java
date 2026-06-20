@@ -27,8 +27,16 @@ public class AuthService {
     private final OtpService otpService;
 
     public void sendOtp(String phone, String email) {
-        if (userRepository.existsByPhone(phone)) {
-            // Optional: throw error if we only want new phones for register. But maybe it's for forgot password too.
+        // Nếu không truyền email (ví dụ từ trang Quên mật khẩu), thì tìm user theo số điện thoại để lấy email
+        if (email == null || email.isEmpty()) {
+            User user = userRepository.findByPhone(phone).orElse(null);
+            if (user != null) {
+                email = user.getEmail();
+            }
+        }
+        
+        if (email == null || email.isEmpty()) {
+            // Vẫn gửi OTP, nhưng chỉ in ra console nếu không có email (dự phòng)
         }
         otpService.generateAndSendOtp(phone, email);
     }
@@ -91,6 +99,21 @@ public class AuthService {
                 .token(jwtToken)
                 .user(user)
                 .build();
+    }
+
+    public boolean verifyForgotOtp(String email, String otp) {
+        return otpService.verifyOtpForReset(email, otp);
+    }
+
+    public void resetPassword(com.bookstore.dto.ResetPasswordRequest request) {
+        if (!otpService.hasResetSession(request.getEmail())) {
+            throw new RuntimeException("Bạn chưa xác thực mã OTP hoặc phiên làm việc đã hết hạn!");
+        }
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với Email này!"));
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+        otpService.clearResetSession(request.getEmail());
     }
 
     public AuthResponse socialLogin(SocialLoginRequest request) {

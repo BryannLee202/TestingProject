@@ -48,7 +48,7 @@ public class Order {
     @Column(name = "shipping_fee")
     private Double shippingFee = 0.0;
 
-    @Column(name = "customer_note", length = 1000)
+    @Column(name = "customer_note", length = 500)
     private String customerNote;
 
     @Enumerated(EnumType.STRING)
@@ -64,6 +64,10 @@ public class Order {
 
     @Column(name = "discount_amount")
     private Double discountAmount = 0.0;
+
+    @Column(name = "points_used")
+    @Builder.Default
+    private Integer pointsUsed = 0;
 
     @Column(name = "coupon_code", length = 50)
     private String couponCode;

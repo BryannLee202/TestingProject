@@ -9,9 +9,10 @@ public class OrderRequest {
     private String shippingAddress;
     private String phoneNumber;
     private String paymentMethod;
-    private Double shippingFee;
     private String customerNote;
     private String couponCode;
+    private Double shippingFee;
+    private Integer spentPoints;
 
     @Data
     public static class OrderItemRequest {

@@ -8,12 +8,13 @@ import { showNotification } from '../utils/alert';
 import { QRCodeCanvas } from 'qrcode.react';
 import { FaCreditCard, FaMoneyBillWave, FaMapMarkerAlt, FaTruck, FaTags, FaClipboardList, FaTimes, FaShippingFast, FaCcVisa, FaCcMastercard, FaRegCreditCard } from 'react-icons/fa';
 import treeData from '../data/provinces.json';
+import AddressModal from '../components/checkout/AddressModal';
 
 const provincesList = Object.values(treeData).sort((a,b) => a.name.localeCompare(b.name));
 
 export default function Checkout() {
   const { cart, getCartTotal, clearCart } = useCart();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
   const cartTotal = getCartTotal();
 
@@ -40,6 +41,7 @@ export default function Checkout() {
   const [shippingMethod, setShippingMethod] = useState('STANDARD');
   const [shippingFee, setShippingFee] = useState(0); 
   const [loading, setLoading] = useState(false);
+  const [useYPoints, setUseYPoints] = useState(false);
   
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState(null);
@@ -51,16 +53,46 @@ export default function Checkout() {
   const [showCouponModal, setShowCouponModal] = useState(false);
   const [availableCoupons, setAvailableCoupons] = useState([]);
 
+  // Address Modal
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [addresses, setAddresses] = useState([]);
+
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
+
+  const fetchAddresses = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/addresses/my-addresses`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      setAddresses(res.data);
+      const defaultAddr = res.data.find(a => a.default) || res.data[0];
+      if (defaultAddr) {
+        setName(defaultAddr.recipientName);
+        setPhone(defaultAddr.phone);
+        setCity(defaultAddr.city);
+        setDistrict(defaultAddr.district);
+        setWard(defaultAddr.ward);
+        setAddress(defaultAddr.street);
+      } else if (user) {
+        setName(user.fullName || '');
+        setEmail(user.email || '');
+        setPhone(user.phoneNumber || '');
+      }
+    } catch (err) {
+      console.error(err);
+      if (user) {
+        setName(user.fullName || '');
+        setEmail(user.email || '');
+        setPhone(user.phoneNumber || '');
+      }
+    }
+  };
 
   useEffect(() => {
     if (user) {
-      setName(user.fullName || '');
-      setEmail(user.email || '');
-      setPhone(user.phoneNumber || '');
-      if (user.address) {
-        setAddress(user.address);
-      }
+      fetchAddresses();
+    } else {
+      setAddresses([]);
     }
     // Lấy danh sách mã khuyến mãi
     axios.get(`${API_BASE_URL}/coupons`)
@@ -105,9 +137,22 @@ export default function Checkout() {
 
   useEffect(() => {
     if (city && district && ward) {
-      if (shippingMethod === 'EXPRESS') setShippingFee(50000);
-      else if (shippingMethod === 'FAST') setShippingFee(80000);
-      else setShippingFee(30000); 
+      let isHcm = city === 'Hồ Chí Minh';
+      let isHaNoiOrDaNang = city === 'Hà Nội' || city === 'Đà Nẵng';
+      
+      if (!isHcm && shippingMethod === 'FAST') {
+        setShippingMethod('EXPRESS');
+      }
+
+      let baseFee = 0;
+      if (shippingMethod === 'STANDARD') {
+        baseFee = isHcm ? 15000 : (isHaNoiOrDaNang ? 30000 : 35000);
+      } else if (shippingMethod === 'EXPRESS') {
+        baseFee = isHcm ? 25000 : (isHaNoiOrDaNang ? 45000 : 50000);
+      } else if (shippingMethod === 'FAST') {
+        baseFee = isHcm ? 40000 : 0; 
+      }
+      setShippingFee(baseFee);
     } else {
       setShippingFee(0);
     }
@@ -167,7 +212,8 @@ export default function Checkout() {
         shippingFee,
         shippingMethod,
         customerNote: finalNote,
-        couponCode: appliedCoupon ? appliedCoupon.code : null
+        couponCode: appliedCoupon ? appliedCoupon.code : null,
+        spentPoints: useYPoints ? Math.min(user?.yPoints || 0, cartTotal + shippingFee - discountAmount) : 0
       };
 
       const res = await axios.post(`${API_BASE_URL}/orders`, orderBody, {
@@ -176,17 +222,21 @@ export default function Checkout() {
 
       if (res.status === 200 || res.status === 201) {
         clearCart();
+        if (refreshUser) refreshUser();
         setShowPaymentModal(false);
         Swal.fire({
           icon: 'success',
           title: 'Đặt hàng thành công!',
-          text: 'Cảm ơn bạn đã mua sắm tại Bookstore.',
+          text: 'Cảm ơn bạn đã mua sắm tại YiYi Book.',
           confirmButtonColor: '#3085d6',
-        }).then(() => navigate('/profile'));
+        }).then(() => {
+          navigate(`/order-success/${res.data.id}`);
+        });
       }
     } catch (error) {
       console.error('Order error:', error);
-      showNotification('Lỗi', 'Đã xảy ra lỗi khi đặt hàng. Vui lòng thử lại.', 'error');
+      const errorMsg = error.response?.data?.message || 'Đã xảy ra lỗi khi đặt hàng. Vui lòng thử lại.';
+      showNotification('Lỗi', errorMsg, 'error');
     } finally {
       setLoading(false);
       setIsProcessingPayment(false);
@@ -207,7 +257,10 @@ export default function Checkout() {
     submitOrder();
   };
 
-  const totalAmount = cartTotal + shippingFee - discountAmount;
+  const subtotalAfterCoupon = cartTotal + shippingFee - discountAmount;
+  const maxUsablePoints = Math.min(user?.yPoints || 0, subtotalAfterCoupon);
+  const pointsDiscount = useYPoints ? maxUsablePoints : 0;
+  const totalAmount = subtotalAfterCoupon - pointsDiscount;
 
   const paymentMethodsDetails = [
     { id: 'ZALOPAY', label: 'Ví ZaloPay', icon: <img src="https://cdn0.fahasa.com/skin/frontend/base/default/images/payment_icon/ico_zalopayapp.svg" alt="ZaloPay" className="h-6 object-contain" /> },
@@ -229,56 +282,79 @@ export default function Checkout() {
         <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row gap-8">
           <div className="lg:w-2/3 space-y-6">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-              <div className="bg-blue-50/50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm">
-                  <FaMapMarkerAlt />
+              <div className="bg-blue-50/50 px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm">
+                    <FaMapMarkerAlt />
+                  </div>
+                  <h2 className="text-lg font-bold text-gray-800 uppercase tracking-wide">Thông tin vận chuyển</h2>
                 </div>
-                <h2 className="text-lg font-bold text-gray-800 uppercase tracking-wide">Địa chỉ giao hàng</h2>
+                {user && (
+                  <button type="button" onClick={() => setShowAddressModal(true)} className="text-blue-600 text-sm font-medium hover:text-blue-800 transition-colors border border-blue-600 hover:bg-blue-50 rounded px-4 py-1.5">
+                    Thay đổi
+                  </button>
+                )}
               </div>
-              <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Họ và tên người nhận *</label>
-                  <input required type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Nhập họ và tên" className="border border-gray-200 rounded-xl px-4 py-3.5 w-full outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all bg-gray-50 focus:bg-white" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
-                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Nhập email (Tùy chọn)" className="border border-gray-200 rounded-xl px-4 py-3.5 w-full outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all bg-gray-50 focus:bg-white" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Số điện thoại *</label>
-                  <input required type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="Ví dụ: 0912345678" className="border border-gray-200 rounded-xl px-4 py-3.5 w-full outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all bg-gray-50 focus:bg-white" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Tỉnh/Thành phố *</label>
-                  <select required value={city} onChange={handleCityChange} className={`border ${city ? 'border-gray-300 text-gray-800 bg-white' : 'border-gray-200 text-gray-400 bg-gray-50'} rounded-xl px-4 py-3.5 w-full outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer`}>
-                    <option value="">Chọn Tỉnh/Thành phố</option>
-                    {provinces.map(p => (
-                      <option key={p.code} value={p.name}>{p.name_with_type}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Quận/Huyện *</label>
-                  <select required value={district} onChange={handleDistrictChange} className={`border ${district ? 'border-gray-300 text-gray-800 bg-white' : 'border-gray-200 text-gray-400 bg-gray-50'} rounded-xl px-4 py-3.5 w-full outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer`} disabled={!city}>
-                    <option value="">Chọn Quận/Huyện</option>
-                    {districts.map(d => (
-                      <option key={d.code} value={d.name}>{d.name_with_type}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Phường/Xã *</label>
-                  <select required value={ward} onChange={e => setWard(e.target.value)} className={`border ${ward ? 'border-gray-300 text-gray-800 bg-white' : 'border-gray-200 text-gray-400 bg-gray-50'} rounded-xl px-4 py-3.5 w-full outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer`} disabled={!district}>
-                    <option value="">Chọn Phường/Xã</option>
-                    {wards.map(w => (
-                      <option key={w.code} value={w.name}>{w.name_with_type}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Địa chỉ chi tiết (Số nhà, Tên đường) *</label>
-                  <input required type="text" value={address} onChange={e => setAddress(e.target.value)} placeholder="Ví dụ: 123 Lê Lợi" className="border border-gray-200 rounded-xl px-4 py-3.5 w-full outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all bg-gray-50 focus:bg-white" />
-                </div>
+              <div className="p-6">
+                {(user && addresses.length > 0) ? (
+                  <div className="space-y-2">
+                    <p className="text-gray-500">Giao hàng đến <span className="font-semibold text-gray-800">{address ? `${address}, ${ward}, ${district}, ${city}` : ''}</span></p>
+                    <p className="text-gray-500">Người nhận: <span className="font-semibold text-gray-800">{name} - {phone}</span></p>
+                  </div>
+                ) : (user && addresses.length === 0) ? (
+                  <div className="text-center py-6">
+                    <p className="text-gray-500 mb-4">Bạn chưa thiết lập địa chỉ giao hàng.</p>
+                    <button type="button" onClick={() => setShowAddressModal(true)} className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-colors">
+                      Thêm địa chỉ giao hàng
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Họ và tên người nhận *</label>
+                      <input required type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Nhập họ và tên" className="border border-gray-200 rounded-xl px-4 py-3.5 w-full outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all bg-gray-50 focus:bg-white" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
+                      <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Nhập email (Tùy chọn)" className="border border-gray-200 rounded-xl px-4 py-3.5 w-full outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all bg-gray-50 focus:bg-white" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Số điện thoại *</label>
+                      <input required type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="Ví dụ: 0912345678" className="border border-gray-200 rounded-xl px-4 py-3.5 w-full outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all bg-gray-50 focus:bg-white" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Tỉnh/Thành phố *</label>
+                      <select required value={city} onChange={handleCityChange} className={`border ${city ? 'border-gray-300 text-gray-800 bg-white' : 'border-gray-200 text-gray-400 bg-gray-50'} rounded-xl px-4 py-3.5 w-full outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer`}>
+                        <option value="">Chọn Tỉnh/Thành phố</option>
+                        {provinces.map(p => (
+                          <option key={p.code} value={p.name}>{p.name_with_type}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Quận/Huyện *</label>
+                      <select required value={district} onChange={handleDistrictChange} className={`border ${district ? 'border-gray-300 text-gray-800 bg-white' : 'border-gray-200 text-gray-400 bg-gray-50'} rounded-xl px-4 py-3.5 w-full outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer`} disabled={!city}>
+                        <option value="">Chọn Quận/Huyện</option>
+                        {districts.map(d => (
+                          <option key={d.code} value={d.name}>{d.name_with_type}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Phường/Xã *</label>
+                      <select required value={ward} onChange={e => setWard(e.target.value)} className={`border ${ward ? 'border-gray-300 text-gray-800 bg-white' : 'border-gray-200 text-gray-400 bg-gray-50'} rounded-xl px-4 py-3.5 w-full outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer`} disabled={!district}>
+                        <option value="">Chọn Phường/Xã</option>
+                        {wards.map(w => (
+                          <option key={w.code} value={w.name}>{w.name_with_type}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Địa chỉ chi tiết (Số nhà, Tên đường) *</label>
+                      <input required type="text" value={address} onChange={e => setAddress(e.target.value)} placeholder="Ví dụ: 123 Lê Lợi" className="border border-gray-200 rounded-xl px-4 py-3.5 w-full outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all bg-gray-50 focus:bg-white" />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -298,33 +374,39 @@ export default function Checkout() {
                         <span className="block font-bold text-gray-800 text-base">Giao tiêu chuẩn</span>
                       </div>
                       <div className="ml-8">
-                        <strong className="text-gray-900 block text-sm mb-1">30.000 đ</strong>
+                        <strong className="text-gray-900 block text-sm mb-1">
+                          {city === 'Hồ Chí Minh' ? '15.000 đ' : (city === 'Hà Nội' || city === 'Đà Nẵng' ? '30.000 đ' : '35.000 đ')}
+                        </strong>
                         <span className="text-gray-500 text-xs">Từ 3 - 5 ngày làm việc</span>
                       </div>
                     </label>
-                    <label className={`flex flex-col justify-between cursor-pointer border-2 rounded-xl p-4 transition-all ${shippingMethod === 'EXPRESS' ? 'border-blue-500 bg-blue-50/30 shadow-sm' : 'border-gray-100 hover:border-gray-300 hover:bg-gray-50'}`}>
+                    <label className={`flex flex-col justify-between cursor-pointer border-2 rounded-xl p-4 transition-all ${shippingMethod === 'EXPRESS' ? 'border-blue-500 bg-blue-50/30 shadow-sm' : 'border-gray-100 hover:border-gray-300 hover:bg-gray-50'} ${city !== 'Hồ Chí Minh' ? 'md:col-span-2' : ''}`}>
                       <div className="flex items-center gap-3 mb-2">
                         <input type="radio" name="shippingMethod" value="EXPRESS" checked={shippingMethod === 'EXPRESS'} onChange={(e) => setShippingMethod(e.target.value)} className="accent-blue-600 w-5 h-5" />
                         <span className="block font-bold text-gray-800 text-base">Giao nhanh</span>
                       </div>
                       <div className="ml-8">
-                        <strong className="text-gray-900 block text-sm mb-1">50.000 đ</strong>
+                        <strong className="text-gray-900 block text-sm mb-1">
+                          {city === 'Hồ Chí Minh' ? '25.000 đ' : (city === 'Hà Nội' || city === 'Đà Nẵng' ? '45.000 đ' : '50.000 đ')}
+                        </strong>
                         <span className="text-gray-500 text-xs">Từ 1 - 2 ngày làm việc</span>
                       </div>
                     </label>
-                    <label className={`flex flex-col justify-between cursor-pointer border-2 rounded-xl p-4 transition-all ${shippingMethod === 'FAST' ? 'border-red-500 bg-red-50/30 shadow-sm' : 'border-gray-100 hover:border-gray-300 hover:bg-gray-50'} md:col-span-2`}>
-                      <div className="flex items-center gap-3 mb-2">
-                        <input type="radio" name="shippingMethod" value="FAST" checked={shippingMethod === 'FAST'} onChange={(e) => setShippingMethod(e.target.value)} className="accent-red-600 w-5 h-5" />
-                        <span className="block font-bold text-red-600 text-base">Hỏa tốc (2H)</span>
-                      </div>
-                      <div className="ml-8 flex justify-between items-center">
-                        <div>
-                           <strong className="text-red-600 block text-sm mb-1">80.000 đ</strong>
-                           <span className="text-gray-500 text-xs">Nhận hàng ngay trong ngày (chỉ nội thành)</span>
+                    {city === 'Hồ Chí Minh' && (
+                      <label className={`flex flex-col justify-between cursor-pointer border-2 rounded-xl p-4 transition-all ${shippingMethod === 'FAST' ? 'border-red-500 bg-red-50/30 shadow-sm' : 'border-gray-100 hover:border-gray-300 hover:bg-gray-50'} md:col-span-2`}>
+                        <div className="flex items-center gap-3 mb-2">
+                          <input type="radio" name="shippingMethod" value="FAST" checked={shippingMethod === 'FAST'} onChange={(e) => setShippingMethod(e.target.value)} className="accent-red-600 w-5 h-5" />
+                          <span className="block font-bold text-red-600 text-base">Hỏa tốc (2H)</span>
                         </div>
-                        <FaShippingFast className="text-red-500 text-4xl opacity-80" />
-                      </div>
-                    </label>
+                        <div className="ml-8 flex justify-between items-center">
+                          <div>
+                             <strong className="text-red-600 block text-sm mb-1">40.000 đ</strong>
+                             <span className="text-gray-500 text-xs">Nhận hàng ngay trong ngày (chỉ nội thành TP.HCM)</span>
+                          </div>
+                          <FaShippingFast className="text-red-500 text-4xl opacity-80" />
+                        </div>
+                      </label>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-8 bg-gray-50 rounded-xl border border-gray-200 border-dashed">
@@ -481,6 +563,15 @@ export default function Checkout() {
                       <span>-{discountAmount.toLocaleString('vi-VN')} đ</span>
                     </div>
                   )}
+                  {user && user.yPoints > 0 && (
+                    <div className="flex justify-between items-center text-gray-600 text-sm py-1">
+                      <label className="flex items-center gap-2 cursor-pointer select-none">
+                        <input type="checkbox" checked={useYPoints} onChange={e => setUseYPoints(e.target.checked)} className="accent-red-600 w-4 h-4 rounded" />
+                        <span className="flex items-center gap-1">Dùng Y-Point <div className="w-3.5 h-3.5 bg-yellow-400 text-white rounded-full flex items-center justify-center text-[8px] font-bold">Y</div> (Có: {(user.yPoints).toLocaleString()})</span>
+                      </label>
+                      {useYPoints && <span className="font-medium text-red-600">-{pointsDiscount.toLocaleString('vi-VN')} đ</span>}
+                    </div>
+                  )}
                   <div className="pt-5 mt-2 border-t border-gray-200/80 border-dashed">
                     <div className="flex justify-between items-center mb-1">
                       <span className="text-gray-800 font-bold text-lg">Tổng thanh toán</span>
@@ -502,7 +593,7 @@ export default function Checkout() {
                     {loading ? 'ĐANG XỬ LÝ...' : (cart.length === 0 ? 'GIỎ HÀNG TRỐNG' : 'ĐẶT HÀNG NGAY')}
                   </button>
                   <p className="text-center text-xs text-gray-500 mt-4 px-2 leading-relaxed">
-                    Bằng việc tiến hành Đặt hàng, Bạn đã đồng ý với <a href="#" className="text-blue-600 hover:underline font-medium">Điều khoản & Điều kiện</a> của Bookstore.
+                    Bằng việc tiến hành Đặt hàng, Bạn đã đồng ý với <a href="#" className="text-blue-600 hover:underline font-medium">Điều khoản & Điều kiện</a> của YiYi Book.
                   </p>
                 </div>
               </div>
@@ -510,6 +601,54 @@ export default function Checkout() {
           </div>
         </form>
       </div>
+
+      <AddressModal
+        isOpen={showAddressModal}
+        onClose={() => setShowAddressModal(false)}
+        addresses={addresses}
+        onSelect={(addr) => {
+          setName(addr.recipientName);
+          setPhone(addr.phone);
+          setCity(addr.city);
+          setDistrict(addr.district);
+          setWard(addr.ward);
+          setAddress(addr.street);
+          setShowAddressModal(false);
+        }}
+        onAddAddress={(newAddr) => {
+          setAddresses([...addresses, newAddr]);
+          if (addresses.length === 0 || newAddr.isDefault) {
+            setName(newAddr.recipientName);
+            setPhone(newAddr.phone);
+            setCity(newAddr.city);
+            setDistrict(newAddr.district);
+            setWard(newAddr.ward);
+            setAddress(newAddr.street);
+          }
+        }}
+        onDeleteAddress={async (id) => {
+          if (!window.confirm('Bạn có chắc muốn xóa địa chỉ này?')) return;
+          try {
+            await axios.delete(`${API_BASE_URL}/addresses/${id}`, {
+              headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            setAddresses(addresses.filter(a => a.id !== id));
+          } catch (e) {
+            showNotification('Lỗi', 'Không thể xóa địa chỉ', 'error');
+          }
+        }}
+        onSetDefaultAddress={async (id) => {
+          try {
+            await axios.put(`${API_BASE_URL}/addresses/${id}/default`, {}, {
+              headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            fetchAddresses();
+          } catch (e) {
+            showNotification('Lỗi', 'Không thể đặt mặc định', 'error');
+          }
+        }}
+        API_BASE_URL={API_BASE_URL}
+      />
 
       {showPaymentModal && (
         <div className="fixed inset-0 bg-black/60 z-[70] flex items-center justify-center p-4 backdrop-blur-sm">
@@ -593,7 +732,12 @@ export default function Checkout() {
                         <div className="flex justify-between items-start">
                           <div>
                             <h4 className="font-extrabold text-gray-800 text-lg uppercase tracking-wider">{coupon.code}</h4>
-                            <p className="text-sm text-gray-600 mt-1 leading-snug">{coupon.description}</p>
+                            <p className="text-sm text-gray-600 mt-1 leading-snug">
+                              {coupon.discountType === 'PERCENTAGE' 
+                                ? `Giảm ${coupon.discountValue}% tổng đơn hàng${coupon.maxDiscountAmount > 0 ? ` (Tối đa ${coupon.maxDiscountAmount.toLocaleString('vi-VN')}đ)` : ''}`
+                                : `Giảm ${coupon.discountValue.toLocaleString('vi-VN')} đ`
+                              }
+                            </p>
                           </div>
                         </div>
                         <div className="mt-4 flex justify-between items-end">

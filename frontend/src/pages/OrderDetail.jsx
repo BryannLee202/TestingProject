@@ -156,7 +156,7 @@ export default function OrderDetail() {
                   </div>
                   <div className="text-left md:text-center">
                     <span className="block font-bold text-sm text-gray-800">Đã đặt hàng</span>
-                    <span className="text-xs text-gray-400">{new Date(order.createdAt).toLocaleDateString('vi-VN')}</span>
+                    <span className="text-xs text-gray-400">{new Date(order.createdAt).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                   </div>
                 </div>
 
@@ -217,7 +217,7 @@ export default function OrderDetail() {
             {/* Store details & Invoice title */}
             <div className="flex justify-between items-start border-b border-gray-200 pb-6 mb-6">
               <div className="space-y-1">
-                <h2 className="text-2xl font-black text-primary uppercase">GRAPE BOOK</h2>
+                <h2 className="text-2xl font-black text-primary uppercase">YIYI BOOK</h2>
                 <p className="text-xs text-gray-500">Địa chỉ: 123 Đường Láng, Đống Đa, Hà Nội</p>
                 <p className="text-xs text-gray-500">Hotline: 1900 1234 | Website: grapebook.com</p>
               </div>
@@ -227,7 +227,7 @@ export default function OrderDetail() {
                 </h1>
                 <p className="text-sm font-semibold text-gray-800">Mã đơn: <strong>#GB-{order.id}</strong></p>
                 <p className="text-xs text-gray-400">
-                  Ngày in: {new Date().toLocaleDateString('vi-VN')} {new Date().toLocaleTimeString('vi-VN')}
+                  Ngày in: {new Date().toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                 </p>
               </div>
             </div>
@@ -300,7 +300,7 @@ export default function OrderDetail() {
                   <span className="block font-bold">Người lập hóa đơn</span>
                   <span className="text-gray-400 italic">(Ký, ghi rõ họ tên)</span>
                 </div>
-                <div className="h-12"><strong>Grape Book</strong></div>
+                <div className="h-12"><strong>YiYi Book</strong></div>
               </div>
 
               {/* Right calculations details */}

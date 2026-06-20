@@ -14,9 +14,9 @@ export default function ComboTrending({ data = [] }) {
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {data.map((product, index) => {
           // Tính % tiết kiệm (giả lập hoặc dùng thật nếu có)
-          const discountPercent = product.oldPrice && product.price 
-            ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100) 
-            : product.discount || 20; // default 20% if missing
+          const discountPercent = product.oldPrice > 0 && product.price 
+            ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)
+            : product.discount || 0;
 
           return (
             <Link 
@@ -24,10 +24,12 @@ export default function ComboTrending({ data = [] }) {
               to={`/book/${product.id}`}
               className="flex flex-col bg-white p-3 rounded-lg border border-transparent hover:border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group relative"
             >
-              {/* Discount Label */}
-              <div className="absolute top-2 left-2 z-10 bg-green-500 text-white text-[11px] font-bold px-2 py-1 rounded-sm shadow-sm flex items-center">
-                Tiết kiệm {discountPercent}%
-              </div>
+              {/* Discount Tag */}
+              {discountPercent > 0 && (
+                <div className="absolute top-2 left-2 z-10 bg-green-500 text-white text-[11px] font-bold px-2 py-1 rounded-sm shadow-sm flex items-center">
+                  Tiết kiệm {discountPercent}%
+                </div>
+              )}
               
               {/* Image */}
               <div className="relative pt-[100%] mb-3 overflow-hidden rounded-md bg-gray-50 mt-4">
@@ -59,7 +61,7 @@ export default function ComboTrending({ data = [] }) {
                 <span className="text-primary font-bold text-lg leading-none">
                   {product.price ? product.price.toLocaleString('vi-VN') : '0'} đ
                 </span>
-                {product.oldPrice && (
+                {product.oldPrice > 0 && (
                   <span className="text-gray-400 text-xs line-through mt-1">
                     {product.oldPrice.toLocaleString('vi-VN')} đ
                   </span>

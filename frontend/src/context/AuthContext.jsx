@@ -19,15 +19,32 @@ export const AuthProvider = ({ children }) => {
     if (token && userData) {
       setUser(JSON.parse(userData));
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      refreshUser(token);
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
+
+  const refreshUser = async (tokenOverride) => {
+    try {
+      const token = tokenOverride || localStorage.getItem('token');
+      if (!token) return;
+      const res = await axios.get(`${API_BASE_URL}/users/profile`, { headers: { Authorization: `Bearer ${token}` } });
+      setUser(res.data);
+      localStorage.setItem('user', JSON.stringify(res.data));
+    } catch(e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const login = (userData, token) => {
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
     localStorage.setItem('token', token);
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    refreshUser(token);
   };
 
   const logout = () => {
@@ -44,7 +61,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, updateProfile, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, updateProfile, loading, refreshUser }}>
       {!loading && children}
     </AuthContext.Provider>
   );

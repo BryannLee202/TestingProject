@@ -3,6 +3,8 @@ package com.bookstore.controller;
 import com.bookstore.entity.Role;
 import com.bookstore.entity.User;
 import com.bookstore.repository.UserRepository;
+import com.bookstore.repository.CartRepository;
+import com.bookstore.entity.Cart;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,9 @@ public class AdminUserController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private CartRepository cartRepository;
 
     // Lấy danh sách tất cả user
     @GetMapping
@@ -54,12 +59,16 @@ public class AdminUserController {
         }
         
         try {
+            // Xóa giỏ hàng trước (vì giỏ hàng tự động tạo khi đăng ký)
+            Optional<Cart> cartOpt = cartRepository.findByUserId(id);
+            cartOpt.ifPresent(cart -> cartRepository.delete(cart));
+
             userRepository.deleteById(id);
             return ResponseEntity.ok(Map.of("message", "User deleted successfully"));
         } catch (Exception e) {
-            // Lỗi do Data Integrity (đã có đơn hàng/giỏ hàng)
+            // Lỗi do Data Integrity (đã có đơn hàng hoặc đánh giá)
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(Map.of("message", "Không thể xóa người dùng này vì họ đã có dữ liệu giao dịch (Giỏ hàng/Đơn hàng)."));
+                    .body(Map.of("message", "Không thể xóa người dùng này vì họ đã có dữ liệu giao dịch (Đơn hàng/Đánh giá)."));
         }
     }
 }

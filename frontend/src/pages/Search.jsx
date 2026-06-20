@@ -14,14 +14,12 @@ export default function Search() {
 
   useEffect(() => {
     const fetchResults = async () => {
-      if (!query) {
-        setResults([]);
-        setLoading(false);
-        return;
-      }
       setLoading(true);
       try {
-        const res = await axios.get(`${API_BASE_URL}/books/search?keyword=${encodeURIComponent(query)}`);
+        const endpoint = query 
+          ? `${API_BASE_URL}/books/search?keyword=${encodeURIComponent(query)}`
+          : `${API_BASE_URL}/books`;
+        const res = await axios.get(endpoint);
         setResults(res.data);
       } catch (error) {
         console.error('Lỗi khi tìm kiếm sách:', error);
@@ -48,7 +46,11 @@ export default function Search() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-800">
-          Kết quả tìm kiếm cho: <span className="text-primary">"{query}"</span>
+          {query ? (
+            <>Kết quả tìm kiếm cho: <span className="text-primary">"{query}"</span></>
+          ) : (
+            <>Tất cả sản phẩm</>
+          )}
         </h1>
         <p className="text-gray-500 mt-2">Tìm thấy {results.length} kết quả phù hợp</p>
       </div>
@@ -86,7 +88,7 @@ export default function Search() {
               <div className="mt-auto">
                 <div className="flex items-end gap-2 mb-3">
                   <span className="text-primary font-bold">{formatPrice(book.price)}</span>
-                  {book.oldPrice && (
+                  {book.oldPrice > 0 && (
                     <span className="text-xs text-gray-400 line-through mb-0.5">{formatPrice(book.oldPrice)}</span>
                   )}
                 </div>

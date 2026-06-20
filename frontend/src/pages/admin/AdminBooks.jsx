@@ -9,7 +9,9 @@ import {
   FaExclamationTriangle,
   FaBook,
   FaTimes,
-  FaCheck
+  FaCheck,
+  FaFileExcel,
+  FaUpload
 } from 'react-icons/fa';
 
 export default function AdminBooks() {
@@ -18,6 +20,7 @@ export default function AdminBooks() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('');
+  const [selectedIds, setSelectedIds] = useState([]);
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -35,6 +38,7 @@ export default function AdminBooks() {
   const [stockQuantity, setStockQuantity] = useState('');
   const [salesCount, setSalesCount] = useState('0');
   const [imageUrl, setImageUrl] = useState('');
+  const [additionalImages, setAdditionalImages] = useState(['']);
   const [isCombo, setIsCombo] = useState(false);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
@@ -77,6 +81,7 @@ export default function AdminBooks() {
     setStockQuantity('');
     setSalesCount('0');
     setImageUrl('');
+    setAdditionalImages(['']);
     setIsCombo(false);
     setIsModalOpen(true);
   };
@@ -94,6 +99,7 @@ export default function AdminBooks() {
     setStockQuantity(book.stockQuantity ? book.stockQuantity.toString() : '');
     setSalesCount(book.salesCount ? book.salesCount.toString() : '0');
     setImageUrl(book.imageUrl || book.image_url || '');
+    setAdditionalImages(book.additionalImages?.length > 0 ? book.additionalImages : ['']);
     setIsCombo(book.isCombo || false);
     setIsModalOpen(true);
   };
@@ -132,6 +138,48 @@ export default function AdminBooks() {
     });
   };
 
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedIds(filteredBooks.map(b => b.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectBook = (id) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedIds.length === 0) return;
+    Swal.fire({
+      title: `Xóa ${selectedIds.length} sách đã chọn?`,
+      text: "Dữ liệu sẽ bị xóa vĩnh viễn khỏi hệ thống!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#EF4444',
+      cancelButtonColor: '#6B7280',
+      confirmButtonText: 'Đồng ý xóa',
+      cancelButtonText: 'Hủy'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        Swal.fire({ title: 'Đang xóa...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        try {
+          // Xóa từng sách (do chưa có API xóa hàng loạt)
+          await Promise.all(selectedIds.map(id => axios.delete(`${API_BASE_URL}/books/${id}`)));
+          setBooks(prev => prev.filter(b => !selectedIds.includes(b.id)));
+          setSelectedIds([]);
+          Swal.fire({ icon: 'success', title: 'Đã xóa!', text: 'Các sách đã chọn đã được xóa.', timer: 1500, showConfirmButton: false });
+        } catch (error) {
+          console.error('Error bulk deleting books:', error);
+          Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Có lỗi xảy ra khi xóa một số sách, vui lòng thử lại.' });
+        }
+      }
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title || !price || !stockQuantity) {
@@ -153,6 +201,7 @@ export default function AdminBooks() {
       stockQuantity: parseInt(stockQuantity) || 0,
       salesCount: parseInt(salesCount) || 0,
       imageUrl: imageUrl || null,
+      additionalImages: additionalImages.filter(img => img.trim() !== ''),
       isCombo: isCombo,
       category: categoryId ? { id: parseInt(categoryId) } : null
     };
@@ -191,6 +240,49 @@ export default function AdminBooks() {
     }
   };
 
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      Swal.fire({
+        title: 'Đang xử lý...',
+        text: 'Vui lòng chờ trong khi hệ thống nhập dữ liệu',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      const res = await axios.post(`${API_BASE_URL}/books/import`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Nhập thành công',
+        text: 'Dữ liệu sách đã được thêm vào hệ thống.',
+        timer: 1500
+      });
+      fetchData();
+    } catch (error) {
+      console.error('Lỗi import:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi tải tệp',
+        text: error.response?.data?.message || 'Có lỗi xảy ra, vui lòng kiểm tra lại tệp Excel.'
+      });
+    } finally {
+      e.target.value = ''; // Reset input
+    }
+  };
+
   // Lọc sách
   const filteredBooks = books.filter(book => {
     const matchesSearch = book.title?.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -207,13 +299,46 @@ export default function AdminBooks() {
           <h2 className="text-2xl font-bold text-gray-800">Quản lý Sách</h2>
           <p className="text-gray-500 text-sm mt-1">Cập nhật thông tin chi tiết, giá bán, tồn kho các đầu sách.</p>
         </div>
-        <button 
-          onClick={openAddModal}
-          className="bg-primary text-white hover:bg-primary-light font-medium py-2.5 px-5 rounded-lg inline-flex items-center gap-2 shadow-sm transition-all cursor-pointer"
-        >
-          <FaPlus />
-          <span>Thêm sách mới</span>
-        </button>
+        <div className="flex flex-wrap gap-2 justify-end">
+          {selectedIds.length > 0 && (
+            <button 
+              onClick={handleBulkDelete}
+              className="bg-red-500 text-white hover:bg-red-600 font-medium py-2.5 px-4 rounded-lg inline-flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+            >
+              <FaTrash />
+              <span className="hidden sm:inline">Xóa đã chọn ({selectedIds.length})</span>
+            </button>
+          )}
+          <a
+            href={`${API_BASE_URL}/books/import/template`}
+            className="bg-green-600 text-white hover:bg-green-700 font-medium py-2.5 px-4 rounded-lg inline-flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+            download
+          >
+            <FaFileExcel />
+            <span className="hidden sm:inline">Tải tệp mẫu</span>
+          </a>
+          <button 
+            onClick={() => document.getElementById('file-upload').click()}
+            className="bg-indigo-600 text-white hover:bg-indigo-700 font-medium py-2.5 px-4 rounded-lg inline-flex items-center gap-2 shadow-sm transition-all cursor-pointer relative"
+          >
+            <FaUpload />
+            <span className="hidden sm:inline">Nhập từ Excel</span>
+            <input 
+              id="file-upload" 
+              type="file" 
+              accept=".xlsx, .xls" 
+              className="hidden" 
+              onChange={handleFileUpload} 
+            />
+          </button>
+          <button 
+            onClick={openAddModal}
+            className="bg-primary text-white hover:bg-primary-light font-medium py-2.5 px-4 rounded-lg inline-flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+          >
+            <FaPlus />
+            <span className="hidden sm:inline">Thêm sách mới</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter and Search Bar */}
@@ -258,6 +383,14 @@ export default function AdminBooks() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50 text-xs font-bold text-gray-400 uppercase border-b border-gray-250">
+                  <th className="px-6 py-4 w-10">
+                    <input 
+                      type="checkbox" 
+                      className="rounded border-gray-300 text-primary focus:ring-primary w-4 h-4 cursor-pointer"
+                      checked={filteredBooks.length > 0 && selectedIds.length === filteredBooks.length}
+                      onChange={handleSelectAll}
+                    />
+                  </th>
                   <th className="px-6 py-4">Hình ảnh</th>
                   <th className="px-6 py-4">Tên Sách & Tác giả</th>
                   <th className="px-6 py-4">Danh mục</th>
@@ -270,7 +403,15 @@ export default function AdminBooks() {
               </thead>
               <tbody className="divide-y divide-gray-100 text-sm">
                 {filteredBooks.map((book) => (
-                  <tr key={book.id} className="hover:bg-gray-50/40">
+                  <tr key={book.id} className={`hover:bg-gray-50/40 ${selectedIds.includes(book.id) ? 'bg-primary/5' : ''}`}>
+                    <td className="px-6 py-4">
+                      <input 
+                        type="checkbox" 
+                        className="rounded border-gray-300 text-primary focus:ring-primary w-4 h-4 cursor-pointer"
+                        checked={selectedIds.includes(book.id)}
+                        onChange={() => handleSelectBook(book.id)}
+                      />
+                    </td>
                     <td className="px-6 py-4 shrink-0">
                       <div className="w-12 h-16 bg-gray-50 rounded border border-gray-150 flex items-center justify-center overflow-hidden">
                         <img 
@@ -289,7 +430,7 @@ export default function AdminBooks() {
                     <td className="px-6 py-4 text-gray-650">{book.category?.name || 'Chưa phân loại'}</td>
                     <td className="px-6 py-4">
                       <div className="font-bold text-primary">{book.price.toLocaleString('vi-VN')} đ</div>
-                      {book.oldPrice && (
+                      {book.oldPrice > 0 && (
                         <div className="text-xs text-gray-400 line-through mt-0.5">{book.oldPrice.toLocaleString('vi-VN')} đ</div>
                       )}
                       {book.discount > 0 && (
@@ -535,6 +676,42 @@ export default function AdminBooks() {
                   </div>
                 </div>
               )}
+
+              {/* Additional Images */}
+              <div className="space-y-2 mt-4 pt-4 border-t border-gray-100">
+                <label className="text-xs font-bold text-gray-600 uppercase">Các link ảnh bổ sung (Tùy chọn)</label>
+                {additionalImages.map((img, index) => (
+                  <div key={index} className="flex gap-2 items-center">
+                    <input 
+                      type="text"
+                      value={img}
+                      onChange={(e) => {
+                        const newImgs = [...additionalImages];
+                        newImgs[index] = e.target.value;
+                        setAdditionalImages(newImgs);
+                      }}
+                      placeholder="http://example.com/other-image.jpg"
+                      className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-primary text-sm"
+                    />
+                    {additionalImages.length > 1 && (
+                      <button 
+                        type="button"
+                        onClick={() => setAdditionalImages(additionalImages.filter((_, i) => i !== index))}
+                        className="px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-200"
+                      >
+                        <FaTrash />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button 
+                  type="button"
+                  onClick={() => setAdditionalImages([...additionalImages, ''])}
+                  className="flex items-center gap-1.5 text-xs text-primary font-bold hover:underline"
+                >
+                  <FaPlus className="text-[10px]" /> Thêm ảnh bổ sung
+                </button>
+              </div>
 
               {/* Form Footer */}
               <div className="pt-4 border-t border-gray-150 flex justify-end gap-3.5">

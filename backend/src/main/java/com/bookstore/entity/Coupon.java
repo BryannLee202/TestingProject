@@ -37,4 +37,7 @@ public class Coupon {
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
+
+    @Column(name = "max_discount_amount")
+    private Double maxDiscountAmount;
 }

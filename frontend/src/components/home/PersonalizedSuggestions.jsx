@@ -79,7 +79,7 @@ export default function PersonalizedSuggestions({ data = [] }) {
                     <span className="text-primary font-bold text-lg leading-none mb-1">
                       {product.price ? product.price.toLocaleString('vi-VN') : '0'} đ
                     </span>
-                    {product.oldPrice && (
+                    {product.oldPrice > 0 && (
                       <span className="text-gray-400 text-xs line-through">
                         {product.oldPrice.toLocaleString('vi-VN')} đ
                       </span>
