@@ -1,10 +1,10 @@
-# 📚 Grape Book - Website Bán Sách Trực Tuyến
+# 📚 YiYi Book - Website Bán Sách Trực Tuyến
 
-![Grape Book Banner](https://thietkelogo.edu.vn/uploads/images/thiet-ke-do-hoa-khac/banner-sach/15.png)
+![YiYi Book Banner](https://thietkelogo.edu.vn/uploads/images/thiet-ke-do-hoa-khac/banner-sach/15.png)
 
 ## 📋 Giới Thiệu Dự Án
 
-Grape Book là một ứng dụng web bán sách trực tuyến hiện đại được phát triển với mục tiêu cung cấp trải nghiệm mua sách dễ dàng, giao diện đẹp mắt và tiện lợi cho người dùng. Dự án sử dụng kiến trúc tách biệt hoàn toàn giữa Frontend và Backend.
+YiYi Book là một ứng dụng web bán sách trực tuyến hiện đại được phát triển với mục tiêu cung cấp trải nghiệm mua sách dễ dàng, giao diện đẹp mắt và tiện lợi cho người dùng. Dự án sử dụng kiến trúc tách biệt hoàn toàn giữa Frontend và Backend, tích hợp hệ thống điểm thưởng Y-Point và quản lý khuyến mãi linh hoạt.
 
 🌐 **Demo Frontend (Vercel)**: [https://frontend-pi-tawny-48.vercel.app](https://frontend-pi-tawny-48.vercel.app)
 
@@ -34,8 +34,11 @@ Grape Book là một ứng dụng web bán sách trực tuyến hiện đại đ
 - 🔍 Tìm kiếm sách thông minh, lọc sách theo danh mục.
 - 🌟 Xem chi tiết sách, đánh giá (Review) và chấm điểm.
 - ⚡ Săn Flash Sale với bộ đếm ngược.
-- 🎟️ Áp dụng mã giảm giá (Coupon).
+- 🎟️ Áp dụng mã giảm giá (Coupon) và Freeship.
 - 💳 Đặt hàng và tích hợp thanh toán quét mã VietQR động tự động điền số tiền và nội dung.
+- 🧾 Hỗ trợ xuất hóa đơn VAT (Hóa đơn điện tử).
+- 🎁 Hệ thống Y-Point: Tích điểm khi mua hàng, đổi Voucher nhận Y-Point/Freeship, dùng Y-Point giảm giá đơn hàng.
+- 👑 Xếp hạng thành viên (Bạc, Vàng, Kim Cương) và các ưu đãi đặc quyền.
 - 📦 Theo dõi trạng thái vận chuyển của đơn hàng.
 - 🔔 Nhận thông báo hệ thống.
 
@@ -44,6 +47,9 @@ Grape Book là một ứng dụng web bán sách trực tuyến hiện đại đ
 - 📚 Quản lý Sách (Thêm, Sửa, Xóa).
 - 🗂️ Quản lý Danh mục sách.
 - 📦 Quản lý Đơn hàng (Cập nhật trạng thái giao hàng, Hủy đơn).
+- 🎁 Quản lý mã ưu đãi Nạp Y-Point/Freeship (Reward Vouchers).
+- 🎟️ Quản lý Coupon & Freeship Coupons.
+- 👥 Quản lý Người dùng và Lịch sử giao dịch điểm.
 - 🖼️ Quản lý Banner quảng cáo.
 
 ## 🔧 Hướng Dẫn Cài Đặt (Chạy Local)
