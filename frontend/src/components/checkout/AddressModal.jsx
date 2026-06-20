@@ -9,8 +9,10 @@ const provincesList = Object.values(treeData).sort((a,b) => a.name.localeCompare
 export default function AddressModal({ isOpen, onClose, addresses, onSelect, onAddAddress, onDeleteAddress, onSetDefaultAddress, API_BASE_URL }) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newAddress, setNewAddress] = useState({
-    recipientName: '',
+    lastName: '',
+    firstName: '',
     phone: '',
+    country: 'Việt Nam',
     street: '',
     ward: '',
     district: '',
@@ -64,7 +66,16 @@ export default function AddressModal({ isOpen, onClose, addresses, onSelect, onA
     e.preventDefault();
     setSaving(true);
     try {
-      const res = await axios.post(`${API_BASE_URL}/addresses`, newAddress);
+      const addressToSave = {
+        recipientName: `${newAddress.lastName} ${newAddress.firstName}`.trim(),
+        phone: newAddress.phone,
+        city: newAddress.city,
+        district: newAddress.district,
+        ward: newAddress.ward,
+        street: newAddress.street,
+        isDefault: newAddress.isDefault
+      };
+      const res = await axios.post(`${API_BASE_URL}/addresses`, addressToSave);
       onAddAddress(res.data);
       setShowAddForm(false);
       showNotification('Thành công', 'Đã thêm địa chỉ mới', 'success');
@@ -87,10 +98,9 @@ export default function AddressModal({ isOpen, onClose, addresses, onSelect, onA
       {/* Modal Content */}
       <div className="relative bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-fade-in-up">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-          <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-            <FaMapMarkerAlt className="text-primary" />
-            {showAddForm ? 'Thêm địa chỉ mới' : 'Địa chỉ giao hàng của tôi'}
+        <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+          <h2 className="text-xl text-gray-800">
+            {showAddForm ? 'Thêm địa chỉ mới' : <span className="flex items-center gap-2 font-bold"><FaMapMarkerAlt className="text-primary" /> Địa chỉ giao hàng của tôi</span>}
           </h2>
           <button 
             onClick={onClose}
@@ -103,52 +113,66 @@ export default function AddressModal({ isOpen, onClose, addresses, onSelect, onA
         {/* Body */}
         <div className="p-6 overflow-y-auto flex-1">
           {showAddForm ? (
-            <form id="add-address-form" onSubmit={handleSaveNew} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Họ và tên *</label>
-                  <input required type="text" value={newAddress.recipientName} onChange={e => setNewAddress({...newAddress, recipientName: e.target.value})} className="border border-gray-200 rounded-xl px-4 py-3 w-full focus:border-primary focus:ring-1 focus:ring-primary outline-none" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Số điện thoại *</label>
-                  <input required type="tel" value={newAddress.phone} onChange={e => setNewAddress({...newAddress, phone: e.target.value})} className="border border-gray-200 rounded-xl px-4 py-3 w-full focus:border-primary focus:ring-1 focus:ring-primary outline-none" />
-                </div>
+            <form id="add-address-form" onSubmit={handleSaveNew} className="space-y-4 px-2 py-2">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
+                <label className="sm:w-1/4 text-sm font-medium text-gray-700">Họ<span className="text-red-500">*</span></label>
+                <input required type="text" value={newAddress.lastName} onChange={e => setNewAddress({...newAddress, lastName: e.target.value})} className="sm:w-3/4 border border-gray-200 rounded px-3 py-2.5 focus:border-red-500 focus:outline-none transition-colors" />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Tỉnh / Thành phố *</label>
-                  <select required value={newAddress.city} onChange={handleCityChange} className={`border ${newAddress.city ? 'border-gray-300 text-gray-800 bg-white' : 'border-gray-200 text-gray-400 bg-gray-50'} rounded-xl px-4 py-3 w-full focus:border-primary focus:ring-1 focus:ring-primary outline-none`}>
-                    <option value="">Chọn Tỉnh/Thành phố</option>
-                    {provincesList.map(p => (
-                      <option key={p.code} value={p.name}>{p.name_with_type}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Quận / Huyện *</label>
-                  <select required value={newAddress.district} onChange={handleDistrictChange} className={`border ${newAddress.district ? 'border-gray-300 text-gray-800 bg-white' : 'border-gray-200 text-gray-400 bg-gray-50'} rounded-xl px-4 py-3 w-full focus:border-primary focus:ring-1 focus:ring-primary outline-none`} disabled={!newAddress.city}>
-                    <option value="">Chọn Quận/Huyện</option>
-                    {districts.map(d => (
-                      <option key={d.code} value={d.name}>{d.name_with_type}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Phường / Xã *</label>
-                  <select required value={newAddress.ward} onChange={e => setNewAddress({...newAddress, ward: e.target.value})} className={`border ${newAddress.ward ? 'border-gray-300 text-gray-800 bg-white' : 'border-gray-200 text-gray-400 bg-gray-50'} rounded-xl px-4 py-3 w-full focus:border-primary focus:ring-1 focus:ring-primary outline-none`} disabled={!newAddress.district}>
-                    <option value="">Chọn Phường/Xã</option>
-                    {wards.map(w => (
-                      <option key={w.code} value={w.name}>{w.name_with_type}</option>
-                    ))}
-                  </select>
-                </div>
+              
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
+                <label className="sm:w-1/4 text-sm font-medium text-gray-700">Tên<span className="text-red-500">*</span></label>
+                <input required type="text" value={newAddress.firstName} onChange={e => setNewAddress({...newAddress, firstName: e.target.value})} className="sm:w-3/4 border border-gray-200 rounded px-3 py-2.5 focus:border-red-500 focus:outline-none transition-colors" />
               </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Tên đường, Tòa nhà, Số nhà *</label>
-                <input required type="text" value={newAddress.street} onChange={e => setNewAddress({...newAddress, street: e.target.value})} className="border border-gray-200 rounded-xl px-4 py-3 w-full focus:border-primary focus:ring-1 focus:ring-primary outline-none" />
+
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
+                <label className="sm:w-1/4 text-sm font-medium text-gray-700">Điện thoại<span className="text-red-500">*</span></label>
+                <input required type="tel" value={newAddress.phone} onChange={e => setNewAddress({...newAddress, phone: e.target.value})} className="sm:w-3/4 border border-gray-200 rounded px-3 py-2.5 focus:border-red-500 focus:outline-none transition-colors" />
               </div>
-              <div className="flex items-center gap-2 mt-4">
-                <input type="checkbox" id="isDefault" checked={newAddress.isDefault} onChange={e => setNewAddress({...newAddress, isDefault: e.target.checked})} className="w-4 h-4 text-primary focus:ring-primary rounded border-gray-300" />
+
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
+                <label className="sm:w-1/4 text-sm font-medium text-gray-700">Quốc gia<span className="text-red-500">*</span></label>
+                <select value={newAddress.country} onChange={e => setNewAddress({...newAddress, country: e.target.value})} className="sm:w-3/4 border border-gray-200 rounded px-3 py-2.5 focus:border-red-500 focus:outline-none bg-white">
+                  <option value="Việt Nam">Việt Nam</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
+                <label className="sm:w-1/4 text-sm font-medium text-gray-700">Tỉnh/Thành phố<span className="text-red-500">*</span></label>
+                <select required value={newAddress.city} onChange={handleCityChange} className={`sm:w-3/4 border border-gray-200 rounded px-3 py-2.5 focus:border-red-500 focus:outline-none bg-white ${!newAddress.city ? 'text-gray-400' : 'text-gray-800'}`}>
+                  <option value="">Vui lòng chọn Tỉnh/Thành phố</option>
+                  {provincesList.map(p => (
+                    <option key={p.code} value={p.name}>{p.name_with_type}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
+                <label className="sm:w-1/4 text-sm font-medium text-gray-700">Quận/Huyện<span className="text-red-500">*</span></label>
+                <select required value={newAddress.district} onChange={handleDistrictChange} className={`sm:w-3/4 border border-gray-200 rounded px-3 py-2.5 focus:border-red-500 focus:outline-none bg-white ${!newAddress.district ? 'text-gray-400' : 'text-gray-800'}`} disabled={!newAddress.city}>
+                  <option value="">Vui lòng chọn Quận/Huyện</option>
+                  {districts.map(d => (
+                    <option key={d.code} value={d.name}>{d.name_with_type}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
+                <label className="sm:w-1/4 text-sm font-medium text-gray-700">Xã/Phường<span className="text-red-500">*</span></label>
+                <select required value={newAddress.ward} onChange={e => setNewAddress({...newAddress, ward: e.target.value})} className={`sm:w-3/4 border border-gray-200 rounded px-3 py-2.5 focus:border-red-500 focus:outline-none bg-white ${!newAddress.ward ? 'text-gray-400' : 'text-gray-800'}`} disabled={!newAddress.district}>
+                  <option value="">Vui lòng chọn Xã/Phường</option>
+                  {wards.map(w => (
+                    <option key={w.code} value={w.name}>{w.name_with_type}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
+                <label className="sm:w-1/4 text-sm font-medium text-gray-700">Địa chỉ<span className="text-red-500">*</span></label>
+                <input required type="text" value={newAddress.street} onChange={e => setNewAddress({...newAddress, street: e.target.value})} placeholder="Địa chỉ" className="sm:w-3/4 border border-gray-200 rounded px-3 py-2.5 focus:border-red-500 focus:outline-none transition-colors" />
+              </div>
+
+              <div className="flex items-center gap-2 mt-2 sm:pl-[25%] sm:ml-4">
+                <input type="checkbox" id="isDefault" checked={newAddress.isDefault} onChange={e => setNewAddress({...newAddress, isDefault: e.target.checked})} className="w-4 h-4 text-red-600 focus:ring-red-500 rounded border-gray-300" />
                 <label htmlFor="isDefault" className="text-sm text-gray-700 cursor-pointer">Đặt làm địa chỉ mặc định</label>
               </div>
             </form>
@@ -203,20 +227,22 @@ export default function AddressModal({ isOpen, onClose, addresses, onSelect, onA
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
+        <div className="px-6 py-5 border-t border-gray-100 flex justify-between items-center bg-white">
           {showAddForm ? (
             <>
-              <button onClick={() => setShowAddForm(false)} className="px-5 py-2.5 text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition-colors">
-                Trở lại
+              <button onClick={() => setShowAddForm(false)} className="text-blue-500 hover:text-blue-700 transition-colors">
+                « Quay lại
               </button>
-              <button form="add-address-form" type="submit" disabled={saving} className={`px-5 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary-light transition-colors ${saving ? 'opacity-70' : ''}`}>
-                {saving ? 'Đang lưu...' : 'Lưu địa chỉ'}
+              <button form="add-address-form" type="submit" disabled={saving} className={`px-6 py-2.5 bg-[#C92127] text-white font-bold rounded hover:bg-red-800 transition-colors ${saving ? 'opacity-70' : ''}`}>
+                {saving ? 'ĐANG LƯU...' : 'LƯU ĐỊA CHỈ'}
               </button>
             </>
           ) : (
-            <button onClick={onClose} className="px-5 py-2.5 bg-gray-900 text-white font-medium rounded-lg hover:bg-black transition-colors">
-              Đóng
-            </button>
+            <div className="w-full flex justify-end">
+              <button onClick={onClose} className="px-6 py-2 text-gray-600 bg-gray-100 font-bold rounded hover:bg-gray-200 transition-colors">
+                ĐÓNG
+              </button>
+            </div>
           )}
         </div>
       </div>
