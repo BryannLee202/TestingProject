@@ -44,8 +44,6 @@ export default function AddressModal({ isOpen, onClose, addresses, onSelect, onA
 
   const [wards, setWards] = useState([]);
 
-  const [wards, setWards] = useState([]);
-
   const handleCityChange = (selectedOption) => {
     const selectedCityName = selectedOption ? selectedOption.value : '';
     setNewAddress({...newAddress, city: selectedCityName, ward: ''});
