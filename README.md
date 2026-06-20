@@ -1,6 +1,6 @@
 # 📚 Grape Book - Website Bán Sách Trực Tuyến
 
-![Grape Book Banner](https://thietkelogo.edu.vn/uploads/images/thiet-ke-do-hoa-khac/banner-sach/13.png)
+![Grape Book Banner](https://thietkelogo.edu.vn/uploads/images/thiet-ke-do-hoa-khac/banner-sach/15.png)
 
 ## 📋 Giới Thiệu Dự Án
 
