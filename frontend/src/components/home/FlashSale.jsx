@@ -141,14 +141,12 @@ export default function FlashSale() {
                   
                   {/* Progress Bar */}
                   <div className="relative w-full h-[18px] bg-[#ffbda6] rounded-full overflow-hidden flex items-center justify-center mt-2">
-                    {product.salesCount > 0 && (
-                      <div 
-                        className="absolute top-0 left-0 h-full bg-gradient-to-r from-[#ff3300] to-[#ff7a00]" 
-                        style={{ width: `${Math.max(5, product.soldPercent)}%` }}
-                      ></div>
-                    )}
+                    <div 
+                      className="absolute top-0 left-0 h-full bg-gradient-to-r from-[#ff3300] to-[#ff7a00]" 
+                      style={{ width: `${Math.max(5, product.soldPercent)}%` }}
+                    ></div>
                     <span className="relative z-10 text-[10px] font-bold text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.6)]">
-                      {product.salesCount > 0 ? `Đã bán ${product.salesCount}` : 'Vừa mở bán'}
+                      Đã bán {product.soldPercent}%
                     </span>
                   </div>
                 </div>
