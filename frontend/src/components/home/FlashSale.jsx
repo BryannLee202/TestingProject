@@ -38,8 +38,10 @@ export default function FlashSale() {
         const res = await axios.get(`${API_BASE_URL}/books/discounted`);
         if (res.data && res.data.length > 0) {
           const mapped = res.data.map(b => {
-            const total = b.salesCount + b.stockQuantity;
-            const soldPercent = total > 0 ? Math.min(99, Math.max(10, Math.floor(b.salesCount * 100 / total))) : 10;
+            const salesCount = b.salesCount || 0;
+            const stockQuantity = b.stockQuantity || 0;
+            const total = salesCount + stockQuantity;
+            const soldPercent = total > 0 ? Math.floor((salesCount / total) * 100) : 0;
             return {
               id: b.id,
               title: b.title,
@@ -47,6 +49,8 @@ export default function FlashSale() {
               oldPrice: b.oldPrice || b.price * 1.3,
               discount: b.discount || 15,
               soldPercent,
+              salesCount,
+              stockQuantity,
               img: b.imageUrl || 'https://placehold.co/150'
             };
           });
@@ -136,13 +140,15 @@ export default function FlashSale() {
                   </div>
                   
                   {/* Progress Bar */}
-                  <div className="relative w-full h-4 bg-red-100 rounded-full overflow-hidden flex items-center justify-center">
-                    <div 
-                      className="absolute top-0 left-0 h-full bg-gradient-to-r from-red-400 to-red-500" 
-                      style={{ width: `${product.soldPercent}%` }}
-                    ></div>
-                    <span className="relative z-10 text-[10px] font-bold text-white drop-shadow-md">
-                      Đã bán {product.soldPercent}%
+                  <div className="relative w-full h-[18px] bg-[#ffbda6] rounded-full overflow-hidden flex items-center justify-center mt-2">
+                    {product.salesCount > 0 && (
+                      <div 
+                        className="absolute top-0 left-0 h-full bg-gradient-to-r from-[#ff3300] to-[#ff7a00]" 
+                        style={{ width: `${Math.max(5, product.soldPercent)}%` }}
+                      ></div>
+                    )}
+                    <span className="relative z-10 text-[10px] font-bold text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.6)]">
+                      {product.salesCount > 0 ? `Đã bán ${product.salesCount}` : 'Vừa mở bán'}
                     </span>
                   </div>
                 </div>

@@ -162,8 +162,10 @@ export default function FlashSale() {
               ) : filteredBooks.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                   {filteredBooks.map((product) => {
-                    const total = (product.salesCount || 0) + (product.stockQuantity || 0);
-                    const soldPercent = total > 0 ? Math.min(99, Math.max(10, Math.floor((product.salesCount || 0) * 100 / total))) : 20;
+                    const salesCount = product.salesCount || 0;
+                    const stockQuantity = product.stockQuantity || 0;
+                    const total = salesCount + stockQuantity;
+                    const soldPercent = total > 0 ? Math.floor((salesCount / total) * 100) : 0;
 
                     return (
                       <Link 
@@ -206,13 +208,15 @@ export default function FlashSale() {
                           </div>
                           
                           {/* Progress Bar */}
-                          <div className="relative w-full h-4 bg-red-50 rounded-full overflow-hidden flex items-center justify-center border border-red-100">
-                            <div 
-                              className="absolute top-0 left-0 h-full bg-gradient-to-r from-red-400 to-red-500" 
-                              style={{ width: `${soldPercent}%` }}
-                            ></div>
-                            <span className="relative z-10 text-[9px] font-bold text-white drop-shadow-sm">
-                              Đã bán {soldPercent}%
+                          <div className="relative w-full h-[18px] bg-[#ffbda6] rounded-full overflow-hidden flex items-center justify-center mt-2 border-none">
+                            {salesCount > 0 && (
+                              <div 
+                                className="absolute top-0 left-0 h-full bg-gradient-to-r from-[#ff3300] to-[#ff7a00]" 
+                                style={{ width: `${Math.max(5, soldPercent)}%` }}
+                              ></div>
+                            )}
+                            <span className="relative z-10 text-[10px] font-bold text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.6)]">
+                              {salesCount > 0 ? `Đã bán ${salesCount}` : 'Vừa mở bán'}
                             </span>
                           </div>
                         </div>
