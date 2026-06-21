@@ -139,10 +139,13 @@ export default function Checkout() {
 
   useEffect(() => {
     if (city && ward) {
-      let isHcm = city === 'Hồ Chí Minh';
-      let isHaNoiOrDaNang = city === 'Hà Nội' || city === 'Đà Nẵng';
+      let isHcm = city.includes('Hồ Chí Minh');
+      let isHaNoi = city.includes('Hà Nội');
+      let isDaNang = city.includes('Đà Nẵng');
+      let isHaNoiOrDaNang = isHaNoi || isDaNang;
+      let isInnerCity = isHcm || isHaNoi; // Allow FAST for HN and HCM
       
-      if (!isHcm && shippingMethod === 'FAST') {
+      if (!isInnerCity && shippingMethod === 'FAST') {
         setShippingMethod('EXPRESS');
       }
 
@@ -152,7 +155,7 @@ export default function Checkout() {
       } else if (shippingMethod === 'EXPRESS') {
         baseFee = isHcm ? 25000 : (isHaNoiOrDaNang ? 45000 : 50000);
       } else if (shippingMethod === 'FAST') {
-        baseFee = isHcm ? 40000 : 0; 
+        baseFee = isHcm ? 40000 : 50000; 
       }
       setShippingFee(baseFee);
     } else {
@@ -375,7 +378,7 @@ export default function Checkout() {
                       </div>
                       <div className="ml-8">
                         <strong className="text-gray-900 block text-sm mb-1">
-                          {city === 'Hồ Chí Minh' ? '15.000 đ' : (city === 'Hà Nội' || city === 'Đà Nẵng' ? '30.000 đ' : '35.000 đ')}
+                          {city && city.includes('Hồ Chí Minh') ? '15.000 đ' : (city && (city.includes('Hà Nội') || city.includes('Đà Nẵng')) ? '30.000 đ' : '35.000 đ')}
                         </strong>
                         <span className="text-gray-500 text-xs">Từ 3 - 5 ngày làm việc</span>
                       </div>
@@ -387,12 +390,12 @@ export default function Checkout() {
                       </div>
                       <div className="ml-8">
                         <strong className="text-gray-900 block text-sm mb-1">
-                          {city === 'Hồ Chí Minh' ? '25.000 đ' : (city === 'Hà Nội' || city === 'Đà Nẵng' ? '45.000 đ' : '50.000 đ')}
+                          {city && city.includes('Hồ Chí Minh') ? '25.000 đ' : (city && (city.includes('Hà Nội') || city.includes('Đà Nẵng')) ? '45.000 đ' : '50.000 đ')}
                         </strong>
                         <span className="text-gray-500 text-xs">Từ 1 - 2 ngày làm việc</span>
                       </div>
                     </label>
-                    {city === 'Hồ Chí Minh' && (
+                    {(city && (city.includes('Hồ Chí Minh') || city.includes('Hà Nội'))) && (
                       <label className={`flex flex-col justify-between cursor-pointer border-2 rounded-xl p-4 transition-all ${shippingMethod === 'FAST' ? 'border-red-500 bg-red-50/30 shadow-sm' : 'border-gray-100 hover:border-gray-300 hover:bg-gray-50'} md:col-span-2`}>
                         <div className="flex items-center gap-3 mb-2">
                           <input type="radio" name="shippingMethod" value="FAST" checked={shippingMethod === 'FAST'} onChange={(e) => setShippingMethod(e.target.value)} className="accent-red-600 w-5 h-5" />
@@ -400,8 +403,8 @@ export default function Checkout() {
                         </div>
                         <div className="ml-8 flex justify-between items-center">
                           <div>
-                             <strong className="text-red-600 block text-sm mb-1">40.000 đ</strong>
-                             <span className="text-gray-500 text-xs">Nhận hàng ngay trong ngày (chỉ nội thành TP.HCM)</span>
+                             <strong className="text-red-600 block text-sm mb-1">{city.includes('Hồ Chí Minh') ? '40.000 đ' : '50.000 đ'}</strong>
+                             <span className="text-gray-500 text-xs">Nhận hàng ngay trong ngày (áp dụng cho khu vực nội thành TP.HCM và Hà Nội)</span>
                           </div>
                           <FaShippingFast className="text-red-500 text-4xl opacity-80" />
                         </div>
