@@ -32,15 +32,17 @@ YiYi Book là một ứng dụng web bán sách trực tuyến hiện đại đ�
 - 🔐 Đăng ký, đăng nhập an toàn bằng JWT.
 - 🛒 Thêm/Xóa/Cập nhật giỏ hàng.
 - 🔍 Tìm kiếm sách thông minh, lọc sách theo danh mục.
-- 🌟 Xem chi tiết sách, đánh giá (Review) và chấm điểm.
-- ⚡ Săn Flash Sale với bộ đếm ngược.
-- 🎟️ Áp dụng mã giảm giá (Coupon) và Freeship.
+- 🌟 Xem chi tiết sách, đánh giá (Review), chấm điểm, **tải ảnh đính kèm, thả tim và phản hồi bình luận**.
+- ⚡ **Giao diện Flash Sale hiện đại** với bộ đếm ngược.
+- ❤️ Thêm sách vào **Danh sách yêu thích (Wishlist)**.
+- 📚 Hiển thị danh sách **Sách theo bộ (Combo)**.
+- 🎟️ Áp dụng mã giảm giá (Coupon) và Freeship tự động tính toán.
 - 💳 Đặt hàng và tích hợp thanh toán quét mã VietQR động tự động điền số tiền và nội dung.
 - 🧾 Hỗ trợ xuất hóa đơn VAT (Hóa đơn điện tử).
 - 🎁 Hệ thống Y-Point: Tích điểm khi mua hàng, đổi Voucher nhận Y-Point/Freeship, dùng Y-Point giảm giá đơn hàng.
 - 👑 Xếp hạng thành viên (Bạc, Vàng, Kim Cương) và các ưu đãi đặc quyền.
 - 📦 Theo dõi trạng thái vận chuyển của đơn hàng.
-- 🔔 Nhận thông báo hệ thống.
+- 🔔 Nhận **thông báo hệ thống** được cá nhân hóa.
 
 ### **Quản Trị Viên (Admin)**
 - 📊 Bảng điều khiển (Dashboard) thống kê doanh thu, số lượng đơn hàng, người dùng.
@@ -51,6 +53,8 @@ YiYi Book là một ứng dụng web bán sách trực tuyến hiện đại đ�
 - 🎟️ Quản lý Coupon & Freeship Coupons.
 - 👥 Quản lý Người dùng và Lịch sử giao dịch điểm.
 - 🖼️ Quản lý Banner quảng cáo.
+- 🔔 **Quản lý Thông báo** (Gửi thông báo riêng tư cho một người hoặc phát sóng toàn hệ thống).
+- 💬 **Quản lý Đánh giá** (Xem hình ảnh đính kèm, kiểm duyệt và xóa đánh giá vi phạm).
 
 ## 🔧 Hướng Dẫn Cài Đặt (Chạy Local)
 
