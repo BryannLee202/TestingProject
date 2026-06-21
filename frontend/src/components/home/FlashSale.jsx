@@ -66,23 +66,30 @@ export default function FlashSale() {
   const formatTime = (time) => time.toString().padStart(2, '0');
 
   return (
-    <div className="bg-red-50 rounded-xl overflow-hidden shadow-sm border border-red-100">
+    <div className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-lg transition-shadow border border-gray-100">
       {/* Header */}
-      <div className="bg-gradient-to-r from-red-500 to-orange-400 p-4 sm:p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="flex items-center gap-4">
-          <h2 className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-white uppercase tracking-wider">
-            <FaBolt className="text-yellow-300" /> Flash Sale
-          </h2>
-          <div className="flex items-center gap-1.5 text-red-600 font-mono text-sm sm:text-base font-bold">
-            <span className="bg-white rounded px-2 py-1 shadow-sm">{formatTime(timeLeft.hours)}</span>
-            <span className="text-white">:</span>
-            <span className="bg-white rounded px-2 py-1 shadow-sm">{formatTime(timeLeft.minutes)}</span>
-            <span className="text-white">:</span>
-            <span className="bg-white rounded px-2 py-1 shadow-sm">{formatTime(timeLeft.seconds)}</span>
+      <div className="bg-gradient-to-r from-[#C92127] via-[#8B0000] to-[#1a1a1a] p-4 sm:p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-[-50px] left-[-50px] w-[150px] h-[150px] bg-red-500/30 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-[-50px] right-20 w-[150px] h-[150px] bg-red-500/20 rounded-full blur-3xl"></div>
+        
+        <div className="flex items-center gap-4 sm:gap-6 relative z-10">
+          <div className="flex items-center gap-2">
+            <FaBolt className="text-yellow-400 text-3xl animate-pulse drop-shadow-[0_0_8px_rgba(250,204,21,0.6)]" />
+            <h2 className="text-2xl sm:text-3xl font-black italic text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-300 uppercase tracking-wider drop-shadow-sm">
+              Flash Sale
+            </h2>
+          </div>
+          <div className="flex items-center gap-1.5 font-mono text-base sm:text-xl font-bold">
+            <span className="bg-black/40 backdrop-blur-md border border-white/20 text-white rounded-lg px-2.5 py-1.5 shadow-inner leading-none">{formatTime(timeLeft.hours)}</span>
+            <span className="text-white/80 font-black animate-pulse pb-1">:</span>
+            <span className="bg-black/40 backdrop-blur-md border border-white/20 text-white rounded-lg px-2.5 py-1.5 shadow-inner leading-none">{formatTime(timeLeft.minutes)}</span>
+            <span className="text-white/80 font-black animate-pulse pb-1">:</span>
+            <span className="bg-black/40 backdrop-blur-md border border-white/20 text-white rounded-lg px-2.5 py-1.5 shadow-inner leading-none">{formatTime(timeLeft.seconds)}</span>
           </div>
         </div>
-        <Link to="/flash-sale" className="text-white hover:text-yellow-200 font-medium flex items-center gap-1 group text-sm">
-          Xem tất cả <FaChevronRight className="text-xs group-hover:translate-x-1 transition-transform" />
+        <Link to="/flash-sale" className="text-white/90 hover:text-white font-semibold flex items-center gap-1.5 group text-sm relative z-10 bg-white/10 hover:bg-white/25 px-4 py-2 rounded-full transition-all backdrop-blur-sm border border-white/10">
+          Xem tất cả <FaChevronRight className="text-[10px] group-hover:translate-x-1 transition-transform" />
         </Link>
       </div>
 
@@ -109,7 +116,7 @@ export default function FlashSale() {
               >
                 {/* Discount Badge */}
                 {product.discount > 0 && (
-                  <div className="absolute top-2 left-2 z-10 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm">
+                  <div className="absolute top-2 left-2 z-10 bg-gradient-to-br from-[#C92127] to-red-600 text-white text-xs font-black px-2.5 py-1 rounded-tl-lg rounded-br-lg shadow-md border border-red-400/30 tracking-wide">
                     -{product.discount}%
                   </div>
                 )}
@@ -128,26 +135,36 @@ export default function FlashSale() {
                   {product.title}
                 </h3>
                 
-                {/* Price */}
+                {/* Price & Progress */}
                 <div className="mt-auto">
                   <div className="flex flex-col mb-3">
-                    <span className="text-primary font-bold text-lg leading-none mb-1">
+                    <span className="text-[#C92127] font-bold text-lg leading-none mb-1">
                       {product.price.toLocaleString('vi-VN')} đ
                     </span>
-                    <span className="text-gray-400 text-xs line-through">
+                    <span className="text-gray-400 text-[11px] line-through font-medium">
                       {product.oldPrice.toLocaleString('vi-VN')} đ
                     </span>
                   </div>
                   
-                  {/* Progress Bar */}
-                  <div className="relative w-full h-[18px] bg-[#ffbda6] rounded-full overflow-hidden flex items-center justify-center mt-2">
+                  {/* Modern Progress Bar */}
+                  <div className="relative w-full h-[18px] bg-[#ffe0e0] rounded-full overflow-hidden flex items-center mt-2 border border-[#ffb3b3]">
                     <div 
-                      className="absolute top-0 left-0 h-full bg-gradient-to-r from-[#ff3300] to-[#ff7a00]" 
-                      style={{ width: `${Math.max(5, product.soldPercent)}%` }}
+                      className="absolute top-0 left-0 h-full bg-gradient-to-r from-[#ff6b6b] to-[#C92127] transition-all duration-1000 ease-out" 
+                      style={{ width: `${Math.max(8, product.soldPercent)}%` }}
                     ></div>
-                    <span className="relative z-10 text-[10px] font-bold text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.6)]">
-                      Đã bán {product.soldPercent}%
-                    </span>
+
+                    {/* Fire icon and text over the progress bar */}
+                    <div className="absolute inset-0 flex items-center justify-center gap-1 z-10">
+                      {product.soldPercent >= 80 ? (
+                        <span className="text-white text-[10px] font-bold drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)] flex items-center gap-1 tracking-wider uppercase">
+                          🔥 Sắp cháy hàng
+                        </span>
+                      ) : (
+                        <span className="text-white text-[10px] font-bold drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)] tracking-wide uppercase">
+                          Đã bán {product.soldPercent}%
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
                 

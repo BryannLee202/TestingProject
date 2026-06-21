@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import Swal from 'sweetalert2';
@@ -36,10 +36,15 @@ const customSelectStyles = {
 };
 
 export default function Checkout() {
-  const { cart, getCartTotal, clearCart } = useCart();
+  const { cart, clearCart, removeFromCart } = useCart();
   const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
-  const cartTotal = getCartTotal();
+  const location = useLocation();
+  
+  // Lọc giỏ hàng dựa trên các sản phẩm đã chọn
+  const selectedItemIds = location.state?.selectedItems || cart.map(item => item.id);
+  const checkoutCart = cart.filter(item => selectedItemIds.includes(item.id));
+  const cartTotal = checkoutCart.reduce((total, item) => total + (item.price || 0) * item.quantity, 0);
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -64,11 +69,12 @@ export default function Checkout() {
   const [loading, setLoading] = useState(false);
   const [useYPoints, setUseYPoints] = useState(false);
   
-  const [couponCode, setCouponCode] = useState('');
-  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponCode, setCouponCode] = useState(location.state?.appliedCoupon?.code || '');
+  const [appliedCoupon, setAppliedCoupon] = useState(location.state?.appliedCoupon || null);
   const [discountAmount, setDiscountAmount] = useState(0);
   const [couponError, setCouponError] = useState('');
   const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [hasAutoApplied, setHasAutoApplied] = useState(false);
 
   // Modal Khuyến mãi
   const [showCouponModal, setShowCouponModal] = useState(false);
@@ -191,6 +197,13 @@ export default function Checkout() {
     }
   };
 
+  useEffect(() => {
+    if (location.state?.appliedCoupon?.code && cartTotal > 0 && !hasAutoApplied) {
+      setHasAutoApplied(true);
+      handleApplyCoupon(location.state.appliedCoupon.code);
+    }
+  }, [location.state, cartTotal, hasAutoApplied]);
+
   const handleRemoveCoupon = () => {
     setCouponCode('');
     setAppliedCoupon(null);
@@ -203,7 +216,7 @@ export default function Checkout() {
     try {
       const fullAddress = `${address}, ${ward}, ${city}, ${country}`;
       const finalNote = hasNote ? note : '';
-      const items = cart.map(item => ({
+      const items = checkoutCart.map(item => ({
         bookId: item.id,
         quantity: item.quantity,
         price: item.price
@@ -218,7 +231,7 @@ export default function Checkout() {
         shippingMethod,
         customerNote: finalNote,
         couponCode: appliedCoupon ? appliedCoupon.code : null,
-        spentPoints: useYPoints ? Math.min(user?.yPoints || 0, cartTotal + shippingFee - discountAmount) : 0
+        spentPoints: useYPoints ? pointsDiscount : 0
       };
 
       const res = await axios.post(`${API_BASE_URL}/orders`, orderBody, {
@@ -226,7 +239,7 @@ export default function Checkout() {
       });
 
       if (res.status === 200 || res.status === 201) {
-        clearCart();
+        checkoutCart.forEach(item => removeFromCart(item.id));
         if (refreshUser) refreshUser();
         setShowPaymentModal(false);
         Swal.fire({
@@ -262,10 +275,37 @@ export default function Checkout() {
     submitOrder();
   };
 
-  const subtotalAfterCoupon = cartTotal + shippingFee - discountAmount;
-  const maxUsablePoints = Math.min(user?.yPoints || 0, subtotalAfterCoupon);
+  const totalOldPrice = checkoutCart.reduce((acc, item) => acc + ((item.oldPrice || item.price) * item.quantity), 0);
+  const maxAllowedDiscount = totalOldPrice * 0.5;
+  const currentProductDiscount = totalOldPrice - cartTotal;
+  let remainingMaxDiscount = Math.max(0, maxAllowedDiscount - currentProductDiscount);
+
+  const userAcc = user?.accumulatedPoints || 0;
+  let vipDiscountRate = 0;
+  if (userAcc >= 100000) vipDiscountRate = 0.10;
+  else if (userAcc >= 30000) vipDiscountRate = 0.05;
+  else if (userAcc >= 5000) vipDiscountRate = 0.02;
+
+  let vipDiscountAmount = cartTotal * vipDiscountRate;
+  if (vipDiscountAmount > remainingMaxDiscount) {
+    vipDiscountAmount = remainingMaxDiscount > 0 ? remainingMaxDiscount : 0;
+  }
+  remainingMaxDiscount -= vipDiscountAmount;
+
+  let actualCouponDiscount = discountAmount;
+  if (actualCouponDiscount > remainingMaxDiscount) {
+    actualCouponDiscount = remainingMaxDiscount > 0 ? remainingMaxDiscount : 0;
+  }
+  remainingMaxDiscount -= actualCouponDiscount;
+
+  const subtotalAfterDiscounts = cartTotal + shippingFee - actualCouponDiscount - vipDiscountAmount;
+  
+  let maxUsablePointsByRule = remainingMaxDiscount > 0 ? remainingMaxDiscount : 0;
+  let maxUsablePointsByTotal = subtotalAfterDiscounts > 0 ? subtotalAfterDiscounts : 0;
+  const maxUsablePoints = Math.min(user?.yPoints || 0, maxUsablePointsByRule, maxUsablePointsByTotal);
+  
   const pointsDiscount = useYPoints ? maxUsablePoints : 0;
-  const totalAmount = subtotalAfterCoupon - pointsDiscount;
+  const totalAmount = subtotalAfterDiscounts - pointsDiscount;
 
   const paymentMethodsDetails = [
     { id: 'ZALOPAY', label: 'Ví ZaloPay', icon: <img src="https://cdn0.fahasa.com/skin/frontend/base/default/images/payment_icon/ico_zalopayapp.svg" alt="ZaloPay" className="h-6 object-contain" /> },
@@ -533,10 +573,10 @@ export default function Checkout() {
                     </div>
                     <h2 className="text-lg font-bold text-gray-800 uppercase tracking-wide">Đơn hàng</h2>
                   </div>
-                  <span className="bg-gray-200 text-gray-700 text-xs font-bold px-2.5 py-1 rounded-full">{cart.length} SP</span>
+                  <span className="bg-gray-200 text-gray-700 text-xs font-bold px-2.5 py-1 rounded-full">{checkoutCart.length} SP</span>
                 </div>
                 <div className="max-h-64 overflow-y-auto p-2 divide-y divide-gray-50 custom-scrollbar">
-                  {cart.map(item => (
+                  {checkoutCart.map(item => (
                     <div key={item.id} className="flex gap-4 p-3 hover:bg-gray-50 rounded-xl transition-colors">
                       <div className="w-16 h-20 bg-white rounded-lg p-1 border border-gray-100 flex-shrink-0 shadow-sm">
                          <img src={item.img} alt={item.title} className="w-full h-full object-contain mix-blend-multiply" />
@@ -560,17 +600,34 @@ export default function Checkout() {
                     <span>Phí vận chuyển</span>
                     <span className="font-medium text-gray-900">{shippingFee > 0 ? `${shippingFee.toLocaleString('vi-VN')} đ` : 'Chưa tính'}</span>
                   </div>
-                  {discountAmount > 0 && (
+                  {currentProductDiscount > 0 && (
+                    <div className="flex justify-between text-gray-600 text-sm">
+                      <span>Tiết kiệm từ sản phẩm</span>
+                      <span className="font-medium text-green-600">-{currentProductDiscount.toLocaleString('vi-VN')} đ</span>
+                    </div>
+                  )}
+                  {maxAllowedDiscount - currentProductDiscount <= 0 && currentProductDiscount > 0 && (
+                     <div className="text-[11px] text-red-500 bg-red-50 p-2 rounded border border-red-100">
+                       Đơn hàng đã đạt mức chiết khấu tối đa (50% giá bìa) theo quy định Thông tư 39/2025/TT-BCT. Không thể áp dụng thêm ưu đãi VIP, Coupon hoặc Y-Point.
+                     </div>
+                  )}
+                  {vipDiscountAmount > 0 && (
+                    <div className="flex justify-between text-orange-600 text-sm font-medium">
+                      <span>Ưu đãi VIP ({(vipDiscountRate * 100).toString().replace('.', ',')}%)</span>
+                      <span>-{vipDiscountAmount.toLocaleString('vi-VN')} đ</span>
+                    </div>
+                  )}
+                  {actualCouponDiscount > 0 && (
                     <div className="flex justify-between text-green-600 text-sm font-medium">
                       <span>Khuyến mãi</span>
-                      <span>-{discountAmount.toLocaleString('vi-VN')} đ</span>
+                      <span>-{actualCouponDiscount.toLocaleString('vi-VN')} đ</span>
                     </div>
                   )}
                   {user && user.yPoints > 0 && (
                     <div className="flex justify-between items-center text-gray-600 text-sm py-1">
                       <label className="flex items-center gap-2 cursor-pointer select-none">
-                        <input type="checkbox" checked={useYPoints} onChange={e => setUseYPoints(e.target.checked)} className="accent-red-600 w-4 h-4 rounded" />
-                        <span className="flex items-center gap-1">Dùng Y-Point <div className="w-3.5 h-3.5 bg-yellow-400 text-white rounded-full flex items-center justify-center text-[8px] font-bold">Y</div> (Có: {(user.yPoints).toLocaleString()})</span>
+                        <input type="checkbox" checked={useYPoints} onChange={e => setUseYPoints(e.target.checked)} disabled={maxUsablePoints === 0} className="accent-red-600 w-4 h-4 rounded disabled:opacity-50" />
+                        <span className={`flex items-center gap-1 ${maxUsablePoints === 0 ? 'text-gray-400' : ''}`}>Dùng Y-Point <div className="w-3.5 h-3.5 bg-yellow-400 text-white rounded-full flex items-center justify-center text-[8px] font-bold">Y</div> (Có: {(user.yPoints).toLocaleString()})</span>
                       </label>
                       {useYPoints && <span className="font-medium text-red-600">-{pointsDiscount.toLocaleString('vi-VN')} đ</span>}
                     </div>
@@ -586,9 +643,9 @@ export default function Checkout() {
                 <div className="p-6 pt-2 bg-gray-50/50">
                   <button 
                     type="submit"
-                    disabled={loading || cart.length === 0}
+                    disabled={loading || checkoutCart.length === 0}
                     className={`w-full py-4 rounded-xl text-lg font-bold shadow-lg transition-all ${
-                      cart.length === 0 
+                      checkoutCart.length === 0 
                         ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
                         : 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white transform hover:-translate-y-0.5 active:translate-y-0'
                     }`}

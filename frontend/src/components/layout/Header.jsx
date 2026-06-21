@@ -16,7 +16,12 @@ import {
   FaCoins,
   FaSignOutAlt,
   FaCrown,
-  FaChevronRight
+  FaChevronRight,
+  FaTimes,
+  FaCheckDouble,
+  FaTag,
+  FaInfoCircle,
+  FaRegClock
 } from 'react-icons/fa';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
@@ -26,6 +31,8 @@ export default function Header() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [recentNotifications, setRecentNotifications] = useState([]);
+  const [allNotifications, setAllNotifications] = useState([]);
+  const [showAllNotificationsModal, setShowAllNotificationsModal] = useState(false);
   const { getCartCount } = useCart();
   const cartCount = getCartCount();
   const { user, logout } = useAuth();
@@ -85,7 +92,8 @@ export default function Header() {
           axios.get(`${API_BASE_URL}/notifications`)
         ]);
         setUnreadCount(countRes.data);
-        setRecentNotifications(listRes.data.slice(0, 5));
+        setAllNotifications(listRes.data || []);
+        setRecentNotifications((listRes.data || []).slice(0, 5));
       } catch (error) {
         console.error('Error fetching notification stats:', error);
       }
@@ -102,9 +110,33 @@ export default function Header() {
         await axios.put(`${API_BASE_URL}/notifications/${notif.id}/read`);
         setUnreadCount(prev => Math.max(0, prev - 1));
         setRecentNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, isRead: true } : n));
+        setAllNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, isRead: true } : n));
       } catch (error) {
         console.error('Error marking read:', error);
       }
+    }
+  };
+
+  const markAllAsRead = async () => {
+    try {
+      await axios.put(`${API_BASE_URL}/notifications/read-all`);
+      setUnreadCount(0);
+      setRecentNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));
+      setAllNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));
+    } catch (error) {
+      console.error('Error marking all as read:', error);
+    }
+  };
+
+  const getNotificationIcon = (type) => {
+    switch (type) {
+      case 'PROMO':
+        return <div className="w-10 h-10 rounded-full bg-red-100 text-red-500 flex items-center justify-center shrink-0 shadow-sm"><FaTag className="text-lg" /></div>;
+      case 'ORDER':
+        return <div className="w-10 h-10 rounded-full bg-green-100 text-green-500 flex items-center justify-center shrink-0 shadow-sm"><FaShoppingCart className="text-lg" /></div>;
+      case 'SYSTEM':
+      default:
+        return <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-500 flex items-center justify-center shrink-0 shadow-sm"><FaInfoCircle className="text-lg" /></div>;
     }
   };
 
@@ -113,8 +145,7 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 text-2xl font-bold text-primary mr-4">
-          <img src="/src/assets/logo_YiYi.png" alt="YiYi Book" className="h-10 object-contain" />
-          <span>YiYi Book</span>
+          <img src="/src/assets/logo_ngang_thay_chu.png" alt="YiYi Book" className="h-10 object-contain" />
         </Link>
 
         {/* Category Dropdown (Placeholder) */}
@@ -226,7 +257,12 @@ export default function Header() {
                     ))
                   )}
                 </div>
-                <Link to="/notifications" className="block text-center py-2 bg-gray-50 text-primary text-sm font-medium hover:bg-gray-100 transition-colors">Xem tất cả</Link>
+                <button 
+                  onClick={() => { setIsNotifyOpen(false); setShowAllNotificationsModal(true); }} 
+                  className="w-full block text-center py-2 bg-gray-50 text-primary text-sm font-medium hover:bg-gray-100 transition-colors"
+                >
+                  Xem tất cả
+                </button>
               </div>
             )}
           </div>
@@ -308,6 +344,83 @@ export default function Header() {
           </div>
         </div>
       </div>
+
+      {/* All Notifications Modal */}
+      {showAllNotificationsModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl animate-fade-in-up">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-2xl">
+              <h3 className="font-bold text-lg text-gray-800 flex items-center gap-2">
+                <FaRegBell className="text-primary" /> Tất cả thông báo
+              </h3>
+              <button 
+                onClick={() => setShowAllNotificationsModal(false)}
+                className="text-gray-400 hover:text-red-500 transition-colors p-1 bg-white rounded-full shadow-sm"
+              >
+                <FaTimes size={20} />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1 bg-gray-50/30">
+              <div className="flex justify-end mb-4">
+                {allNotifications.some(n => !n.isRead) && (
+                  <button
+                    onClick={markAllAsRead}
+                    className="inline-flex items-center gap-2 text-xs font-semibold text-primary hover:text-primary-light transition-colors cursor-pointer bg-white px-3 py-1.5 rounded border border-gray-200 shadow-sm"
+                  >
+                    <FaCheckDouble /> Đánh dấu đã đọc tất cả
+                  </button>
+                )}
+              </div>
+              
+              {allNotifications.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 px-4 bg-white rounded-xl border border-gray-100 border-dashed">
+                  <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4 text-gray-300">
+                    <FaRegBell className="text-4xl" />
+                  </div>
+                  <h4 className="text-lg font-bold text-gray-700 mb-1">Không có thông báo mới</h4>
+                  <p className="text-gray-400 text-sm text-center">Chúng tôi sẽ gửi thông báo cho bạn khi có cập nhật mới về đơn hàng hoặc khuyến mãi.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {allNotifications.map(notif => (
+                    <div 
+                      key={notif.id} 
+                      onClick={() => handleNotificationClick(notif)}
+                      className={`relative flex gap-4 p-4 rounded-xl border transition-all cursor-pointer overflow-hidden ${!notif.isRead ? 'bg-white border-primary/20 shadow-sm hover:shadow-md' : 'bg-gray-50 border-gray-100 hover:bg-gray-100 opacity-80'}`}
+                    >
+                      {/* Unread Indicator Line */}
+                      {!notif.isRead && (
+                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+                      )}
+                      
+                      {getNotificationIcon(notif.type)}
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <h4 className={`text-[15px] leading-tight ${!notif.isRead ? 'font-bold text-gray-900' : 'font-medium text-gray-700'}`}>
+                            {notif.title}
+                          </h4>
+                          {!notif.isRead && (
+                            <span className="w-2 h-2 rounded-full bg-primary shrink-0 mt-1"></span>
+                          )}
+                        </div>
+                        <p className="text-[13px] text-gray-600 mt-1.5 leading-relaxed break-words">{notif.content}</p>
+                        <div className="flex items-center gap-1.5 text-[11px] text-gray-400 mt-2.5 font-medium">
+                          <FaRegClock />
+                          {new Date(notif.createdAt).toLocaleString('vi-VN', {
+                            hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric'
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

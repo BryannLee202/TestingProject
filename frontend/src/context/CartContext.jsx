@@ -28,6 +28,7 @@ export const CartProvider = ({ children }) => {
               id: item.book.id,
               title: item.book.title,
               price: item.book.price,
+              oldPrice: item.book.oldPrice || item.book.price,
               img: item.book.imageUrl || item.book.image_url || 'https://placehold.co/100',
               quantity: item.quantity
             }));
@@ -65,6 +66,7 @@ export const CartProvider = ({ children }) => {
             id: product.id,
             title: product.title,
             price: product.price,
+            oldPrice: product.oldPrice || product.price,
             img: product.imageUrl || product.image_url || product.img || 'https://placehold.co/100',
             quantity
           }];
@@ -84,6 +86,7 @@ export const CartProvider = ({ children }) => {
           id: product.id,
           title: product.title,
           price: product.price,
+          oldPrice: product.oldPrice || product.price,
           img: product.imageUrl || product.image_url || product.img || 'https://placehold.co/100',
           quantity
         }];

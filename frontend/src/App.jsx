@@ -28,6 +28,8 @@ import AdminOrders from './pages/admin/AdminOrders';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminCoupons from './pages/admin/AdminCoupons';
 import AdminRewardVouchers from './pages/admin/AdminRewardVouchers';
+import AdminNotifications from './pages/admin/AdminNotifications';
+import AdminReviews from './pages/admin/AdminReviews';
 
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
@@ -68,6 +70,8 @@ function App() {
               <Route path="users" element={<AdminUsers />} />
               <Route path="coupons" element={<AdminCoupons />} />
               <Route path="rewards" element={<AdminRewardVouchers />} />
+              <Route path="notifications" element={<AdminNotifications />} />
+              <Route path="reviews" element={<AdminReviews />} />
             </Route>
 
             {/* Fallback */}

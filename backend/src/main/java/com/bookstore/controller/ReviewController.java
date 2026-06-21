@@ -1,6 +1,7 @@
 package com.bookstore.controller;
 
 import com.bookstore.entity.Review;
+import com.bookstore.entity.ReviewComment;
 import com.bookstore.service.ReviewService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -37,13 +38,43 @@ public class ReviewController {
             @PathVariable Long bookId,
             @RequestBody ReviewRequest request) {
         String username = authentication.getName();
-        Review review = reviewService.createReview(username, bookId, request.getRating(), request.getComment());
+        Review review = reviewService.createReview(username, bookId, request.getRating(), request.getComment(), request.getImageUrl());
         return ResponseEntity.ok(review);
+    }
+
+    // --- Like a review ---
+    @PostMapping("/{reviewId}/like")
+    public ResponseEntity<Review> likeReview(@PathVariable Long reviewId) {
+        return ResponseEntity.ok(reviewService.likeReview(reviewId));
+    }
+
+    // --- Add a comment to a review ---
+    @PostMapping("/{reviewId}/comments")
+    public ResponseEntity<ReviewComment> addComment(
+            @PathVariable Long reviewId,
+            Authentication authentication,
+            @RequestBody CommentRequest request) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(reviewService.addComment(reviewId, authentication.getName(), request.getContent()));
+    }
+
+    // --- Get comments for a review ---
+    @GetMapping("/{reviewId}/comments")
+    public ResponseEntity<List<ReviewComment>> getComments(@PathVariable Long reviewId) {
+        return ResponseEntity.ok(reviewService.getComments(reviewId));
     }
 
     @Data
     public static class ReviewRequest {
         private Integer rating;
         private String comment;
+        private String imageUrl;
+    }
+
+    @Data
+    public static class CommentRequest {
+        private String content;
     }
 }

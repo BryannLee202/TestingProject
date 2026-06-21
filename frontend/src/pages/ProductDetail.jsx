@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { FaStar, FaShoppingCart, FaMinus, FaPlus, FaChevronRight, FaRegThumbsUp, FaExclamationCircle } from 'react-icons/fa';
+import { FaStar, FaShoppingCart, FaMinus, FaPlus, FaChevronRight, FaRegThumbsUp, FaThumbsUp, FaExclamationCircle, FaHeart, FaRegHeart, FaComment, FaRegComment, FaImage, FaTimes } from 'react-icons/fa';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { showNotification } from '../utils/alert';
@@ -25,11 +25,21 @@ export default function ProductDetail() {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [newRating, setNewRating] = useState(5);
   const [newComment, setNewComment] = useState('');
+  const [reviewImage, setReviewImage] = useState(null);
+  const [reviewImagePreview, setReviewImagePreview] = useState(null);
   const [submittingReview, setSubmittingReview] = useState(false);
+  const fileInputRef = useRef(null);
   const [availableCoupons, setAvailableCoupons] = useState([]);
   const [deliveryAddress, setDeliveryAddress] = useState('Hà Nội');
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [addresses, setAddresses] = useState([]);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [reviewLikes, setReviewLikes] = useState({});
+  const [openCommentId, setOpenCommentId] = useState(null);
+  const [commentInputs, setCommentInputs] = useState({});
+  const [reviewComments, setReviewComments] = useState({});
+  const [submittingComment, setSubmittingComment] = useState({});
 
   const fetchAddresses = async () => {
     try {
@@ -94,6 +104,20 @@ export default function ProductDetail() {
 
   useEffect(() => {
     if (user) {
+      const checkWishlist = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const res = await axios.get(`${API_BASE_URL}/wishlists`, { headers: { Authorization: `Bearer ${token}` }});
+          const inList = (res.data || []).some(w => String(w.book?.id) === String(id));
+          setIsWishlisted(inList);
+        } catch (e) { console.error(e); }
+      };
+      checkWishlist();
+    }
+  }, [user, id]);
+
+  useEffect(() => {
+    if (user) {
       fetchAddresses();
     } else {
       setAddresses([]);
@@ -123,26 +147,61 @@ export default function ProductDetail() {
       return;
     }
     setSubmittingReview(true);
+    let uploadedImageUrl = null;
+
     try {
+      if (reviewImage) {
+        const formData = new FormData();
+        formData.append('file', reviewImage);
+        const uploadRes = await axios.post(`${API_BASE_URL}/upload`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        uploadedImageUrl = uploadRes.data.url;
+      }
+
+      const token = localStorage.getItem('token');
       const res = await axios.post(`${API_BASE_URL}/reviews/book/${id}`, {
         rating: newRating,
-        comment: newComment
-      });
+        comment: newComment,
+        imageUrl: uploadedImageUrl
+      }, { headers: { Authorization: `Bearer ${token}` } });
+
       if (res.data && res.data.id) {
         setReviews(prev => [res.data, ...prev]);
         setIsReviewModalOpen(false);
         setNewComment('');
         setNewRating(5);
+        setReviewImage(null);
+        setReviewImagePreview(null);
         Swal.fire('Thành công', 'Đánh giá của bạn đã được ghi nhận!', 'success');
       }
     } catch (error) {
       console.error('Error submitting review:', error);
-      Swal.fire('Lỗi', error.response?.data?.message || 'Không thể gửi đánh giá.', 'error');
+      Swal.fire('Lỗi', 'Có lỗi xảy ra khi gửi đánh giá.', 'error');
     } finally {
       setSubmittingReview(false);
     }
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setReviewImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setReviewImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setReviewImage(null);
+    setReviewImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
   const totalReviewsCount = reviews.length;
   const averageRating = totalReviewsCount > 0 
     ? (reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviewsCount).toFixed(1)
@@ -164,6 +223,54 @@ export default function ProductDetail() {
     if (book) {
       addToCart(book, quantity);
       navigate('/cart');
+    }
+  };
+
+  const handleToggleWishlist = async () => {
+    if (!user) {
+      Swal.fire('Vui lòng đăng nhập', 'Bạn cần đăng nhập để lưu sản phẩm yêu thích.', 'warning');
+      return;
+    }
+    setWishlistLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.post(`${API_BASE_URL}/wishlists/book/${id}`, {}, { headers: { Authorization: `Bearer ${token}` }});
+      setIsWishlisted(res.data?.isLiked ?? !isWishlisted);
+    } catch (e) { console.error(e); }
+    finally { setWishlistLoading(false); }
+  };
+
+  const handleLikeReview = async (reviewId) => {
+    try {
+      const res = await axios.post(`${API_BASE_URL}/reviews/${reviewId}/like`);
+      setReviewLikes(prev => ({ ...prev, [reviewId]: (prev[reviewId] ?? 0) + 1 }));
+    } catch (e) { console.error(e); }
+  };
+
+  const handleSubmitComment = async (reviewId) => {
+    const content = commentInputs[reviewId]?.trim();
+    if (!content || !user) return;
+    setSubmittingComment(prev => ({ ...prev, [reviewId]: true }));
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.post(`${API_BASE_URL}/reviews/${reviewId}/comments`, { content }, { headers: { Authorization: `Bearer ${token}` }});
+      setReviewComments(prev => ({ ...prev, [reviewId]: [...(prev[reviewId] || []), res.data] }));
+      setCommentInputs(prev => ({ ...prev, [reviewId]: '' }));
+    } catch (e) { console.error(e); }
+    finally { setSubmittingComment(prev => ({ ...prev, [reviewId]: false })); }
+  };
+
+  const toggleCommentSection = async (reviewId) => {
+    if (openCommentId === reviewId) {
+      setOpenCommentId(null);
+      return;
+    }
+    setOpenCommentId(reviewId);
+    if (!reviewComments[reviewId]) {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/reviews/${reviewId}/comments`);
+        setReviewComments(prev => ({ ...prev, [reviewId]: res.data || [] }));
+      } catch (e) { console.error(e); }
     }
   };
 
@@ -230,18 +337,32 @@ export default function ProductDetail() {
             )}
 
             {/* Buttons */}
-            <div className="flex gap-3 mt-auto pt-4">
-              <button 
-                onClick={handleAddToCart}
-                className="flex-1 flex items-center justify-center gap-2 bg-white text-primary border border-primary hover:bg-red-50 hover:shadow-sm font-semibold py-2.5 px-3 rounded-lg transition-all text-sm whitespace-nowrap"
+            <div className="flex flex-col gap-3 mt-auto pt-4">
+              <div className="flex gap-3">
+                <button 
+                  onClick={handleAddToCart}
+                  className="flex-1 flex items-center justify-center gap-2 bg-white text-primary border border-primary hover:bg-red-50 hover:shadow-sm font-semibold py-2.5 px-3 rounded-lg transition-all text-sm whitespace-nowrap"
+                >
+                  <FaShoppingCart className="text-base" /> Thêm vào giỏ hàng
+                </button>
+                <button 
+                  onClick={handleBuyNow}
+                  className="flex-1 bg-primary text-white hover:bg-primary-light hover:shadow-sm font-semibold py-2.5 px-3 rounded-lg transition-all text-sm whitespace-nowrap"
+                >
+                  Mua ngay
+                </button>
+              </div>
+              <button
+                onClick={handleToggleWishlist}
+                disabled={wishlistLoading}
+                className={`w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg border text-sm font-medium transition-all ${
+                  isWishlisted 
+                    ? 'bg-red-50 border-red-200 text-red-500 hover:bg-red-100' 
+                    : 'bg-white border-gray-200 text-gray-600 hover:border-red-200 hover:text-red-400'
+                }`}
               >
-                <FaShoppingCart className="text-base" /> Thêm vào giỏ hàng
-              </button>
-              <button 
-                onClick={handleBuyNow}
-                className="flex-1 bg-primary text-white hover:bg-primary-light hover:shadow-sm font-semibold py-2.5 px-3 rounded-lg transition-all text-sm whitespace-nowrap"
-              >
-                Mua ngay
+                {isWishlisted ? <FaHeart className="text-red-500" /> : <FaRegHeart />}
+                {isWishlisted ? 'Đã thêm vào yêu thích' : 'Thêm vào yêu thích'}
               </button>
             </div>
           </div>
@@ -442,25 +563,98 @@ export default function ProductDetail() {
           <div className="space-y-6">
             {reviews.length > 0 ? (
               reviews.map((rev) => (
-                <div key={rev.id} className="flex gap-4 border-b border-gray-50 pb-5">
-                  <div className="w-12 pt-1 font-medium text-sm text-gray-850 text-center">
-                    {rev.user?.fullName ? rev.user.fullName.split(' ').pop() : 'Guest'}
-                    <div className="text-[10px] text-gray-400 font-normal mt-1">
-                      {new Date(rev.createdAt).toLocaleDateString('vi-VN')}
+                <div key={rev.id} className="border-b border-gray-100 pb-5">
+                  <div className="flex gap-4">
+                    {/* Avatar */}
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#C92127] to-red-400 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                      {rev.user?.fullName ? rev.user.fullName.trim().split(' ').pop()[0].toUpperCase() : 'G'}
                     </div>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-1 text-yellow-400 text-xs mb-2">
-                      {[...Array(5)].map((_, i) => (
-                        <FaStar key={i} className={i < rev.rating ? 'text-yellow-400' : 'text-gray-200'} />
-                      ))}
-                    </div>
-                    <div className="text-sm text-gray-700 leading-relaxed mb-3">
-                      {rev.comment}
-                    </div>
-                    <div className="flex gap-4 text-xs text-gray-400 font-medium">
-                      <button className="flex items-center gap-1 hover:text-blue-600 cursor-pointer"><FaRegThumbsUp /> Thích</button>
-                      <button className="flex items-center gap-1 hover:text-red-600 cursor-pointer"><FaExclamationCircle /> Báo cáo</button>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-semibold text-sm text-gray-800">{rev.user?.fullName || 'Ẩn danh'}</span>
+                        <span className="text-gray-300 text-xs">•</span>
+                        <span className="text-[11px] text-gray-400">{new Date(rev.createdAt).toLocaleDateString('vi-VN')}</span>
+                      </div>
+                      <div className="flex items-center gap-0.5 text-yellow-400 text-xs mb-2">
+                        {[...Array(5)].map((_, i) => (
+                          <FaStar key={i} className={i < rev.rating ? 'text-yellow-400' : 'text-gray-200'} />
+                        ))}
+                      </div>
+                      <div className="text-sm text-gray-700 leading-relaxed mb-3">{rev.comment}</div>
+                      
+                      {/* Review Image */}
+                      {rev.imageUrl && (
+                        <div className="mb-3">
+                          <img 
+                            src={rev.imageUrl.startsWith('http') ? rev.imageUrl : `${API_BASE_URL.replace('/api', '')}${rev.imageUrl}`} 
+                            alt="Review Attachment" 
+                            className="w-24 h-24 object-cover rounded-lg border border-gray-200 cursor-pointer hover:opacity-90 transition-opacity"
+                            onClick={() => window.open(rev.imageUrl.startsWith('http') ? rev.imageUrl : `${API_BASE_URL.replace('/api', '')}${rev.imageUrl}`, '_blank')}
+                          />
+                        </div>
+                      )}
+
+                      {/* Action bar: Like + Comment */}
+                      <div className="flex gap-4 text-xs text-gray-400 font-medium">
+                        <button
+                          onClick={() => handleLikeReview(rev.id)}
+                          className="flex items-center gap-1.5 hover:text-blue-600 transition-colors"
+                        >
+                          <FaRegThumbsUp />
+                          <span>{(reviewLikes[rev.id] ?? rev.likesCount) || 0} Thích</span>
+                        </button>
+                        <button
+                          onClick={() => toggleCommentSection(rev.id)}
+                          className="flex items-center gap-1.5 hover:text-[#C92127] transition-colors"
+                        >
+                          <FaRegComment />
+                          <span>Phản hồi{(reviewComments[rev.id]?.length || rev.comments?.length) ? ` (${reviewComments[rev.id]?.length ?? rev.comments?.length})` : ''}</span>
+                        </button>
+                      </div>
+
+                      {/* Comments section */}
+                      {openCommentId === rev.id && (
+                        <div className="mt-4 pl-4 border-l-2 border-gray-100 space-y-3">
+                          {(reviewComments[rev.id] || []).map(c => (
+                            <div key={c.id} className="flex gap-2">
+                              <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold text-xs flex-shrink-0">
+                                {c.user?.fullName ? c.user.fullName.trim().split(' ').pop()[0].toUpperCase() : 'U'}
+                              </div>
+                              <div className="flex-1 bg-gray-50 rounded-xl px-3 py-2">
+                                <span className="font-semibold text-xs text-gray-800 mr-2">{c.user?.fullName || 'Người dùng'}</span>
+                                <span className="text-xs text-gray-600">{c.content}</span>
+                                <p className="text-[10px] text-gray-400 mt-1">{new Date(c.createdAt).toLocaleString('vi-VN')}</p>
+                              </div>
+                            </div>
+                          ))}
+                          {user ? (
+                            <div className="flex gap-2 mt-3">
+                              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#C92127] to-red-400 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                                {user.fullName ? user.fullName.trim().split(' ').pop()[0].toUpperCase() : 'U'}
+                              </div>
+                              <div className="flex-1 flex gap-2">
+                                <input
+                                  type="text"
+                                  value={commentInputs[rev.id] || ''}
+                                  onChange={e => setCommentInputs(prev => ({ ...prev, [rev.id]: e.target.value }))}
+                                  onKeyDown={e => e.key === 'Enter' && handleSubmitComment(rev.id)}
+                                  placeholder="Viết phản hồi..."
+                                  className="flex-1 text-xs bg-gray-50 border border-gray-200 rounded-full px-4 py-1.5 outline-none focus:border-[#C92127] transition-colors"
+                                />
+                                <button
+                                  onClick={() => handleSubmitComment(rev.id)}
+                                  disabled={submittingComment[rev.id] || !commentInputs[rev.id]?.trim()}
+                                  className="text-xs bg-[#C92127] text-white px-4 py-1.5 rounded-full hover:bg-red-800 transition-colors disabled:opacity-50"
+                                >
+                                  {submittingComment[rev.id] ? '...' : 'Gửi'}
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-xs text-gray-400 mt-2"><Link to="/login" className="text-[#C92127] hover:underline">Đăng nhập</Link> để phản hồi</p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -487,30 +681,58 @@ export default function ProductDetail() {
               <form onSubmit={handleSubmitReview} className="space-y-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">Chọn mức đánh giá *</label>
-                  <div className="flex gap-2 text-2xl text-yellow-400">
+                  <div className="flex justify-center gap-2">
                     {[1, 2, 3, 4, 5].map((star) => (
-                      <button 
-                        key={star} 
-                        type="button"
+                      <FaStar
+                        key={star}
+                        size={32}
+                        className={`cursor-pointer transition-colors ${star <= newRating ? 'text-yellow-400' : 'text-gray-200'}`}
                         onClick={() => setNewRating(star)}
-                        className="hover:scale-110 transition-transform cursor-pointer"
-                      >
-                        <FaStar className={star <= newRating ? 'text-yellow-400' : 'text-gray-200'} />
-                      </button>
+                      />
                     ))}
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Nội dung nhận xét *</label>
-                  <textarea 
+                  <textarea
                     required
-                    rows={4}
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Hãy chia sẻ nhận xét của bạn về chất lượng sách, cách đóng gói và thời gian giao hàng..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-primary"
+                    placeholder="Chia sẻ trải nghiệm của bạn về cuốn sách này..."
+                    className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary min-h-[100px]"
                   />
                 </div>
+                
+                {/* Image Upload Area */}
+                <div>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    className="hidden" 
+                    ref={fileInputRef}
+                    onChange={handleImageChange} 
+                  />
+                  {!reviewImagePreview ? (
+                    <button 
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex items-center gap-2 text-sm text-gray-600 border border-dashed border-gray-300 rounded-lg px-4 py-3 hover:bg-gray-50 hover:border-[#C92127] hover:text-[#C92127] transition-all w-full justify-center"
+                    >
+                      <FaImage className="text-lg" /> Thêm ảnh đính kèm (Tùy chọn)
+                    </button>
+                  ) : (
+                    <div className="relative inline-block border border-gray-200 rounded-lg p-1 bg-gray-50">
+                      <img src={reviewImagePreview} alt="Preview" className="w-24 h-24 object-cover rounded" />
+                      <button 
+                        type="button" 
+                        onClick={removeImage}
+                        className="absolute -top-2 -right-2 bg-white text-red-500 rounded-full w-6 h-6 flex items-center justify-center shadow hover:bg-red-50 transition-colors border border-gray-100"
+                      >
+                        <FaTimes className="text-xs" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex gap-3 justify-end pt-2">
                   <button 
                     type="button" 

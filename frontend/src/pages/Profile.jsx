@@ -6,8 +6,29 @@ import { showNotification } from '../utils/alert';
 import { 
   FaRegUserCircle, FaMapMarkerAlt, FaLock, FaFileInvoice, FaGift, 
   FaClipboardList, FaTicketAlt, FaCoins, FaRegBell, FaHeart, 
-  FaBookOpen, FaStar, FaCrown, FaTimes 
+  FaBookOpen, FaStar, FaCrown, FaTimes, FaBoxOpen, FaEye, 
+  FaCalendarAlt, FaCreditCard, FaTruck, FaMoneyBillWave, FaCopy, FaCheck 
 } from 'react-icons/fa';
+import Select from 'react-select';
+import treeData from '../data/provinces.json';
+
+const provincesList = Object.values(treeData).sort((a,b) => a.name.localeCompare(b.name));
+
+const customSelectStyles = {
+  control: (provided, state) => ({
+    ...provided,
+    borderColor: state.isFocused ? '#3b82f6' : '#e5e7eb',
+    boxShadow: state.isFocused ? '0 0 0 1px #3b82f6' : 'none',
+    '&:hover': { borderColor: state.isFocused ? '#3b82f6' : '#d1d5db' },
+    padding: '2px', borderRadius: '0.25rem'
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isSelected ? '#3b82f6' : state.isFocused ? '#eff6ff' : 'white',
+    color: state.isSelected ? 'white' : '#374151',
+    '&:active': { backgroundColor: '#3b82f6' }
+  })
+};
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
@@ -36,9 +57,24 @@ export default function Profile() {
   const [addresses, setAddresses] = useState([]);
   const [showAddAddress, setShowAddAddress] = useState(false);
   const [addrForm, setAddrForm] = useState({
-    firstName: '', lastName: '', phone: '', city: '', district: '', ward: '', street: '', isDefault: false
+    firstName: '', lastName: '', phone: '', city: '', ward: '', street: '', isDefault: false
   });
+  const [addrWards, setAddrWards] = useState([]);
   const [loadingAddr, setLoadingAddr] = useState(false);
+
+  const handleAddrCityChange = (selectedOption) => {
+    const selectedCityName = selectedOption ? selectedOption.value : '';
+    setAddrForm({...addrForm, city: selectedCityName, ward: ''});
+    setAddrWards([]);
+    
+    if (selectedCityName) {
+      const selectedProv = provincesList.find(p => p.name === selectedCityName || p.name_with_type === selectedCityName);
+      if (selectedProv && selectedProv['xa-phuong']) {
+        const wds = Object.values(selectedProv['xa-phuong']).sort((a,b) => a.name.localeCompare(b.name));
+        setAddrWards(wds);
+      }
+    }
+  };
 
   // ---- VAT INVOICE STATE ----
   const [vatForm, setVatForm] = useState({
@@ -49,6 +85,14 @@ export default function Profile() {
   // ---- WISHLIST & REVIEWS STATE ----
   const [wishlist, setWishlist] = useState([]);
   const [reviews, setReviews] = useState([]);
+
+  // ---- NOTIFICATIONS STATE ----
+  const [notifications, setNotifications] = useState([]);
+  const [notifLoading, setNotifLoading] = useState(false);
+
+  // ---- SERIES BOOKS STATE ----
+  const [seriesBooks, setSeriesBooks] = useState([]);
+  const [seriesLoading, setSeriesLoading] = useState(false);
 
   // ---- LIVE STATS STATE ----
   const [liveUser, setLiveUser] = useState(user);
@@ -87,6 +131,8 @@ export default function Profile() {
     if (user && activeTab === 'wishlist') fetchWishlist();
     if (user && activeTab === 'reviews') fetchReviews();
     if (user && activeTab === 'member') fetchMyOrders();
+    if (user && activeTab === 'notifications') fetchNotifications();
+    if (activeTab === 'series') fetchSeriesBooks();
   }, [user, activeTab]);
 
   useEffect(() => {
@@ -151,6 +197,48 @@ export default function Profile() {
     } catch (error) { console.error(error); }
   };
 
+  const fetchNotifications = async () => {
+    setNotifLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_BASE_URL}/notifications`, { headers: { Authorization: `Bearer ${token}` }});
+      setNotifications(res.data || []);
+    } catch (error) { console.error(error); }
+    finally { setNotifLoading(false); }
+  };
+
+  const markNotifRead = async (notifId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${API_BASE_URL}/notifications/${notifId}/read`, {}, { headers: { Authorization: `Bearer ${token}` }});
+      setNotifications(prev => prev.map(n => n.id === notifId ? { ...n, isRead: true } : n));
+    } catch (error) { console.error(error); }
+  };
+
+  const markAllRead = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${API_BASE_URL}/notifications/read-all`, {}, { headers: { Authorization: `Bearer ${token}` }});
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    } catch (error) { console.error(error); }
+  };
+
+  const fetchSeriesBooks = async () => {
+    setSeriesLoading(true);
+    try {
+      const res = await axios.get(`${API_BASE_URL}/books?size=20`);
+      const all = res.data?.content || res.data || [];
+      // Filter books that are in a series/combo category
+      const series = all.filter(b => 
+        b.category?.name?.toLowerCase().includes('combo') ||
+        b.category?.name?.toLowerCase().includes('bộ') ||
+        b.title?.toLowerCase().includes('bộ')
+      );
+      setSeriesBooks(series.slice(0, 20));
+    } catch (error) { console.error(error); }
+    finally { setSeriesLoading(false); }
+  };
+
   const fetchMyOrders = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -203,7 +291,7 @@ export default function Profile() {
 
   const handleSaveAddress = async (e) => {
     e.preventDefault();
-    if (!addrForm.firstName || !addrForm.lastName || !addrForm.phone || !addrForm.city || !addrForm.district || !addrForm.ward || !addrForm.street) {
+    if (!addrForm.firstName || !addrForm.lastName || !addrForm.phone || !addrForm.city || !addrForm.ward || !addrForm.street) {
       return showNotification('Lỗi', 'Vui lòng nhập đầy đủ thông tin bắt buộc (*)', 'warning');
     }
     setLoadingAddr(true);
@@ -213,14 +301,13 @@ export default function Profile() {
         recipientName: `${addrForm.lastName.trim()} ${addrForm.firstName.trim()}`,
         phone: addrForm.phone,
         city: addrForm.city,
-        district: addrForm.district,
         ward: addrForm.ward,
         street: addrForm.street,
         isDefault: addrForm.isDefault
       }, { headers: { Authorization: `Bearer ${token}` }});
       showNotification('Thành công', 'Thêm địa chỉ thành công!', 'success');
       setShowAddAddress(false);
-      setAddrForm({ firstName: '', lastName: '', phone: '', city: '', district: '', ward: '', street: '', isDefault: false });
+      setAddrForm({ firstName: '', lastName: '', phone: '', city: '', ward: '', street: '', isDefault: false });
       fetchAddresses();
     } catch (error) {
       showNotification('Lỗi', 'Lỗi khi thêm địa chỉ', 'error');
@@ -271,18 +358,20 @@ export default function Profile() {
     return <div className="flex justify-center items-center h-64 text-gray-500">Vui lòng đăng nhập để xem thông tin.</div>;
   }
 
-  const getRankDetails = (points) => {
-    if (user?.role === 'ADMIN' || points >= 100000) return { name: 'Thành viên Kim Cương', color: 'bg-gray-800 text-yellow-500', iconColor: 'text-gray-800', id: 'kimcuong' };
-    if (points >= 30000) return { name: 'Thành viên Vàng', color: 'bg-yellow-400 text-white', iconColor: 'text-yellow-500', id: 'vang' };
-    return { name: 'Thành viên Bạc', color: 'bg-gray-300 text-gray-700', iconColor: 'text-gray-400', id: 'bac' };
+  const getRankDetails = (acc) => {
+    if (user?.role === 'ADMIN' || acc >= 100000) return { name: 'Thành viên Kim Cương', color: 'bg-gray-800 text-yellow-500', iconColor: 'text-gray-800', id: 'kimcuong' };
+    if (acc >= 30000) return { name: 'Thành viên Vàng', color: 'bg-yellow-400 text-white', iconColor: 'text-yellow-500', id: 'vang' };
+    if (acc >= 5000) return { name: 'Thành viên Bạc', color: 'bg-gray-300 text-gray-700', iconColor: 'text-gray-400', id: 'bac' };
+    return { name: 'Thành viên Đồng', color: 'bg-orange-100 text-orange-600', iconColor: 'text-orange-500', id: 'dong' };
   };
 
-  const rank = getRankDetails(liveUser?.yPoints || 0);
+  const rank = getRankDetails(liveUser?.accumulatedPoints || 0);
 
-  const getNextRankText = (points) => {
-    if (user?.role === 'ADMIN' || points >= 100000) return 'Bạn đã đạt mức hạng cao nhất';
-    if (points >= 30000) return `Thêm ${(100000 - points).toLocaleString()} để nâng hạng Kim Cương`;
-    return `Thêm ${(30000 - points).toLocaleString()} để nâng hạng Vàng`;
+  const getNextRankText = (acc) => {
+    if (user?.role === 'ADMIN' || acc >= 100000) return 'Bạn đã đạt mức hạng cao nhất';
+    if (acc >= 30000) return `Tích lũy thêm ${(100000 - acc).toLocaleString()} Y-Point để lên Kim Cương`;
+    if (acc >= 5000) return `Tích lũy thêm ${(30000 - acc).toLocaleString()} Y-Point để lên Vàng`;
+    return `Tích lũy thêm ${(5000 - acc).toLocaleString()} Y-Point để lên Bạc`;
   };
 
   return (
@@ -298,8 +387,8 @@ export default function Profile() {
               </div>
             </div>
             <div className={`${rank.color} text-xs font-bold px-3 py-1 rounded-full inline-block mb-2`}>{rank.name}</div>
-            <div className="text-sm font-medium text-gray-700">Y-Point tích lũy {(liveUser?.yPoints || 0).toLocaleString()}</div>
-            <div className="text-xs text-gray-500 mb-2">{getNextRankText(liveUser?.yPoints || 0)}</div>
+            <div className="text-sm font-medium text-gray-700">Điểm hạng: {(liveUser?.accumulatedPoints || 0).toLocaleString()} Y</div>
+            <div className="text-xs text-gray-500 mb-2">{getNextRankText(liveUser?.accumulatedPoints || 0)}</div>
           </div>
 
           <div className="bg-white rounded-lg shadow-sm py-2">
@@ -316,27 +405,27 @@ export default function Profile() {
 
             <div className="border-t border-gray-100 my-1"></div>
             
-            <Link to="/orders" className="w-full px-4 py-3 text-sm text-gray-700 hover:text-[#C92127] transition-colors flex items-center gap-3">
+            <button onClick={() => setActiveTab('orders')} className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-3 ${activeTab === 'orders' ? 'text-[#C92127] font-bold' : 'text-gray-700 hover:text-[#C92127]'}`}>
               <FaClipboardList className="text-gray-400 text-lg" /> Đơn hàng của tôi
-            </Link>
-            <Link to="/coupons" className="w-full px-4 py-3 text-sm text-gray-700 hover:text-[#C92127] transition-colors flex items-center gap-3 relative">
+            </button>
+            <button onClick={() => setActiveTab('vouchers')} className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-3 relative ${activeTab === 'vouchers' ? 'text-[#C92127] font-bold' : 'text-gray-700 hover:text-[#C92127]'}`}>
               <FaTicketAlt className="text-gray-400 text-lg" /> Ví voucher
               <span className="absolute right-4 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">1</span>
-            </Link>
+            </button>
             <button onClick={() => setActiveTab('ypoint')} className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-3 ${activeTab === 'ypoint' ? 'text-[#C92127] font-bold' : 'text-gray-700 hover:text-[#C92127]'}`}>
               <div className="w-4 h-4 bg-yellow-400 text-white rounded-full flex items-center justify-center text-[10px] font-bold">Y</div> Tài khoản Y-Point / Freeship
             </button>
-            <Link to="/notifications" className="w-full px-4 py-3 text-sm text-gray-700 hover:text-[#C92127] transition-colors flex items-center gap-3">
-              <FaRegBell className="text-gray-400 text-lg" /> Thông Báo
-            </Link>
-            <button onClick={() => setActiveTab('wishlist')} className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-3 ${activeTab === 'wishlist' ? 'text-[#C92127] font-bold' : 'text-gray-700 hover:text-[#C92127]'}`}>
-              <FaHeart className="text-gray-400 text-lg" /> Sản phẩm yêu thích
+            <button onClick={() => setActiveTab('notifications')} className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-3 ${activeTab === 'notifications' ? 'text-[#C92127] font-bold' : 'text-gray-700 hover:text-[#C92127]'}`}>
+              <FaRegBell className={activeTab === 'notifications' ? 'text-[#C92127] text-lg' : 'text-gray-400 text-lg'} /> Thông Báo
             </button>
-            <Link to="/products?category=combo" className="w-full px-4 py-3 text-sm text-gray-700 hover:text-[#C92127] transition-colors flex items-center gap-3">
-              <FaBookOpen className="text-gray-400 text-lg" /> Sách theo bộ
-            </Link>
+            <button onClick={() => setActiveTab('wishlist')} className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-3 ${activeTab === 'wishlist' ? 'text-[#C92127] font-bold' : 'text-gray-700 hover:text-[#C92127]'}`}>
+              <FaHeart className={activeTab === 'wishlist' ? 'text-[#C92127] text-lg' : 'text-gray-400 text-lg'} /> Sản phẩm yêu thích
+            </button>
+            <button onClick={() => setActiveTab('series')} className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-3 ${activeTab === 'series' ? 'text-[#C92127] font-bold' : 'text-gray-700 hover:text-[#C92127]'}`}>
+              <FaBookOpen className={activeTab === 'series' ? 'text-[#C92127] text-lg' : 'text-gray-400 text-lg'} /> Sách theo bộ
+            </button>
             <button onClick={() => setActiveTab('reviews')} className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-3 ${activeTab === 'reviews' ? 'text-[#C92127] font-bold' : 'text-gray-700 hover:text-[#C92127]'}`}>
-              <FaStar className="text-gray-400 text-lg" /> Nhận xét của tôi
+              <FaStar className={activeTab === 'reviews' ? 'text-[#C92127] text-lg' : 'text-gray-400 text-lg'} /> Nhận xét của tôi
             </button>
           </div>
         </div>
@@ -425,7 +514,7 @@ export default function Profile() {
                               <button onClick={() => handleDeleteAddress(addr.id)} className="text-red-500 hover:underline">Xóa</button>
                             </div>
                           </div>
-                          <div className="text-sm text-gray-600 mb-1">Địa chỉ: {addr.street}, {addr.ward}, {addr.district}, {addr.city}</div>
+                          <div className="text-sm text-gray-600 mb-1">Địa chỉ: {addr.street}, {addr.ward}, {addr.city}</div>
                           <div className="text-sm text-gray-600 mb-2">Điện thoại: {addr.phone}</div>
                           {addr.default && (
                             <span className="inline-block bg-[#C92127] text-white text-xs px-2 py-1 rounded">Mặc định</span>
@@ -451,26 +540,39 @@ export default function Profile() {
                         <input type="text" value={addrForm.phone} onChange={(e) => setAddrForm({...addrForm, phone: e.target.value})} placeholder="Ex: 0972xxxx" className="flex-1 px-4 py-2 border border-gray-200 rounded outline-none focus:border-blue-400" />
                       </div>
                       <div className="flex items-center mb-4">
-                        <label className="w-32 text-sm text-gray-600">Quốc gia<span className="text-red-500">*</span></label>
-                        <select className="flex-1 px-4 py-2 border border-gray-200 rounded outline-none focus:border-blue-400 bg-white">
-                          <option>Việt Nam</option>
-                        </select>
-                      </div>
-                      <div className="flex items-center mb-4">
                         <label className="w-32 text-sm text-gray-600">Tỉnh/Thành phố<span className="text-red-500">*</span></label>
-                        <input type="text" value={addrForm.city} onChange={(e) => setAddrForm({...addrForm, city: e.target.value})} placeholder="Vui lòng nhập Tỉnh/Thành phố" className="flex-1 px-4 py-2 border border-gray-200 rounded outline-none focus:border-blue-400" />
+                        <div className="flex-1">
+                          <Select
+                            options={provincesList.map(p => ({ value: p.name, label: p.name_with_type }))}
+                            value={addrForm.city ? { value: addrForm.city, label: provincesList.find(p => p.name === addrForm.city)?.name_with_type } : null}
+                            onChange={handleAddrCityChange}
+                            placeholder="Vui lòng chọn Tỉnh/Thành phố"
+                            styles={customSelectStyles}
+                            isClearable
+                            required
+                          />
+                        </div>
                       </div>
-                      <div className="flex items-center mb-4">
-                        <label className="w-32 text-sm text-gray-600">Quận/Huyện<span className="text-red-500">*</span></label>
-                        <input type="text" value={addrForm.district} onChange={(e) => setAddrForm({...addrForm, district: e.target.value})} placeholder="Vui lòng nhập Quận/Huyện" className="flex-1 px-4 py-2 border border-gray-200 rounded outline-none focus:border-blue-400" />
-                      </div>
+
                       <div className="flex items-center mb-4">
                         <label className="w-32 text-sm text-gray-600">Xã/Phường<span className="text-red-500">*</span></label>
-                        <input type="text" value={addrForm.ward} onChange={(e) => setAddrForm({...addrForm, ward: e.target.value})} placeholder="Vui lòng nhập Xã/Phường" className="flex-1 px-4 py-2 border border-gray-200 rounded outline-none focus:border-blue-400" />
+                        <div className="flex-1">
+                          <Select
+                            options={addrWards.map(w => ({ value: w.name, label: w.name_with_type }))}
+                            value={addrForm.ward ? { value: addrForm.ward, label: addrWards.find(w => w.name === addrForm.ward)?.name_with_type || addrForm.ward } : null}
+                            onChange={(selectedOption) => setAddrForm({...addrForm, ward: selectedOption ? selectedOption.value : ''})}
+                            placeholder="Vui lòng chọn Xã/Phường"
+                            styles={customSelectStyles}
+                            isDisabled={!addrForm.city}
+                            isClearable
+                            required
+                          />
+                        </div>
                       </div>
+
                       <div className="flex items-center mb-4">
-                        <label className="w-32 text-sm text-gray-600">Địa chỉ<span className="text-red-500">*</span></label>
-                        <input type="text" value={addrForm.street} onChange={(e) => setAddrForm({...addrForm, street: e.target.value})} placeholder="Địa chỉ" className="flex-1 px-4 py-2 border border-gray-200 rounded outline-none focus:border-blue-400" />
+                        <label className="w-32 text-sm text-gray-600">Địa chỉ chi tiết<span className="text-red-500">*</span></label>
+                        <input type="text" value={addrForm.street} onChange={(e) => setAddrForm({...addrForm, street: e.target.value})} placeholder="Số nhà, đường..." className="flex-1 px-4 py-2 border border-gray-200 rounded outline-none focus:border-blue-400" />
                       </div>
                       
                       <div className="flex justify-between items-center mt-8">
@@ -559,19 +661,121 @@ export default function Profile() {
               <YPointAccount liveUser={liveUser} setLiveUser={setLiveUser} updateProfile={updateProfile} />
             )}
             
+            {/* ĐƠN HÀNG CỦA TÔI */}
+            {activeTab === 'orders' && (
+              <MyOrdersTab />
+            )}
+
+            {/* VÍ VOUCHER */}
+            {activeTab === 'vouchers' && (
+              <MyVouchersTab />
+            )}
+
+            {/* NOTIFICATIONS */}
+            {activeTab === 'notifications' && (
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-normal text-gray-800">Thông Báo</h2>
+                  {notifications.some(n => !n.isRead) && (
+                    <button onClick={markAllRead} className="text-sm text-[#C92127] font-medium hover:underline flex items-center gap-1">
+                      <FaCheck className="text-xs" /> Đánh dấu tất cả đã đọc
+                    </button>
+                  )}
+                </div>
+                {notifLoading ? (
+                  <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C92127]"></div></div>
+                ) : notifications.length === 0 ? (
+                  <div className="bg-gray-50 rounded-xl p-12 text-center text-gray-500 border border-gray-100">
+                    <FaRegBell className="text-4xl text-gray-300 mx-auto mb-4" />
+                    <p>Bạn chưa có thông báo nào mới.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {notifications.map(notif => (
+                      <div
+                        key={notif.id}
+                        onClick={() => !notif.isRead && markNotifRead(notif.id)}
+                        className={`flex gap-3 p-4 rounded-xl border cursor-pointer transition-all ${
+                          notif.isRead ? 'bg-white border-gray-100' : 'bg-red-50/60 border-red-100 hover:bg-red-50'
+                        }`}
+                      >
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                          notif.isRead ? 'bg-gray-100 text-gray-400' : 'bg-[#C92127]/10 text-[#C92127]'
+                        }`}>
+                          <FaRegBell className="text-sm" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-sm leading-tight mb-1 ${notif.isRead ? 'text-gray-600' : 'text-gray-900 font-semibold'}`}>
+                            {notif.title}
+                          </p>
+                          <p className="text-xs text-gray-500 line-clamp-2">{notif.content}</p>
+                          <p className="text-[10px] text-gray-400 mt-1">{new Date(notif.createdAt).toLocaleString('vi-VN')}</p>
+                        </div>
+                        {!notif.isRead && <div className="w-2 h-2 bg-[#C92127] rounded-full shrink-0 mt-2"></div>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* WISHLIST */}
             {activeTab === 'wishlist' && (
               <div>
-                <h2 className="text-xl font-normal text-gray-800 mb-8">Sản phẩm yêu thích</h2>
+                <h2 className="text-xl font-normal text-gray-800 mb-6">Sản phẩm yêu thích</h2>
                 {wishlist.length === 0 ? (
-                  <div className="text-gray-500 text-center py-10">Bạn chưa có sản phẩm yêu thích nào.</div>
+                  <div className="bg-gray-50 rounded-xl p-12 text-center text-gray-500 border border-gray-100">
+                    <FaHeart className="text-4xl text-gray-300 mx-auto mb-4" />
+                    <p>Bạn chưa có sản phẩm yêu thích nào.</p>
+                  </div>
                 ) : (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {wishlist.map(item => (
-                      <Link to={`/book/${item.book.id}`} key={item.id} className="border border-gray-200 rounded p-4 hover:shadow-md transition">
-                        <img src={item.book.imageUrl || 'https://via.placeholder.com/150'} alt={item.book.title} className="w-full h-40 object-cover mb-2" />
-                        <h3 className="text-sm font-bold text-gray-800 line-clamp-2">{item.book.title}</h3>
-                        <p className="text-[#C92127] font-bold mt-2">{item.book.price?.toLocaleString()} đ</p>
+                      <div key={item.id} className="relative border border-gray-200 rounded-xl p-3 hover:shadow-md transition group">
+                        <button
+                          onClick={async () => {
+                            try {
+                              const token = localStorage.getItem('token');
+                              await axios.post(`${API_BASE_URL}/wishlists/book/${item.book.id}`, {}, { headers: { Authorization: `Bearer ${token}` }});
+                              setWishlist(prev => prev.filter(w => w.id !== item.id));
+                            } catch(e) { console.error(e); }
+                          }}
+                          className="absolute top-2 right-2 z-10 w-7 h-7 bg-white rounded-full flex items-center justify-center text-red-400 hover:text-red-600 shadow-sm border border-gray-100 opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Bỏ thích"
+                        >
+                          <FaTimes className="text-xs" />
+                        </button>
+                        <Link to={`/book/${item.book.id}`}>
+                          <img src={item.book.imageUrl || 'https://via.placeholder.com/150'} alt={item.book.title} className="w-full h-36 object-contain mb-2" />
+                          <h3 className="text-xs font-semibold text-gray-800 line-clamp-2 mb-1">{item.book.title}</h3>
+                          <p className="text-[#C92127] font-bold text-sm">{item.book.price?.toLocaleString()} đ</p>
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* SERIES */}
+            {activeTab === 'series' && (
+              <div>
+                <h2 className="text-xl font-normal text-gray-800 mb-6">Sách theo bộ</h2>
+                {seriesLoading ? (
+                  <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C92127]"></div></div>
+                ) : seriesBooks.length === 0 ? (
+                  <div className="bg-gray-50 rounded-xl p-12 text-center text-gray-500 border border-gray-100">
+                    <FaBookOpen className="text-4xl text-gray-300 mx-auto mb-4" />
+                    <p>Không có sách theo bộ nào phù hợp.</p>
+                    <Link to="/" className="mt-4 inline-block text-sm text-[#C92127] font-medium hover:underline">Khám phá ngay →</Link>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {seriesBooks.map(book => (
+                      <Link key={book.id} to={`/book/${book.id}`} className="border border-gray-200 rounded-xl p-3 hover:shadow-md transition group">
+                        <img src={book.imageUrl || 'https://via.placeholder.com/150'} alt={book.title} className="w-full h-36 object-contain mb-2" />
+                        <h3 className="text-xs font-semibold text-gray-800 line-clamp-2 mb-1 group-hover:text-[#C92127] transition-colors">{book.title}</h3>
+                        <p className="text-[#C92127] font-bold text-sm">{book.price?.toLocaleString()} đ</p>
                       </Link>
                     ))}
                   </div>
@@ -582,22 +786,33 @@ export default function Profile() {
             {/* REVIEWS */}
             {activeTab === 'reviews' && (
               <div>
-                <h2 className="text-xl font-normal text-gray-800 mb-8">Nhận xét của tôi</h2>
+                <h2 className="text-xl font-normal text-gray-800 mb-6">Nhận xét của tôi</h2>
                 {reviews.length === 0 ? (
-                  <div className="text-gray-500 text-center py-10">Bạn chưa viết nhận xét nào.</div>
+                  <div className="bg-gray-50 rounded-xl p-12 text-center text-gray-500 border border-gray-100">
+                    <FaStar className="text-4xl text-gray-300 mx-auto mb-4" />
+                    <p>Bạn chưa viết nhận xét nào.</p>
+                  </div>
                 ) : (
                   <div className="space-y-4">
                     {reviews.map(review => (
-                      <div key={review.id} className="border border-gray-200 rounded p-4">
+                      <div key={review.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-sm transition">
                         <div className="flex gap-4">
-                          <img src={review.book?.imageUrl || 'https://via.placeholder.com/150'} alt={review.book?.title} className="w-16 h-20 object-cover" />
-                          <div className="flex-1">
-                            <Link to={`/book/${review.book?.id}`} className="font-bold text-gray-800 hover:text-primary">{review.book?.title}</Link>
-                            <div className="flex text-yellow-400 text-xs my-1">
+                          <img
+                            src={review.book?.imageUrl || 'https://via.placeholder.com/80'}
+                            alt={review.book?.title}
+                            className="w-16 h-20 object-contain rounded flex-shrink-0"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <Link to={`/book/${review.book?.id}`} className="font-semibold text-gray-800 hover:text-[#C92127] transition-colors text-sm line-clamp-1">{review.book?.title}</Link>
+                            <div className="flex items-center gap-0.5 text-yellow-400 text-xs my-1">
                               {[...Array(5)].map((_, i) => <FaStar key={i} color={i < review.rating ? '#ffc107' : '#e4e5e9'} />)}
+                              <span className="text-gray-400 text-xs ml-2">{new Date(review.createdAt).toLocaleDateString('vi-VN')}</span>
                             </div>
-                            <p className="text-sm text-gray-600 mt-2">{review.comment}</p>
-                            <p className="text-xs text-gray-400 mt-2">{new Date(review.createdAt).toLocaleDateString('vi-VN')}</p>
+                            <p className="text-sm text-gray-600 mt-1 line-clamp-2">{review.comment}</p>
+                            <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
+                              <span className="flex items-center gap-1">👍 {review.likesCount || 0} lượt thích</span>
+                              <span className="flex items-center gap-1">💬 {review.comments?.length || 0} phản hồi</span>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -616,8 +831,12 @@ export default function Profile() {
 
 // Subcomponent for Member Privileges to make file cleaner
 function MemberPrivileges({ liveUser, orderCount }) {
-  const userRankPoints = liveUser?.yPoints || 0;
-  const initialRank = (liveUser?.role === 'ADMIN' || userRankPoints >= 100000) ? 'kimcuong' : (userRankPoints >= 30000 ? 'vang' : 'bac');
+  const userAcc = liveUser?.accumulatedPoints || 0;
+  let initialRank = 'dong';
+  if (liveUser?.role === 'ADMIN' || userAcc >= 100000) initialRank = 'kimcuong';
+  else if (userAcc >= 30000) initialRank = 'vang';
+  else if (userAcc >= 5000) initialRank = 'bac';
+
   const [activeRank, setActiveRank] = useState(initialRank);
   const [showRules, setShowRules] = useState(false);
 
@@ -627,41 +846,52 @@ function MemberPrivileges({ liveUser, orderCount }) {
   
   const renderPrivileges = () => {
     switch (activeRank) {
+      case 'dong':
+        return (
+          <>
+            <p>- Ưu đãi giỏ hàng tự động: <strong>Không có</strong></p>
+            <p>- Tỉ lệ tích luỹ Y-Point khi đặt hàng: <strong>0,5%</strong></p>
+          </>
+        );
       case 'bac':
         return (
           <>
-            <p>- Quà tặng sinh nhật: <strong>x</strong></p>
-            <p>- Ưu đãi freeship và mã giảm giá: <strong>x</strong></p>
-            <p>- Tỉ lệ tích luỹ Y-Point trên giá trị đơn hàng: <strong>0,5%</strong></p>
+            <p>- Ưu đãi giỏ hàng tự động: <strong className="text-red-500">Giảm 2%</strong></p>
+            <p>- Tỉ lệ tích luỹ Y-Point khi đặt hàng: <strong>0,5%</strong></p>
           </>
         );
       case 'vang':
         return (
           <>
-            <p>- Quà tặng sinh nhật: <strong>100.000 Y-Point</strong></p>
-            <p>- Ưu đãi freeship và mã giảm giá: <strong>2 lần</strong></p>
-            <p>- Tỉ lệ tích luỹ Y-Point trên giá trị đơn hàng: <strong>1%</strong></p>
+            <p>- Ưu đãi giỏ hàng tự động: <strong className="text-red-500">Giảm 5%</strong></p>
+            <p>- Tỉ lệ tích luỹ Y-Point khi đặt hàng: <strong>1%</strong></p>
           </>
         );
       case 'kimcuong':
         return (
           <>
-            <p>- Quà tặng sinh nhật: <strong>300.000 Y-Point</strong></p>
-            <p>- Ưu đãi freeship và mã giảm giá: <strong>5 lần</strong></p>
-            <p>- Tỉ lệ tích luỹ Y-Point trên giá trị đơn hàng: <strong>2%</strong></p>
+            <p>- Ưu đãi giỏ hàng tự động: <strong className="text-red-500">Giảm 10%</strong></p>
+            <p>- Tỉ lệ tích luỹ Y-Point khi đặt hàng: <strong>2%</strong></p>
           </>
         );
       default: return null;
     }
   };
 
+  const rankNames = {
+    'dong': 'Đồng',
+    'bac': 'Bạc',
+    'vang': 'Vàng',
+    'kimcuong': 'Kim Cương'
+  };
+
   return (
     <div>
       <div className="bg-gray-100 rounded-lg p-8 mb-8 text-center flex flex-col items-center">
         <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center border-4 border-gray-200 mb-4 overflow-hidden relative shadow-sm">
-          <FaCrown className={`text-5xl ${initialRank === 'kimcuong' ? 'text-gray-800' : initialRank === 'vang' ? 'text-yellow-500' : 'text-gray-400'}`} />
+          <FaCrown className={`text-5xl ${initialRank === 'kimcuong' ? 'text-gray-800' : initialRank === 'vang' ? 'text-yellow-500' : initialRank === 'bac' ? 'text-gray-400' : 'text-orange-400'}`} />
         </div>
-        <button onClick={() => setShowRules(true)} className="bg-white text-gray-700 text-sm font-bold px-4 py-1.5 rounded-full inline-block shadow-sm hover:bg-gray-50 transition-colors">Thành viên {initialRank === 'kimcuong' ? 'Kim Cương' : initialRank === 'vang' ? 'Vàng' : 'Bạc'} {'>'}</button>
+        <button onClick={() => setShowRules(true)} className="bg-white text-gray-700 text-sm font-bold px-4 py-1.5 rounded-full inline-block shadow-sm hover:bg-gray-50 transition-colors">Thành viên {rankNames[initialRank]} {'>'}</button>
       </div>
 
       <div className="flex gap-4 mb-8">
@@ -684,6 +914,10 @@ function MemberPrivileges({ liveUser, orderCount }) {
             <div className="flex-1 bg-gray-50 rounded p-3">
               <div className="text-xs text-gray-500 mb-1">Số đơn hàng</div>
               <div className="text-[#C92127] font-bold text-lg">{orderCount} đơn hàng</div>
+            </div>
+            <div className="flex-1 bg-gray-50 rounded p-3">
+              <div className="text-xs text-gray-500 mb-1">Điểm tích lũy</div>
+              <div className="text-[#C92127] font-bold text-lg">{(liveUser?.accumulatedPoints || 0).toLocaleString()} Y</div>
             </div>
             <div className="flex-1 bg-gray-50 rounded p-3">
               <div className="text-xs text-gray-500 mb-1">Đã thanh toán</div>
@@ -759,6 +993,24 @@ function YPointAccount({ liveUser, setLiveUser, updateProfile }) {
     }
   };
 
+  const handleExchange = async (points, type) => {
+    if (!window.confirm(`Bạn có chắc chắn muốn dùng ${points.toLocaleString()} điểm để đổi lấy ưu đãi này?`)) return;
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_BASE_URL}/rewards/exchange`, { points, type }, { headers: { Authorization: `Bearer ${token}` }});
+      showNotification('Thành công', 'Đổi quà thành công! Hãy kiểm tra ưu đãi của bạn.', 'success');
+      fetchHistory();
+      const userRes = await axios.get(`${API_BASE_URL}/users/profile`, { headers: { Authorization: `Bearer ${token}` } });
+      setLiveUser(userRes.data);
+      if (updateProfile) updateProfile(userRes.data);
+    } catch (error) {
+      showNotification('Lỗi', error.response?.data?.message || 'Có lỗi xảy ra', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div>
       <h2 className="text-xl font-normal text-gray-800 mb-6">Tài khoản Y-Point / Freeship</h2>
@@ -769,6 +1021,51 @@ function YPointAccount({ liveUser, setLiveUser, updateProfile }) {
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 bg-yellow-400 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-sm">Y</div>
             <span className="text-[#C92127] font-bold text-xl">{(liveUser?.yPoints || 0).toLocaleString()} Y-Point</span>
+          </div>
+        </div>
+
+        <div className="mb-6 border-b border-gray-100 pb-6">
+          <h3 className="text-gray-800 font-bold mb-4">Cửa hàng Đổi Quà</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="border border-gray-200 rounded-lg p-4 flex flex-col justify-between items-center bg-gray-50 hover:border-red-300 transition-colors">
+              <div className="text-center mb-3">
+                <div className="font-bold text-red-600 mb-1">Mã Freeship</div>
+                <div className="text-xs text-gray-500">Giảm tối đa 30K phí vận chuyển</div>
+              </div>
+              <button 
+                disabled={loading || (liveUser?.yPoints || 0) < 10000}
+                onClick={() => handleExchange(10000, 'FREESHIP')}
+                className="w-full bg-[#C92127] hover:bg-red-800 text-white font-bold py-1.5 px-4 rounded text-sm disabled:opacity-50"
+              >
+                Đổi 10.000 Điểm
+              </button>
+            </div>
+            <div className="border border-gray-200 rounded-lg p-4 flex flex-col justify-between items-center bg-gray-50 hover:border-red-300 transition-colors">
+              <div className="text-center mb-3">
+                <div className="font-bold text-red-600 mb-1">Mã Giảm 20K</div>
+                <div className="text-xs text-gray-500">Cho mọi đơn hàng</div>
+              </div>
+              <button 
+                disabled={loading || (liveUser?.yPoints || 0) < 20000}
+                onClick={() => handleExchange(20000, 'DISCOUNT_20K')}
+                className="w-full bg-[#C92127] hover:bg-red-800 text-white font-bold py-1.5 px-4 rounded text-sm disabled:opacity-50"
+              >
+                Đổi 20.000 Điểm
+              </button>
+            </div>
+            <div className="border border-gray-200 rounded-lg p-4 flex flex-col justify-between items-center bg-gray-50 hover:border-red-300 transition-colors">
+              <div className="text-center mb-3">
+                <div className="font-bold text-red-600 mb-1">Mã Giảm 50K</div>
+                <div className="text-xs text-gray-500">Cho mọi đơn hàng</div>
+              </div>
+              <button 
+                disabled={loading || (liveUser?.yPoints || 0) < 50000}
+                onClick={() => handleExchange(50000, 'DISCOUNT_50K')}
+                className="w-full bg-[#C92127] hover:bg-red-800 text-white font-bold py-1.5 px-4 rounded text-sm disabled:opacity-50"
+              >
+                Đổi 50.000 Điểm
+              </button>
+            </div>
           </div>
         </div>
 
@@ -971,6 +1268,287 @@ function MemberRulesModal({ onClose }) {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// Subcomponent for My Orders
+function MyOrdersTab() {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem('token');
+        const res = await axios.get(`${API_BASE_URL}/orders`, { headers: { Authorization: `Bearer ${token}` }});
+        setOrders(res.data);
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOrders();
+  }, []);
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'PENDING': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'PROCESSING': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'SHIPPING': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'COMPLETED': return 'bg-green-100 text-green-800 border-green-200';
+      case 'CANCELLED': return 'bg-red-100 text-red-800 border-red-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'PENDING': return 'Chờ duyệt';
+      case 'PROCESSING': return 'Đang xử lý';
+      case 'SHIPPING': return 'Đang giao hàng';
+      case 'COMPLETED': return 'Đã hoàn thành';
+      case 'CANCELLED': return 'Đã hủy';
+      default: return status;
+    }
+  };
+
+  const getShippingStatusText = (status) => {
+    switch (status) {
+      case 'PENDING': return 'Chờ chuẩn bị';
+      case 'PROCESSING': return 'Đang đóng gói';
+      case 'SHIPPING': return 'Đang vận chuyển';
+      case 'DELIVERED': return 'Đã giao hàng';
+      case 'CANCELLED': return 'Đã hủy giao';
+      default: return status;
+    }
+  };
+
+  if (loading) {
+    return <div className="flex justify-center items-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div></div>;
+  }
+
+  return (
+    <div>
+      <h2 className="text-xl font-normal text-gray-800 mb-8 uppercase tracking-wide">Đơn Hàng Của Tôi</h2>
+
+      {orders.length === 0 ? (
+        <div className="bg-gray-50 rounded-2xl p-10 flex flex-col items-center justify-center min-h-[350px] border border-gray-100 text-center">
+          <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-6 text-gray-300 shadow-sm">
+            <FaBoxOpen className="text-4xl" />
+          </div>
+          <h2 className="text-lg font-bold text-gray-700 mb-2">Bạn chưa có đơn đặt hàng nào</h2>
+          <p className="text-gray-400 mb-6 text-sm max-w-sm">Mua sắm ngay hôm nay để nhận được các ưu đãi hấp dẫn nhất!</p>
+          <Link to="/" className="bg-[#C92127] text-white font-bold py-2.5 px-6 rounded-lg hover:bg-red-800 transition-colors">
+            MUA SẮM NGAY
+          </Link>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {orders.map((order) => (
+            <div key={order.id} className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+              
+              {/* Order Header */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-100 pb-4 mb-4">
+                <div className="space-y-1">
+                  <div className="text-xs text-gray-500">Mã đơn hàng:</div>
+                  <div className="font-bold text-gray-800 text-base">#GB-{order.id}</div>
+                </div>
+                <div className="flex flex-wrap gap-2.5">
+                  <span className={`px-2.5 py-1 rounded text-xs font-bold border ${getStatusColor(order.status)}`}>
+                    Đơn hàng: {getStatusText(order.status)}
+                  </span>
+                  <span className={`px-2.5 py-1 rounded text-xs font-bold border ${getStatusColor(order.shippingStatus)}`}>
+                    Vận chuyển: {getShippingStatusText(order.shippingStatus)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Order Details Brief */}
+              <div className="grid grid-cols-2 gap-4 text-sm mb-6">
+                <div className="flex items-center gap-2 text-gray-600">
+                  <FaCalendarAlt className="text-gray-400 shrink-0" />
+                  <div>
+                    <span className="block text-[10px] text-gray-400 uppercase">Ngày đặt</span>
+                    <span className="font-semibold text-gray-800">
+                      {new Date(order.createdAt).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <FaCreditCard className="text-gray-400 shrink-0" />
+                  <div>
+                    <span className="block text-[10px] text-gray-400 uppercase">Thanh toán</span>
+                    <span className="font-semibold text-gray-800">
+                      {order.paymentMethod === 'COD' ? 'Tiền mặt (COD)' :
+                       order.paymentMethod === 'BANK_TRANSFER' ? 'Chuyển khoản' :
+                       order.paymentMethod === 'MOMO' ? 'Ví MoMo' :
+                       order.paymentMethod === 'ZALOPAY' ? 'Ví ZaloPay' : order.paymentMethod || 'Khác'}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <FaTruck className="text-gray-400 shrink-0" />
+                  <div>
+                    <span className="block text-[10px] text-gray-400 uppercase">Đối tác</span>
+                    <span className="font-semibold text-gray-800">
+                      {order.shippingPartner || 'Chờ xác nhận'}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <FaMoneyBillWave className="text-gray-400 shrink-0" />
+                  <div>
+                    <span className="block text-[10px] text-gray-400 uppercase">Tổng thanh toán</span>
+                    <span className="font-bold text-[#C92127] text-sm">
+                      {order.totalAmount.toLocaleString('vi-VN')} đ
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action */}
+              <div className="flex justify-between items-center border-t border-gray-100 pt-4">
+                <div className="text-xs text-gray-500">
+                  Số lượng sách: {order.items?.reduce((acc, curr) => acc + curr.quantity, 0) || 0} quyển
+                </div>
+                <Link 
+                  to={`/orders/${order.id}`}
+                  className="inline-flex items-center gap-1.5 text-sm font-bold text-[#C92127] hover:text-red-800 border border-red-200 hover:border-red-500 py-1.5 px-4 rounded transition-all"
+                >
+                  <FaEye /> Xem chi tiết
+                </Link>
+              </div>
+
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Subcomponent for My Vouchers
+function MyVouchersTab() {
+  const [coupons, setCoupons] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [copiedCode, setCopiedCode] = useState('');
+  const [voucherTab, setVoucherTab] = useState('mine');
+
+  useEffect(() => {
+    const fetchCoupons = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get(`${API_BASE_URL}/coupons`);
+        setCoupons(res.data || []);
+      } catch (error) {
+        console.error('Error fetching coupons:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCoupons();
+  }, []);
+
+  const handleCopy = (code) => {
+    navigator.clipboard.writeText(code);
+    setCopiedCode(code);
+    showNotification('Đã sao chép!', `Mã giảm giá "${code}" đã được lưu.`, 'success');
+    setTimeout(() => setCopiedCode(''), 2000);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Vô thời hạn';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('vi-VN');
+  };
+
+  if (loading) {
+    return <div className="flex justify-center items-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div></div>;
+  }
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h2 className="text-2xl font-normal text-gray-800 mb-6">Ví voucher</h2>
+
+      {/* Tabs */}
+      <div className="flex items-center gap-6 border-b border-gray-200 mb-6">
+        <button 
+          onClick={() => setVoucherTab('mine')}
+          className={`pb-2 text-sm font-medium transition-colors ${voucherTab === 'mine' ? 'text-[#C92127] border-b-2 border-[#C92127]' : 'text-gray-500 hover:text-gray-700'}`}
+        >
+          Voucher của tôi
+        </button>
+        <button 
+          onClick={() => setVoucherTab('partner')}
+          className={`pb-2 text-sm font-medium transition-colors ${voucherTab === 'partner' ? 'text-[#C92127] border-b-2 border-[#C92127]' : 'text-gray-500 hover:text-gray-700'}`}
+        >
+          Voucher đối tác
+        </button>
+      </div>
+
+      {voucherTab === 'mine' ? (
+        coupons.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {coupons.map((coupon) => (
+              <div key={coupon.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden flex relative shadow-sm hover:shadow-md transition-shadow min-h-[130px]">
+                {/* Left Side: Green Background */}
+                <div className="w-[100px] bg-[#28a745] text-white flex items-center justify-center shrink-0">
+                  <FaTicketAlt className="text-3xl" />
+                </div>
+
+                {/* Right Side: Details */}
+                <div className="flex-1 p-3 flex flex-col justify-between relative">
+                  <div className="pr-16">
+                    <h3 className="font-semibold text-gray-800 text-sm leading-tight line-clamp-1">
+                      {coupon.discountType === 'PERCENTAGE' 
+                        ? `Giảm ${coupon.discountValue}% đơn hàng`
+                        : `Giảm ${coupon.discountValue.toLocaleString('vi-VN')} đ`
+                      }
+                    </h3>
+                    <p className="text-[11px] text-gray-500 mt-1 line-clamp-2 leading-tight">
+                      Đơn tối thiểu {coupon.minOrderAmount.toLocaleString('vi-VN')} đ. Không bao gồm giá trị của các sản phẩm sau Manga, Ngoại Văn, Phiếu Quà Tặng,...
+                    </p>
+                  </div>
+                  
+                  <div className="mt-2 flex items-center">
+                    <div className="bg-gray-200 text-gray-700 text-xs font-medium px-2 py-1 rounded flex items-center gap-1 w-fit">
+                      <FaCopy className="text-[10px]" /> {coupon.code}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-end mt-1">
+                    <span className="text-xs text-[#2489F4]">HSD: {formatDate(coupon.expirationDate)}</span>
+                    <button 
+                      onClick={() => handleCopy(coupon.code)}
+                      className={`text-white text-xs font-bold px-4 py-1.5 rounded transition-colors ${
+                        copiedCode === coupon.code ? 'bg-green-500' : 'bg-[#2489F4] hover:bg-blue-600'
+                      }`}
+                    >
+                      {copiedCode === coupon.code ? 'Đã copy' : 'Copy mã'}
+                    </button>
+                  </div>
+
+                  {/* Chi tiết link */}
+                  <div className="absolute top-3 right-3 text-[#2489F4] text-xs font-medium cursor-pointer hover:underline">
+                    Chi tiết
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-gray-50 rounded-xl p-12 text-center text-gray-500 border border-gray-100">
+            Hiện tại bạn chưa có voucher nào.
+          </div>
+        )
+      ) : (
+        <div className="bg-gray-50 rounded-xl p-12 text-center text-gray-500 border border-gray-100">
+          Hiện tại chưa có voucher đối tác.
+        </div>
+      )}
     </div>
   );
 }

@@ -14,7 +14,9 @@ import {
   FaShieldAlt,
   FaUsers,
   FaTicketAlt,
-  FaGift
+  FaGift,
+  FaBell,
+  FaCommentDots
 } from 'react-icons/fa';
 
 export default function AdminLayout() {
@@ -48,7 +50,9 @@ export default function AdminLayout() {
     { to: '/admin/orders', icon: <FaShoppingBag />, label: 'Quản lý Đơn hàng' },
     { to: '/admin/users', icon: <FaUsers />, label: 'Quản lý Tài khoản' },
     { to: '/admin/coupons', icon: <FaTicketAlt />, label: 'Quản lý Voucher' },
-    { to: '/admin/rewards', icon: <FaGift />, label: 'Quản lý Mã Sự Kiện' }
+    { to: '/admin/rewards', icon: <FaGift />, label: 'Quản lý Mã Sự Kiện' },
+    { to: '/admin/notifications', icon: <FaBell />, label: 'Quản lý Thông Báo' },
+    { to: '/admin/reviews', icon: <FaCommentDots />, label: 'Quản lý Đánh Giá' }
   ];
 
   return (

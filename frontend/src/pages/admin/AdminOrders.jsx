@@ -436,6 +436,20 @@ export default function AdminOrders() {
                         <td colSpan="3" className="px-4 py-2 text-right text-xs">Phí vận chuyển:</td>
                         <td className="px-4 py-2 text-right font-medium">{formatPrice(selectedOrder.shippingFee || 0)}</td>
                       </tr>
+                      {(selectedOrder.discountAmount > 0) && (
+                        <tr className="bg-green-50/50 text-green-700">
+                          <td colSpan="3" className="px-4 py-2 text-right text-xs">
+                            Giảm giá {selectedOrder.couponCode ? `(Mã: ${selectedOrder.couponCode})` : ''}:
+                          </td>
+                          <td className="px-4 py-2 text-right font-medium">-{formatPrice(selectedOrder.discountAmount)}</td>
+                        </tr>
+                      )}
+                      {(selectedOrder.pointsUsed > 0) && (
+                        <tr className="bg-yellow-50/50 text-yellow-700">
+                          <td colSpan="3" className="px-4 py-2 text-right text-xs">Sử dụng điểm (Y-Points):</td>
+                          <td className="px-4 py-2 text-right font-medium">-{formatPrice(selectedOrder.pointsUsed)}</td>
+                        </tr>
+                      )}
                       <tr className="bg-gray-50 text-gray-850 font-bold border-t">
                         <td colSpan="3" className="px-4 py-2.5 text-right">Tổng giá trị đơn hàng:</td>
                         <td className="px-4 py-2.5 text-right text-primary text-base">{formatPrice(selectedOrder.totalAmount)}</td>

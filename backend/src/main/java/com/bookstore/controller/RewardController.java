@@ -36,4 +36,16 @@ public class RewardController {
     public ResponseEntity<List<PointTransaction>> getHistory(Authentication authentication) {
         return ResponseEntity.ok(rewardService.getHistory(authentication.getName()));
     }
+
+    @PostMapping("/exchange")
+    public ResponseEntity<?> exchangePoints(Authentication authentication, @RequestBody Map<String, Object> request) {
+        try {
+            int points = Integer.parseInt(request.get("points").toString());
+            String type = request.get("type").toString();
+            rewardService.exchangePoints(authentication.getName(), points, type);
+            return ResponseEntity.ok(Map.of("message", "Đổi quà thành công!"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
 }

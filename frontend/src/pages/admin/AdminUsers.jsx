@@ -137,6 +137,7 @@ export default function AdminUsers() {
                   <th className="p-4 font-semibold">ID</th>
                   <th className="p-4 font-semibold">Họ Tên</th>
                   <th className="p-4 font-semibold">Liên hệ</th>
+                  <th className="p-4 font-semibold">Chi tiêu & Điểm</th>
                   <th className="p-4 font-semibold">Quyền</th>
                   <th className="p-4 font-semibold text-right">Thao tác</th>
                 </tr>
@@ -152,6 +153,30 @@ export default function AdminUsers() {
                     <td className="p-4 space-y-1">
                       <div className="text-gray-600">{user.email || 'Chưa có'}</div>
                       <div className="text-gray-500 text-xs">{user.phone || 'Chưa có SĐT'}</div>
+                    </td>
+                    <td className="p-4 space-y-1">
+                      <div className="text-xs">
+                        <span className="text-gray-500">Đã chi: </span>
+                        <span className="font-bold text-[#C92127]">{(user.totalSpent || 0).toLocaleString('vi-VN')} đ</span>
+                      </div>
+                      <div className="text-xs flex gap-2">
+                        <span><span className="text-gray-500">Tích lũy:</span> <span className="font-semibold text-orange-600">{user.accumulatedPoints || 0}</span></span>
+                        <span><span className="text-gray-500">Y-Points:</span> <span className="font-semibold text-purple-600">{user.yPoints || 0}</span></span>
+                      </div>
+                      <div className="mt-1">
+                        {(() => {
+                           const acc = user.accumulatedPoints || 0;
+                           let rank = { name: 'Thành viên Đồng', bg: 'bg-orange-100', text: 'text-orange-800' };
+                           if (user.role === 'ADMIN' || acc >= 100000) rank = { name: 'Thành viên Kim Cương', bg: 'bg-gray-800', text: 'text-yellow-500' };
+                           else if (acc >= 50000) rank = { name: 'Thành viên Vàng', bg: 'bg-yellow-100', text: 'text-yellow-700' };
+                           else if (acc >= 20000) rank = { name: 'Thành viên Bạc', bg: 'bg-gray-200', text: 'text-gray-700' };
+                           return (
+                             <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${rank.bg} ${rank.text}`}>
+                               {rank.name}
+                             </span>
+                           );
+                        })()}
+                      </div>
                     </td>
                     <td className="p-4">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold ${

@@ -51,6 +51,10 @@ public class User implements UserDetails {
     @Builder.Default
     private Integer yPoints = 0;
 
+    @Column(name = "accumulated_points")
+    @Builder.Default
+    private Integer accumulatedPoints = 0;
+
     @Column(name = "total_spent")
     @Builder.Default
     private Double totalSpent = 0.0;
