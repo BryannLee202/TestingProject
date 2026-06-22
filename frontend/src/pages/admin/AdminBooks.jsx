@@ -590,7 +590,14 @@ export default function AdminBooks() {
                   <input 
                     type="number"
                     value={price}
-                    onChange={(e) => setPrice(e.target.value)}
+                    onChange={(e) => {
+                      const newPrice = e.target.value;
+                      setPrice(newPrice);
+                      if (newPrice !== '' && oldPrice && !isNaN(oldPrice) && Number(oldPrice) > 0) {
+                        const calcDiscount = Math.round((1 - Number(newPrice) / Number(oldPrice)) * 100);
+                        setDiscount(Math.max(0, calcDiscount).toString());
+                      }
+                    }}
                     required
                     min="0"
                     placeholder="Ví dụ: 89000"
@@ -603,7 +610,14 @@ export default function AdminBooks() {
                   <input 
                     type="number"
                     value={oldPrice}
-                    onChange={(e) => setOldPrice(e.target.value)}
+                    onChange={(e) => {
+                      const newOldPrice = e.target.value;
+                      setOldPrice(newOldPrice);
+                      if (newOldPrice !== '' && discount && !isNaN(discount) && Number(discount) > 0) {
+                        const calculatedPrice = Math.round(Number(newOldPrice) * (1 - Number(discount) / 100));
+                        setPrice(calculatedPrice.toString());
+                      }
+                    }}
                     min="0"
                     placeholder="Không giảm giá để trống"
                     className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-primary text-sm"
@@ -615,7 +629,14 @@ export default function AdminBooks() {
                   <input 
                     type="number"
                     value={discount}
-                    onChange={(e) => setDiscount(e.target.value)}
+                    onChange={(e) => {
+                      const newDiscount = e.target.value;
+                      setDiscount(newDiscount);
+                      if (newDiscount !== '' && oldPrice && !isNaN(oldPrice)) {
+                        const calculatedPrice = Math.round(Number(oldPrice) * (1 - Number(newDiscount) / 100));
+                        setPrice(calculatedPrice.toString());
+                      }
+                    }}
                     min="0"
                     max="100"
                     placeholder="0"

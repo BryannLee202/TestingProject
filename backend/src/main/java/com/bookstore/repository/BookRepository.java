@@ -21,6 +21,8 @@ public interface BookRepository extends JpaRepository<Book, Long> {
 
     List<Book> findTop10ByOrderByIdDesc();
 
+    List<Book> findByIsFeaturedTrue();
+
     List<Book> findByDiscountGreaterThanOrderByDiscountDesc(Integer minDiscount);
 
     List<Book> findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCase(String title, String author);

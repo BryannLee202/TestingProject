@@ -59,6 +59,9 @@ public class Book {
     @Column(name = "is_combo")
     private Boolean isCombo = false;
 
+    @Column(name = "is_featured")
+    private Boolean isFeatured = false;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id")
     private Category category;

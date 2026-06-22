@@ -44,8 +44,14 @@ public class BookService {
         return bookRepository.findByIsComboTrue();
     }
 
-    public List<Book> getRecommendations(String userId) {
-        // Tạm thời trả về bestsellers cho recommendations
+    public List<Book> getRecommendations(String userId, Long categoryId) {
+        if (categoryId != null) {
+            List<Book> books = bookRepository.findByCategoryId(categoryId);
+            if (books != null && !books.isEmpty()) {
+                // Return top 10 from category
+                return books.subList(0, Math.min(books.size(), 10));
+            }
+        }
         return getBestsellers();
     }
 
@@ -55,6 +61,16 @@ public class BookService {
 
     public List<Book> getDiscountedBooks() {
         return bookRepository.findByDiscountGreaterThanOrderByDiscountDesc(0);
+    }
+
+    public List<Book> getFeaturedBooks() {
+        return bookRepository.findByIsFeaturedTrue();
+    }
+
+    public Book toggleFeaturedStatus(Long id, boolean isFeatured) {
+        Book book = getBookById(id);
+        book.setIsFeatured(isFeatured);
+        return bookRepository.save(book);
     }
 
     public Book updateBook(Long id, Book updatedBook) {
@@ -70,6 +86,9 @@ public class BookService {
         book.setImageUrl(updatedBook.getImageUrl());
         book.setAdditionalImages(updatedBook.getAdditionalImages());
         book.setIsCombo(updatedBook.getIsCombo());
+        if (updatedBook.getIsFeatured() != null) {
+            book.setIsFeatured(updatedBook.getIsFeatured());
+        }
         book.setCategory(updatedBook.getCategory());
         return bookRepository.save(book);
     }

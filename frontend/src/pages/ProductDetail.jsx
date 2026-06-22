@@ -40,6 +40,9 @@ export default function ProductDetail() {
   const [commentInputs, setCommentInputs] = useState({});
   const [reviewComments, setReviewComments] = useState({});
   const [submittingComment, setSubmittingComment] = useState({});
+  const [canReview, setCanReview] = useState(false);
+  const [ineligibleReason, setIneligibleReason] = useState('');
+  const [isFirstReview, setIsFirstReview] = useState(true);
 
   const fetchAddresses = async () => {
     try {
@@ -66,6 +69,9 @@ export default function ProductDetail() {
         const res = await axios.get(`${API_BASE_URL}/books/${id}`);
         if (res.data && res.data.id) {
           setBook(res.data);
+          if (res.data.category && res.data.category.id) {
+            localStorage.setItem('lastViewedCategoryId', res.data.category.id);
+          }
           setSelectedImage(0);
           // Fetch related books based on category or just latest
           const relatedRes = await axios.get(`${API_BASE_URL}/books/latest`);
@@ -112,7 +118,20 @@ export default function ProductDetail() {
           setIsWishlisted(inList);
         } catch (e) { console.error(e); }
       };
+      const checkEligibility = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const res = await axios.get(`${API_BASE_URL}/reviews/check-eligibility/${id}`, { headers: { Authorization: `Bearer ${token}` }});
+          setCanReview(res.data?.eligible || false);
+          setIneligibleReason(res.data?.reason || '');
+          setIsFirstReview(res.data?.firstReview ?? true);
+        } catch (e) { console.error(e); }
+      };
       checkWishlist();
+      checkEligibility();
+    } else {
+      setCanReview(false);
+      setIneligibleReason('NOT_LOGGED_IN');
     }
   }, [user, id]);
 
@@ -177,7 +196,8 @@ export default function ProductDetail() {
       }
     } catch (error) {
       console.error('Error submitting review:', error);
-      Swal.fire('Lỗi', 'Có lỗi xảy ra khi gửi đánh giá.', 'error');
+      const msg = error.response?.data?.message || 'Có lỗi xảy ra khi gửi đánh giá.';
+      Swal.fire('Lỗi', msg, 'error');
     } finally {
       setSubmittingReview(false);
     }
@@ -241,10 +261,21 @@ export default function ProductDetail() {
   };
 
   const handleLikeReview = async (reviewId) => {
+    if (!user) {
+      Swal.fire('Vui lòng đăng nhập', 'Bạn cần đăng nhập để thích đánh giá này.', 'warning');
+      return;
+    }
     try {
-      const res = await axios.post(`${API_BASE_URL}/reviews/${reviewId}/like`);
-      setReviewLikes(prev => ({ ...prev, [reviewId]: (prev[reviewId] ?? 0) + 1 }));
-    } catch (e) { console.error(e); }
+      const token = localStorage.getItem('token');
+      const res = await axios.post(`${API_BASE_URL}/reviews/${reviewId}/like`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setReviewLikes(prev => ({ ...prev, [reviewId]: res.data.likesCount }));
+    } catch (e) { 
+      console.error(e);
+      const msg = e.response?.data?.message || 'Không thể thực hiện thao tác này.';
+      Swal.fire('Lỗi', msg, 'error');
+    }
   };
 
   const handleSubmitComment = async (reviewId) => {
@@ -538,12 +569,25 @@ export default function ProductDetail() {
               {user ? (
                 <div className="text-center">
                   <p className="text-sm text-gray-600 mb-3">Chia sẻ nhận xét của bạn về sản phẩm này</p>
-                  <button 
-                    onClick={() => setIsReviewModalOpen(true)}
-                    className="bg-white border border-primary text-primary hover:bg-primary hover:text-white font-bold py-2 px-6 rounded transition-colors text-sm cursor-pointer"
-                  >
-                    Viết đánh giá
-                  </button>
+                  {canReview ? (
+                    <>
+                      <button 
+                        onClick={() => setIsReviewModalOpen(true)}
+                        className="bg-white border border-primary text-primary hover:bg-primary hover:text-white font-bold py-2 px-6 rounded transition-colors text-sm cursor-pointer"
+                      >
+                        Viết đánh giá
+                      </button>
+                      {isFirstReview && (
+                        <p className="text-xs text-green-600 mt-2 font-medium">Đánh giá sản phẩm để nhận ngay 400 điểm</p>
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-sm text-amber-600 bg-amber-50 py-2 px-4 rounded-lg border border-amber-100 inline-block">
+                      {ineligibleReason === 'ALREADY_REVIEWED' 
+                        ? 'Bạn đã đánh giá sản phẩm này rồi.' 
+                        : 'Bạn cần mua và nhận hàng thành công để viết đánh giá.'}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="text-center text-sm text-gray-600">
