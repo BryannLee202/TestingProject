@@ -88,9 +88,11 @@ public class OrderService {
         double totalOldPrice = 0;
         double shippingFee = request.getShippingFee() != null ? request.getShippingFee() : 0.0;
 
+        String initialStatus = "VNPAY".equalsIgnoreCase(request.getPaymentMethod()) ? "PENDING_PAYMENT" : "PENDING";
+
         Order order = Order.builder()
                 .user(user)
-                .status("PENDING")
+                .status(initialStatus)
                 .items(new java.util.ArrayList<>())
                 .shippingAddress(request.getShippingAddress())
                 .phoneNumber(request.getPhoneNumber())
@@ -154,10 +156,14 @@ public class OrderService {
         discountAmount += vipDiscountAmount;
         remainingMaxDiscount -= vipDiscountAmount;
 
-        if (request.getCouponCode() != null && !request.getCouponCode().trim().isEmpty()) {
+        com.bookstore.entity.Coupon discountCoupon = null;
+        if (request.getDiscountCouponCode() != null && !request.getDiscountCouponCode().trim().isEmpty()) {
             try {
-                com.bookstore.entity.Coupon coupon = couponService.validateCoupon(request.getCouponCode(), subtotal);
-                double couponDiscount = couponService.calculateDiscount(coupon, subtotal);
+                discountCoupon = couponService.validateCoupon(request.getDiscountCouponCode(), subtotal, username);
+                if (!"DISCOUNT".equals(discountCoupon.getCategory()) && discountCoupon.getCategory() != null) {
+                    throw new RuntimeException("Mã này không phải mã giảm giá sản phẩm!");
+                }
+                double couponDiscount = couponService.calculateDiscount(discountCoupon, subtotal);
                 
                 if (couponDiscount > remainingMaxDiscount) {
                     couponDiscount = remainingMaxDiscount > 0 ? remainingMaxDiscount : 0;
@@ -165,13 +171,31 @@ public class OrderService {
                 
                 discountAmount += couponDiscount;
                 remainingMaxDiscount -= couponDiscount;
-                order.setCouponCode(coupon.getCode());
+                order.setDiscountCouponCode(discountCoupon.getCode());
             } catch (Exception e) {
                 throw new RuntimeException("Lỗi áp dụng mã giảm giá: " + e.getMessage());
             }
         }
+
+        double shippingDiscount = 0;
+        com.bookstore.entity.Coupon shippingCoupon = null;
+        if (request.getShippingCouponCode() != null && !request.getShippingCouponCode().trim().isEmpty()) {
+            try {
+                shippingCoupon = couponService.validateCoupon(request.getShippingCouponCode(), subtotal, username);
+                if (!"SHIPPING".equals(shippingCoupon.getCategory())) {
+                    throw new RuntimeException("Mã này không phải mã miễn phí vận chuyển!");
+                }
+                double calcShipDiscount = couponService.calculateDiscount(shippingCoupon, shippingFee);
+                
+                // Tiền giảm vận chuyển không được vượt quá phí vận chuyển
+                shippingDiscount = Math.min(calcShipDiscount, shippingFee);
+                order.setShippingCouponCode(shippingCoupon.getCode());
+            } catch (Exception e) {
+                throw new RuntimeException("Lỗi áp dụng mã vận chuyển: " + e.getMessage());
+            }
+        }
         
-        order.setDiscountAmount(discountAmount);
+        order.setDiscountAmount(discountAmount + shippingDiscount);
         
         // Handling Y-Points spending
         int pointsUsed = 0;
@@ -212,15 +236,71 @@ public class OrderService {
                     .build();
             pointTransactionRepository.save(spendTx);
         }
+        order.setTotalAmount(subtotal - discountAmount - pointsUsed + shippingFee - shippingDiscount);
         
-        order.setTotalAmount(subtotal - discountAmount - pointsUsed + shippingFee);
-        
-        // Xóa giỏ hàng sau khi đặt thành công
-        cartService.clearCart(username);
-
         Order savedOrder = orderRepository.save(order);
-        updatePointsAndSpent(user, savedOrder.getTotalAmount(), isFirstOrder);
+
+        if (!"VNPAY".equalsIgnoreCase(request.getPaymentMethod())) {
+            cartService.clearCart(username);
+            if (discountCoupon != null) couponService.useCoupon(discountCoupon);
+            if (shippingCoupon != null) couponService.useCoupon(shippingCoupon);
+        }
+
         return savedOrder;
+    }
+
+    public void confirmVNPayPayment(Long orderId, boolean success) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+        if (!"PENDING_PAYMENT".equals(order.getStatus())) {
+            return;
+        }
+
+        User user = order.getUser();
+
+        if (success) {
+            order.setStatus("PENDING");
+            orderRepository.save(order);
+
+            cartService.clearCart(user.getUsername());
+
+            if (order.getDiscountCouponCode() != null && !order.getDiscountCouponCode().isEmpty()) {
+                couponRepository.findByCodeIgnoreCaseAndIsActiveTrue(order.getDiscountCouponCode())
+                        .ifPresent(couponService::useCoupon);
+            }
+            if (order.getShippingCouponCode() != null && !order.getShippingCouponCode().isEmpty()) {
+                couponRepository.findByCodeIgnoreCaseAndIsActiveTrue(order.getShippingCouponCode())
+                        .ifPresent(couponService::useCoupon);
+            }
+
+        } else {
+            order.setStatus("CANCELLED");
+            orderRepository.save(order);
+            
+            // Hoàn điểm
+            if (order.getPointsUsed() != null && order.getPointsUsed() > 0) {
+                user.setYPoints(user.getYPoints() + order.getPointsUsed());
+                userRepository.save(user);
+                
+                PointTransaction pt = PointTransaction.builder()
+                        .user(user)
+                        .action("REFUND_ORDER")
+                        .description("Hoàn điểm do huỷ thanh toán VNPAY")
+                        .previousBalance(user.getYPoints() - order.getPointsUsed())
+                        .transactionValue(order.getPointsUsed())
+                        .newBalance(user.getYPoints())
+                        .createdAt(java.time.LocalDateTime.now())
+                        .build();
+                pointTransactionRepository.save(pt);
+            }
+            
+            // Hoàn tồn kho
+            for (com.bookstore.entity.OrderItem item : order.getItems()) {
+                com.bookstore.entity.Book book = item.getBook();
+                book.setStockQuantity(book.getStockQuantity() + item.getQuantity());
+                book.setSalesCount(Math.max(0, (book.getSalesCount() == null ? 0 : book.getSalesCount()) - item.getQuantity()));
+                bookRepository.save(book);
+            }
+        }
     }
 
     public List<Order> getOrdersByUser(String username) {
@@ -240,13 +320,22 @@ public class OrderService {
 
     public Order updateOrderShipping(Long orderId, String status, String shippingPartner, String trackingNumber) {
         Order order = getOrderById(orderId);
+        boolean wasNotCompleted = !"COMPLETED".equals(order.getStatus());
+
         if (status != null) {
             order.setShippingStatus(ShippingStatus.valueOf(status));
             // Đồng bộ trạng thái đơn hàng chung
             if (status.equals("DELIVERED")) {
                 order.setStatus("COMPLETED");
+                if (wasNotCompleted) {
+                    User user = order.getUser();
+                    boolean isFirstOrder = orderRepository.findByUserOrderByCreatedAtDesc(user).size() <= 1;
+                    updatePointsAndSpent(user, order.getTotalAmount(), isFirstOrder);
+                }
             } else if (status.equals("CANCELLED")) {
                 order.setStatus("CANCELLED");
+            } else if (status.equals("SHIPPED")) {
+                order.setStatus("SHIPPED");
             } else {
                 order.setStatus("PROCESSING");
             }
@@ -258,6 +347,47 @@ public class OrderService {
             order.setTrackingNumber(trackingNumber);
         }
         return orderRepository.save(order);
+    }
+
+    public void userCancelOrder(Long orderId, String username) {
+        Order order = getOrderById(orderId);
+        if (!order.getUser().getUsername().equals(username)) {
+            throw new RuntimeException("Bạn không có quyền huỷ đơn hàng này!");
+        }
+        if (!"PENDING".equals(order.getStatus()) && !"PENDING_PAYMENT".equals(order.getStatus())) {
+            throw new RuntimeException("Chỉ có thể huỷ đơn hàng ở trạng thái Chờ xác nhận!");
+        }
+
+        order.setStatus("CANCELLED");
+        order.setShippingStatus(ShippingStatus.CANCELLED);
+        orderRepository.save(order);
+
+        User user = order.getUser();
+
+        // Hoàn điểm
+        if (order.getPointsUsed() != null && order.getPointsUsed() > 0) {
+            user.setYPoints(user.getYPoints() + order.getPointsUsed());
+            userRepository.save(user);
+
+            PointTransaction pt = PointTransaction.builder()
+                    .user(user)
+                    .action("REFUND_ORDER")
+                    .description("Hoàn điểm do huỷ đơn hàng")
+                    .previousBalance(user.getYPoints() - order.getPointsUsed())
+                    .transactionValue(order.getPointsUsed())
+                    .newBalance(user.getYPoints())
+                    .createdAt(java.time.LocalDateTime.now())
+                    .build();
+            pointTransactionRepository.save(pt);
+        }
+
+        // Hoàn tồn kho
+        for (com.bookstore.entity.OrderItem item : order.getItems()) {
+            com.bookstore.entity.Book book = item.getBook();
+            book.setStockQuantity(book.getStockQuantity() + item.getQuantity());
+            book.setSalesCount(Math.max(0, (book.getSalesCount() == null ? 0 : book.getSalesCount()) - item.getQuantity()));
+            bookRepository.save(book);
+        }
     }
 
     public void deleteOrder(Long id) {

@@ -69,10 +69,16 @@ export default function Checkout() {
   const [loading, setLoading] = useState(false);
   const [useYPoints, setUseYPoints] = useState(false);
   
-  const [couponCode, setCouponCode] = useState(location.state?.appliedCoupon?.code || '');
-  const [appliedCoupon, setAppliedCoupon] = useState(location.state?.appliedCoupon || null);
+  const [discountCouponCode, setDiscountCouponCode] = useState(location.state?.appliedCoupon?.code || '');
+  const [appliedDiscountCoupon, setAppliedDiscountCoupon] = useState(location.state?.appliedCoupon || null);
   const [discountAmount, setDiscountAmount] = useState(0);
-  const [couponError, setCouponError] = useState('');
+  const [discountCouponError, setDiscountCouponError] = useState('');
+
+  const [shippingCouponCode, setShippingCouponCode] = useState('');
+  const [appliedShippingCoupon, setAppliedShippingCoupon] = useState(null);
+  const [shippingDiscountAmount, setShippingDiscountAmount] = useState(0);
+  const [shippingCouponError, setShippingCouponError] = useState('');
+
   const [validatingCoupon, setValidatingCoupon] = useState(false);
   const [hasAutoApplied, setHasAutoApplied] = useState(false);
 
@@ -121,7 +127,9 @@ export default function Checkout() {
       setAddresses([]);
     }
     // Lấy danh sách mã khuyến mãi
-    axios.get(`${API_BASE_URL}/coupons`)
+    axios.get(`${API_BASE_URL}/coupons`, {
+      headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+    })
       .then(res => setAvailableCoupons(res.data))
       .catch(err => console.error(err));
   }, [user, navigate, API_BASE_URL]);
@@ -169,29 +177,69 @@ export default function Checkout() {
     }
   }, [city, ward, shippingMethod]);
 
-  const handleApplyCoupon = async (codeToApply = couponCode) => {
-    const code = typeof codeToApply === 'string' ? codeToApply : couponCode;
+  const handleApplyDiscountCoupon = async (codeToApply = discountCouponCode) => {
+    const code = typeof codeToApply === 'string' ? codeToApply : discountCouponCode;
     if (!code.trim()) return;
     setValidatingCoupon(true);
-    setCouponError('');
+    setDiscountCouponError('');
     try {
       const res = await axios.get(`${API_BASE_URL}/coupons/validate`, {
-        params: { code: code.trim(), amount: cartTotal }
+        params: { code: code.trim(), amount: cartTotal },
+        headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
       });
       if (res.data.valid) {
-        setAppliedCoupon(res.data.coupon);
+        const isShipping = res.data.coupon.category === 'SHIPPING' || res.data.coupon.code.toUpperCase().includes('FREESHIP');
+        if (isShipping) {
+          setDiscountCouponError('Mã này không phải mã giảm giá sản phẩm.');
+          return;
+        }
+        setAppliedDiscountCoupon(res.data.coupon);
         setDiscountAmount(res.data.discountAmount);
-        setCouponCode(res.data.coupon.code);
+        setDiscountCouponCode(res.data.coupon.code);
         setShowCouponModal(false);
         showNotification('Áp dụng thành công!', `Bạn được giảm ${res.data.discountAmount.toLocaleString('vi-VN')} đ`, 'success');
       } else {
-        setCouponError(res.data.message || 'Mã giảm giá không hợp lệ.');
-        setAppliedCoupon(null);
+        setDiscountCouponError(res.data.message || 'Mã giảm giá không hợp lệ.');
+        setAppliedDiscountCoupon(null);
         setDiscountAmount(0);
       }
     } catch (error) {
       console.error('Error validating coupon:', error);
-      setCouponError('Lỗi kiểm tra mã giảm giá.');
+      setDiscountCouponError('Lỗi kiểm tra mã giảm giá.');
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
+
+  const handleApplyShippingCoupon = async (codeToApply = shippingCouponCode) => {
+    const code = typeof codeToApply === 'string' ? codeToApply : shippingCouponCode;
+    if (!code.trim()) return;
+    setValidatingCoupon(true);
+    setShippingCouponError('');
+    try {
+      const res = await axios.get(`${API_BASE_URL}/coupons/validate`, {
+        params: { code: code.trim(), amount: cartTotal },
+        headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+      });
+      if (res.data.valid) {
+        const isShipping = res.data.coupon.category === 'SHIPPING' || res.data.coupon.code.toUpperCase().includes('FREESHIP');
+        if (!isShipping) {
+          setShippingCouponError('Mã này không phải mã miễn phí vận chuyển.');
+          return;
+        }
+        setAppliedShippingCoupon(res.data.coupon);
+        setShippingDiscountAmount(Math.min(res.data.discountAmount, shippingFee));
+        setShippingCouponCode(res.data.coupon.code);
+        setShowCouponModal(false);
+        showNotification('Áp dụng thành công!', `Bạn được giảm phí vận chuyển ${Math.min(res.data.discountAmount, shippingFee).toLocaleString('vi-VN')} đ`, 'success');
+      } else {
+        setShippingCouponError(res.data.message || 'Mã vận chuyển không hợp lệ.');
+        setAppliedShippingCoupon(null);
+        setShippingDiscountAmount(0);
+      }
+    } catch (error) {
+      console.error('Error validating coupon:', error);
+      setShippingCouponError('Lỗi kiểm tra mã vận chuyển.');
     } finally {
       setValidatingCoupon(false);
     }
@@ -200,15 +248,26 @@ export default function Checkout() {
   useEffect(() => {
     if (location.state?.appliedCoupon?.code && cartTotal > 0 && !hasAutoApplied) {
       setHasAutoApplied(true);
-      handleApplyCoupon(location.state.appliedCoupon.code);
+      if (location.state.appliedCoupon.category === 'SHIPPING') {
+        handleApplyShippingCoupon(location.state.appliedCoupon.code);
+      } else {
+        handleApplyDiscountCoupon(location.state.appliedCoupon.code);
+      }
     }
   }, [location.state, cartTotal, hasAutoApplied]);
 
-  const handleRemoveCoupon = () => {
-    setCouponCode('');
-    setAppliedCoupon(null);
+  const handleRemoveDiscountCoupon = () => {
+    setDiscountCouponCode('');
+    setAppliedDiscountCoupon(null);
     setDiscountAmount(0);
-    setCouponError('');
+    setDiscountCouponError('');
+  };
+
+  const handleRemoveShippingCoupon = () => {  
+    setShippingCouponCode('');
+    setAppliedShippingCoupon(null);
+    setShippingDiscountAmount(0);
+    setShippingCouponError('');
   };
 
   const submitOrder = async () => {
@@ -230,7 +289,8 @@ export default function Checkout() {
         shippingFee,
         shippingMethod,
         customerNote: finalNote,
-        couponCode: appliedCoupon ? appliedCoupon.code : null,
+        discountCouponCode: appliedDiscountCoupon ? appliedDiscountCoupon.code : null,
+        shippingCouponCode: appliedShippingCoupon ? appliedShippingCoupon.code : null,
         spentPoints: useYPoints ? pointsDiscount : 0
       };
 
@@ -241,6 +301,44 @@ export default function Checkout() {
       if (res.status === 200 || res.status === 201) {
         checkoutCart.forEach(item => removeFromCart(item.id));
         if (refreshUser) refreshUser();
+
+        if (['VNPAY', 'ATM', 'VISA', 'MOMO', 'ZALOPAY'].includes(paymentMethod)) {
+          try {
+            const amountForPayment = Math.round(cartTotal + shippingFee - vipDiscountAmount - actualCouponDiscount - actualShippingDiscount - pointsDiscount);
+            let paymentUrl = '';
+            
+            if (paymentMethod === 'VNPAY' || paymentMethod === 'ATM' || paymentMethod === 'VISA') {
+              let bankCode = '';
+              if (paymentMethod === 'ATM') bankCode = 'VNBANK';
+              if (paymentMethod === 'VISA') bankCode = 'INTCARD';
+              
+              const vnpayRes = await axios.get(`${API_BASE_URL}/payment/create-url`, {
+                params: { amount: amountForPayment, orderId: res.data.id, bankCode }
+              });
+              paymentUrl = vnpayRes.data.url;
+            } else if (paymentMethod === 'MOMO') {
+              const momoRes = await axios.get(`${API_BASE_URL}/payment/momo/create-url`, {
+                params: { amount: amountForPayment, orderId: res.data.id }
+              });
+              paymentUrl = momoRes.data.url;
+            } else if (paymentMethod === 'ZALOPAY') {
+              const zaloRes = await axios.get(`${API_BASE_URL}/payment/zalopay/create-url`, {
+                params: { amount: amountForPayment, orderId: res.data.id }
+              });
+              paymentUrl = zaloRes.data.url;
+            }
+
+            if (paymentUrl) {
+              window.location.href = paymentUrl;
+              return;
+            }
+          } catch (paymentError) {
+            console.error('Lỗi khi tạo URL thanh toán:', paymentError);
+            Swal.fire('Lỗi', 'Không thể kết nối đến cổng thanh toán', 'error');
+            return;
+          }
+        }
+
         setShowPaymentModal(false);
         Swal.fire({
           icon: 'success',
@@ -267,7 +365,17 @@ export default function Checkout() {
       return showNotification('Thiếu thông tin', 'Vui lòng điền đầy đủ Địa chỉ giao hàng.', 'warning');
     }
 
-    if (paymentMethod !== 'COD') {
+    if (paymentMethod === 'SHOPEEPAY') {
+      Swal.fire({
+        icon: 'info',
+        title: 'Tính năng đang cải thiện',
+        text: 'Cổng thanh toán ShopeePay hiện đang được nâng cấp. Vui lòng chọn phương thức thanh toán khác.',
+        confirmButtonColor: '#3085d6'
+      });
+      return;
+    }
+
+    if (paymentMethod !== 'COD' && !['VNPAY', 'ATM', 'VISA', 'MOMO', 'ZALOPAY'].includes(paymentMethod)) {
       setShowPaymentModal(true);
       return;
     }
@@ -298,7 +406,9 @@ export default function Checkout() {
   }
   remainingMaxDiscount -= actualCouponDiscount;
 
-  const subtotalAfterDiscounts = cartTotal + shippingFee - actualCouponDiscount - vipDiscountAmount;
+  const actualShippingDiscount = Math.min(shippingDiscountAmount, shippingFee);
+
+  const subtotalAfterDiscounts = cartTotal + shippingFee - actualCouponDiscount - vipDiscountAmount - actualShippingDiscount;
   
   let maxUsablePointsByRule = remainingMaxDiscount > 0 ? remainingMaxDiscount : 0;
   let maxUsablePointsByTotal = subtotalAfterDiscounts > 0 ? subtotalAfterDiscounts : 0;
@@ -532,27 +642,57 @@ export default function Checkout() {
                   <h2 className="text-lg font-bold text-gray-800 uppercase tracking-wide">Mã khuyến mãi</h2>
                 </div>
                 <div className="p-6">
-                  <div className="flex gap-2">
-                    <input 
-                      type="text" 
-                      value={couponCode}
-                      onChange={e => setCouponCode(e.target.value)}
-                      placeholder="Nhập mã..." 
-                      className="px-4 py-3 border border-gray-200 rounded-xl flex-1 outline-none uppercase font-bold text-gray-800 focus:border-purple-500 transition-colors bg-gray-50 focus:bg-white" 
-                      readOnly={appliedCoupon !== null}
-                    />
-                    {appliedCoupon ? (
-                      <button type="button" onClick={handleRemoveCoupon} className="bg-red-500 text-white px-5 rounded-xl font-bold hover:bg-red-600 transition-colors shadow-sm">Xóa</button>
-                    ) : (
-                      <button type="button" onClick={() => handleApplyCoupon()} disabled={validatingCoupon} className="bg-purple-600 text-white px-5 rounded-xl font-bold hover:bg-purple-700 transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed">
-                        {validatingCoupon ? '...' : 'Áp dụng'}
-                      </button>
-                    )}
+                  {/* Mã giảm giá */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Giảm giá sản phẩm</label>
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" 
+                        value={discountCouponCode}
+                        onChange={e => setDiscountCouponCode(e.target.value)}
+                        placeholder="Nhập mã..." 
+                        className="px-4 py-3 border border-gray-200 rounded-xl flex-1 outline-none uppercase font-bold text-gray-800 focus:border-purple-500 transition-colors bg-gray-50 focus:bg-white" 
+                        readOnly={appliedDiscountCoupon !== null}
+                      />
+                      {appliedDiscountCoupon ? (
+                        <button type="button" onClick={handleRemoveDiscountCoupon} className="bg-red-500 text-white px-5 rounded-xl font-bold hover:bg-red-600 transition-colors shadow-sm">Xóa</button>
+                      ) : (
+                        <button type="button" onClick={() => handleApplyDiscountCoupon()} disabled={validatingCoupon} className="bg-purple-600 text-white px-5 rounded-xl font-bold hover:bg-purple-700 transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed">
+                          {validatingCoupon ? '...' : 'Áp dụng'}
+                        </button>
+                      )}
+                    </div>
+                    {discountCouponError && <div className="text-red-500 text-sm mt-2 font-medium flex items-center gap-1.5 bg-red-50 p-2 rounded-lg"><FaTimes/> {discountCouponError}</div>}
+                    {appliedDiscountCoupon && <div className="text-green-700 text-sm mt-2 font-medium bg-green-50 p-2 rounded-xl border border-green-200 flex items-center gap-2 shadow-sm">
+                       <span className="w-2 h-2 rounded-full bg-green-500"></span> Đã giảm {discountAmount.toLocaleString('vi-VN')} đ
+                    </div>}
                   </div>
-                  {couponError && <div className="text-red-500 text-sm mt-3 font-medium flex items-center gap-1.5 bg-red-50 p-2 rounded-lg"><FaTimes/> {couponError}</div>}
-                  {appliedCoupon && <div className="text-green-700 text-sm mt-3 font-medium bg-green-50 p-3 rounded-xl border border-green-200 flex items-center gap-2 shadow-sm">
-                     <span className="w-2 h-2 rounded-full bg-green-500"></span> Áp dụng thành công! Được giảm {discountAmount.toLocaleString('vi-VN')} đ
-                  </div>}
+
+                  {/* Mã vận chuyển */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Miễn phí vận chuyển</label>
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" 
+                        value={shippingCouponCode}
+                        onChange={e => setShippingCouponCode(e.target.value)}
+                        placeholder="Nhập mã..." 
+                        className="px-4 py-3 border border-gray-200 rounded-xl flex-1 outline-none uppercase font-bold text-gray-800 focus:border-purple-500 transition-colors bg-gray-50 focus:bg-white" 
+                        readOnly={appliedShippingCoupon !== null}
+                      />
+                      {appliedShippingCoupon ? (
+                        <button type="button" onClick={handleRemoveShippingCoupon} className="bg-red-500 text-white px-5 rounded-xl font-bold hover:bg-red-600 transition-colors shadow-sm">Xóa</button>
+                      ) : (
+                        <button type="button" onClick={() => handleApplyShippingCoupon()} disabled={validatingCoupon} className="bg-purple-600 text-white px-5 rounded-xl font-bold hover:bg-purple-700 transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed">
+                          {validatingCoupon ? '...' : 'Áp dụng'}
+                        </button>
+                      )}
+                    </div>
+                    {shippingCouponError && <div className="text-red-500 text-sm mt-2 font-medium flex items-center gap-1.5 bg-red-50 p-2 rounded-lg"><FaTimes/> {shippingCouponError}</div>}
+                    {appliedShippingCoupon && <div className="text-green-700 text-sm mt-2 font-medium bg-green-50 p-2 rounded-xl border border-green-200 flex items-center gap-2 shadow-sm">
+                       <span className="w-2 h-2 rounded-full bg-green-500"></span> Đã giảm {Math.min(shippingDiscountAmount, shippingFee).toLocaleString('vi-VN')} đ
+                    </div>}
+                  </div>
                   
                   <button 
                     type="button" 
@@ -619,8 +759,14 @@ export default function Checkout() {
                   )}
                   {actualCouponDiscount > 0 && (
                     <div className="flex justify-between text-green-600 text-sm font-medium">
-                      <span>Khuyến mãi</span>
+                      <span>Giảm giá sản phẩm</span>
                       <span>-{actualCouponDiscount.toLocaleString('vi-VN')} đ</span>
+                    </div>
+                  )}
+                  {actualShippingDiscount > 0 && (
+                    <div className="flex justify-between text-green-600 text-sm font-medium">
+                      <span>Miễn phí vận chuyển</span>
+                      <span>-{actualShippingDiscount.toLocaleString('vi-VN')} đ</span>
                     </div>
                   )}
                   {user && user.yPoints > 0 && (
@@ -806,8 +952,14 @@ export default function Checkout() {
                              <button 
                                type="button" 
                                onClick={() => {
-                                 setCouponCode(coupon.code);
-                                 handleApplyCoupon(coupon.code);
+                                 const isShipping = coupon.category === 'SHIPPING' || coupon.code.toUpperCase().includes('FREESHIP');
+                                 if (isShipping) {
+                                   setShippingCouponCode(coupon.code);
+                                   handleApplyShippingCoupon(coupon.code);
+                                 } else {
+                                   setDiscountCouponCode(coupon.code);
+                                   handleApplyDiscountCoupon(coupon.code);
+                                 }
                                }}
                                className="text-sm bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-xl transition-all shadow-sm hover:shadow-purple-500/30 hover:-translate-y-0.5 active:translate-y-0"
                              >

@@ -47,6 +47,12 @@ public class OrderController {
         return ResponseEntity.ok(orderService.updateOrderShipping(id, status, shippingPartner, trackingNumber));
     }
 
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<Void> cancelOrder(Authentication authentication, @PathVariable Long id) {
+        orderService.userCancelOrder(id, authentication.getName());
+        return ResponseEntity.ok().build();
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
         orderService.deleteOrder(id);

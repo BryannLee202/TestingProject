@@ -70,7 +70,8 @@ public class Order {
     private Integer pointsUsed = 0;
 
     @Column(name = "coupon_code", length = 50)
-    private String couponCode;
+    private String discountCouponCode;
+    private String shippingCouponCode;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;

@@ -9,6 +9,8 @@ export default function OrderDetail() {
   const { id } = useParams();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [canceling, setCanceling] = useState(false);
+  const [showTracking, setShowTracking] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -45,6 +47,35 @@ export default function OrderDetail() {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleCancelOrder = async () => {
+    const result = await Swal.fire({
+      title: 'Hủy đơn hàng?',
+      text: "Bạn có chắc chắn muốn hủy đơn hàng này không?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Vâng, Hủy đơn!',
+      cancelButtonText: 'Không'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        setCanceling(true);
+        await axios.put(`${API_BASE_URL}/orders/${id}/cancel`, {}, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        Swal.fire('Đã hủy!', 'Đơn hàng của bạn đã được hủy thành công.', 'success');
+        const res = await axios.get(`${API_BASE_URL}/orders/${id}`);
+        setOrder(res.data);
+      } catch (error) {
+        Swal.fire('Lỗi', error.response?.data?.message || 'Không thể hủy đơn hàng', 'error');
+      } finally {
+        setCanceling(false);
+      }
+    }
   };
 
   const getStepStatus = (currentStatus, stepIndex) => {
@@ -134,9 +165,10 @@ export default function OrderDetail() {
                 Đơn hàng này đã bị hủy.
               </div>
             ) : (
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative">
-                {/* Connector Line for Desktop */}
-                <div className="hidden md:block absolute left-8 right-8 top-5 h-0.5 bg-gray-200 z-0">
+              <div>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative">
+                  {/* Connector Line for Desktop */}
+                  <div className="hidden md:block absolute left-8 right-8 top-5 h-0.5 bg-gray-200 z-0">
                   <div 
                     className="h-full bg-green-500 transition-all duration-500"
                     style={{ 
@@ -188,9 +220,12 @@ export default function OrderDetail() {
                       {order.shippingPartner ? `${order.shippingPartner}` : 'Chưa giao'}
                     </span>
                     {order.trackingNumber && (
-                      <span className="block text-[10px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded border border-purple-100 font-mono mt-0.5">
+                      <button 
+                        onClick={() => setShowTracking(true)}
+                        className="block text-[10px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded border border-purple-100 font-mono mt-0.5 hover:bg-purple-100 transition-colors"
+                      >
                         Mã: {order.trackingNumber}
-                      </span>
+                      </button>
                     )}
                   </div>
                 </div>
@@ -208,6 +243,21 @@ export default function OrderDetail() {
                   </div>
                 </div>
               </div>
+              
+              {/* Nút Huỷ Đơn Hàng cho Mốc 1 */}
+              {(order.status === 'PENDING' || order.status === 'PENDING_PAYMENT') && (
+                <div className="mt-8 pt-6 border-t border-gray-100 flex justify-center">
+                  <button
+                    onClick={handleCancelOrder}
+                    disabled={canceling}
+                    className="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-xl shadow-lg shadow-red-500/30 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {canceling ? <FaSpinner className="animate-spin inline mr-2" /> : null}
+                    HỦY ĐƠN HÀNG
+                  </button>
+                </div>
+              )}
+            </div>
             )}
           </div>
 
@@ -327,6 +377,57 @@ export default function OrderDetail() {
 
         </div>
       </div>
+
+      {/* Tracking Modal */}
+      {showTracking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+            <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <FaTruck className="text-primary" /> Chi tiết hành trình
+            </h3>
+            
+            <div className="space-y-4 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 before:to-transparent">
+              {/* Điểm xuất phát */}
+              <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-slate-300 text-slate-500 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 group-[.is-active]:bg-primary group-[.is-active]:text-white">
+                  <FaCheckCircle />
+                </div>
+                <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded border border-slate-200 bg-white shadow-sm">
+                  <div className="flex items-center justify-between space-x-2 mb-1">
+                    <div className="font-bold text-slate-900 text-sm">Lấy hàng thành công</div>
+                    <time className="text-xs font-medium text-indigo-500">08:00</time>
+                  </div>
+                  <div className="text-slate-500 text-xs">Kho Tân Bình</div>
+                </div>
+              </div>
+              
+              {/* Trung chuyển */}
+              <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-slate-300 text-slate-500 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 group-[.is-active]:bg-primary group-[.is-active]:text-white">
+                  <FaTruck />
+                </div>
+                <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded border border-slate-200 bg-white shadow-sm">
+                  <div className="flex items-center justify-between space-x-2 mb-1">
+                    <div className="font-bold text-slate-900 text-sm">Đến bưu cục phát</div>
+                    <time className="text-xs font-medium text-indigo-500">14:00</time>
+                  </div>
+                  <div className="text-slate-500 text-xs">Quận Gò Vấp</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button 
+                onClick={() => setShowTracking(false)}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg font-medium transition-colors"
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

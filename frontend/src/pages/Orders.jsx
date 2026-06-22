@@ -8,6 +8,7 @@ import { FaBoxOpen, FaEye, FaCalendarAlt, FaCreditCard, FaTruck, FaMoneyBillWave
 export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('ALL');
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -73,6 +74,16 @@ export default function Orders() {
     }
   };
 
+  const filteredOrders = orders.filter(order => {
+    if (activeTab === 'ALL') return true;
+    if (activeTab === 'PENDING') return order.status === 'PENDING' || order.status === 'PENDING_PAYMENT';
+    if (activeTab === 'PROCESSING') return order.status === 'PROCESSING';
+    if (activeTab === 'SHIPPED') return order.status === 'SHIPPED' || order.shippingStatus === 'SHIPPING';
+    if (activeTab === 'COMPLETED') return order.status === 'COMPLETED';
+    if (activeTab === 'CANCELLED') return order.status === 'CANCELLED';
+    return true;
+  });
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -86,7 +97,31 @@ export default function Orders() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-2xl font-bold text-gray-800 mb-8 uppercase tracking-wide">Đơn Hàng Của Tôi</h1>
 
-        {orders.length === 0 ? (
+        {/* Tabs */}
+        <div className="flex overflow-x-auto gap-2 mb-6 pb-2 scrollbar-hide">
+          {[
+            { id: 'ALL', label: 'Tất cả' },
+            { id: 'PENDING', label: 'Chờ xác nhận' },
+            { id: 'PROCESSING', label: 'Đang xử lý' },
+            { id: 'SHIPPED', label: 'Đang giao' },
+            { id: 'COMPLETED', label: 'Hoàn thành' },
+            { id: 'CANCELLED', label: 'Đã hủy' }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-bold transition-all ${
+                activeTab === tab.id 
+                  ? 'bg-primary text-white shadow-md shadow-primary/30' 
+                  : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {filteredOrders.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-sm p-10 flex flex-col items-center justify-center min-h-[350px] border border-gray-100">
             <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-6 text-gray-300">
               <FaBoxOpen className="text-5xl" />
@@ -99,7 +134,7 @@ export default function Orders() {
           </div>
         ) : (
           <div className="space-y-6">
-            {orders.map((order) => (
+            {filteredOrders.map((order) => (
               <div key={order.id} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                 
                 {/* Order Header */}
