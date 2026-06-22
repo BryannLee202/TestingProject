@@ -29,6 +29,9 @@ public class CategoryService {
     public Category updateCategory(Long id, Category updatedCategory) {
         Category category = getCategoryById(id);
         category.setName(updatedCategory.getName());
+        category.setDescription(updatedCategory.getDescription());
+        category.setImageUrl(updatedCategory.getImageUrl());
+        category.setFeatured(updatedCategory.isFeatured());
         return categoryRepository.save(category);
     }
 

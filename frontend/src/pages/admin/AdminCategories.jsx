@@ -12,6 +12,8 @@ export default function AdminCategories() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [categoryName, setCategoryName] = useState('');
+  const [categoryImageUrl, setCategoryImageUrl] = useState('');
+  const [categoryIsFeatured, setCategoryIsFeatured] = useState(false);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
@@ -39,12 +41,16 @@ export default function AdminCategories() {
   const openAddModal = () => {
     setEditingCategory(null);
     setCategoryName('');
+    setCategoryImageUrl('');
+    setCategoryIsFeatured(false);
     setIsModalOpen(true);
   };
 
   const openEditModal = (category) => {
     setEditingCategory(category);
     setCategoryName(category.name || '');
+    setCategoryImageUrl(category.imageUrl || '');
+    setCategoryIsFeatured(category.featured || false);
     setIsModalOpen(true);
   };
 
@@ -95,7 +101,11 @@ export default function AdminCategories() {
     try {
       if (editingCategory) {
         // Cập nhật
-        await axios.put(`${API_BASE_URL}/categories/${editingCategory.id}`, { name: categoryName });
+        await axios.put(`${API_BASE_URL}/categories/${editingCategory.id}`, { 
+          name: categoryName,
+          imageUrl: categoryImageUrl,
+          featured: categoryIsFeatured
+        });
         Swal.fire({
           icon: 'success',
           title: 'Cập nhật thành công',
@@ -105,7 +115,11 @@ export default function AdminCategories() {
         });
       } else {
         // Tạo mới
-        await axios.post(`${API_BASE_URL}/categories`, { name: categoryName });
+        await axios.post(`${API_BASE_URL}/categories`, { 
+          name: categoryName,
+          imageUrl: categoryImageUrl,
+          featured: categoryIsFeatured
+        });
         Swal.fire({
           icon: 'success',
           title: 'Thêm mới thành công',
@@ -174,7 +188,9 @@ export default function AdminCategories() {
             <thead>
               <tr className="bg-gray-50 text-xs font-bold text-gray-400 uppercase border-b border-gray-250">
                 <th className="px-6 py-4 w-20">Mã ID</th>
+                <th className="px-6 py-4 w-20 text-center">Ảnh</th>
                 <th className="px-6 py-4">Tên danh mục</th>
+                <th className="px-6 py-4 text-center">Nổi bật</th>
                 <th className="px-6 py-4 text-center w-36">Hành động</th>
               </tr>
             </thead>
@@ -182,7 +198,17 @@ export default function AdminCategories() {
               {filteredCategories.map((cat) => (
                 <tr key={cat.id} className="hover:bg-gray-50/40">
                   <td className="px-6 py-4 font-bold text-gray-450">#{cat.id}</td>
+                  <td className="px-6 py-4">
+                    {cat.imageUrl ? (
+                      <img src={cat.imageUrl} alt={cat.name} className="w-10 h-10 rounded-md object-cover border border-gray-200 mx-auto" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center text-gray-400 text-xs mx-auto">Trống</div>
+                    )}
+                  </td>
                   <td className="px-6 py-4 font-semibold text-gray-800">{cat.name}</td>
+                  <td className="px-6 py-4 text-center">
+                    {cat.featured ? <span className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-green-100 text-green-700 rounded-md">Có</span> : <span className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-500 rounded-md">Không</span>}
+                  </td>
                   <td className="px-6 py-4 text-center">
                     <div className="flex items-center justify-center gap-3">
                       <button 
@@ -239,6 +265,30 @@ export default function AdminCategories() {
                   placeholder="Ví dụ: Tiểu thuyết, Sách kỹ năng..."
                   className="w-full px-3 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:border-primary text-sm"
                 />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-600 uppercase">Đường dẫn ảnh (URL)</label>
+                <input 
+                  type="text" 
+                  value={categoryImageUrl}
+                  onChange={(e) => setCategoryImageUrl(e.target.value)}
+                  placeholder="https://..."
+                  className="w-full px-3 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:border-primary text-sm"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <input 
+                  type="checkbox" 
+                  id="featuredCat"
+                  checked={categoryIsFeatured}
+                  onChange={(e) => setCategoryIsFeatured(e.target.checked)}
+                  className="w-4.5 h-4.5 text-primary border-gray-300 rounded focus:ring-primary"
+                />
+                <label htmlFor="featuredCat" className="text-sm font-semibold text-gray-700 select-none cursor-pointer">
+                  Hiển thị lên "Danh mục nổi bật"
+                </label>
               </div>
 
               {/* Form Footer */}

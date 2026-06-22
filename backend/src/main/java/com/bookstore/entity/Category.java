@@ -25,6 +25,12 @@ public class Category {
     @Column(columnDefinition = "NVARCHAR(MAX)")
     private String description;
 
+    @Column(columnDefinition = "NVARCHAR(MAX)")
+    private String imageUrl;
+
+    @Column(nullable = false, columnDefinition = "bit default 0")
+    private boolean isFeatured = false;
+
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore // Tránh lỗi lặp vô hạn khi parse JSON
     private List<Book> books;
