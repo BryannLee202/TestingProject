@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import logoImg from '../../assets/logo_ngang_thay_chu.png';
 import { 
   FaMapMarkerAlt, 
   FaEnvelope, 
@@ -81,7 +82,7 @@ export default function Footer() {
           {/* Col 1: Company Info */}
           <div className="lg:col-span-1">
             <Link to="/" className="flex items-center text-primary font-bold text-2xl gap-2 mb-4">
-              <img src="/src/assets/logo_ngang_thay_chu.png" alt="YiYi Book" className="h-10 object-contain" />
+              <img src={logoImg} alt="YiYi Book" className="h-10 object-contain" />
             </Link>
             <ul className="space-y-3 text-sm text-gray-600">
               <li className="flex items-start gap-3">
