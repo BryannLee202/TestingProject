@@ -40,4 +40,12 @@ public class Coupon {
 
     @Column(name = "max_discount_amount")
     private Double maxDiscountAmount;
+
+    @Column(name = "user_id")
+    private Long userId;
+
+    private String category; // DISCOUNT or SHIPPING
+
+    @Column(name = "usage_limit")
+    private Integer usageLimit;
 }

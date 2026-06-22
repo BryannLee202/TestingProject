@@ -30,6 +30,7 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/categories/**").permitAll() // Xem danh mục thoải mái
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/banners/**").permitAll() // Xem banner thoải mái
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/notifications/**").permitAll() // Xem thông báo thoải mái
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/settings/**").permitAll() // Xem cấu hình web
                 .requestMatchers("/error").permitAll() // Cho phép truy cập /error để hiển thị đúng mã lỗi
                 
                 // Quyền Admin
@@ -45,6 +46,7 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/banners/**").hasRole("ADMIN")
                 .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/banners/**").hasRole("ADMIN")
                 .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/banners/**").hasRole("ADMIN")
+                .requestMatchers("/api/settings/**").hasRole("ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 
                 .anyRequest().authenticated() // Bắt buộc đăng nhập với các API còn lại (giỏ hàng, đơn hàng)

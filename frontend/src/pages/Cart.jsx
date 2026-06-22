@@ -25,8 +25,22 @@ export default function Cart() {
     
     const fetchCoupons = async () => {
       try {
-        const res = await axios.get(`${API_BASE_URL}/coupons`);
-        setCoupons(res.data || []);
+        const res = await axios.get(`${API_BASE_URL}/coupons`, {
+          headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+        });
+        const fetchedCoupons = res.data || [];
+        setCoupons(fetchedCoupons);
+        
+        // Auto apply coupon if navigated from Coupons page
+        const savedCouponCode = localStorage.getItem('autoApplyCoupon');
+        if (savedCouponCode) {
+          const couponToApply = fetchedCoupons.find(c => c.code === savedCouponCode);
+          if (couponToApply) {
+            setAppliedCoupon(couponToApply);
+            showNotification('Thành công', `Đã áp dụng mã "${savedCouponCode}".`, 'success');
+          }
+          localStorage.removeItem('autoApplyCoupon');
+        }
       } catch (error) {
         console.error('Error fetching coupons:', error);
       }
@@ -214,7 +228,7 @@ export default function Cart() {
                       
                       <div className="mt-2 flex items-center gap-2">
                         <span className="font-bold text-gray-800">{item.price ? item.price.toLocaleString('vi-VN') : '0'} đ</span>
-                        {item.oldPrice && item.oldPrice > item.price && (
+                        {item.oldPrice > 0 && item.oldPrice > item.price && (
                           <span className="text-xs text-gray-400 line-through">{item.oldPrice.toLocaleString('vi-VN')} đ</span>
                         )}
                       </div>

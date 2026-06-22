@@ -49,4 +49,13 @@ public class Review {
     @OneToMany(mappedBy = "review", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JsonIgnoreProperties("review")
     private List<ReviewComment> comments;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "review_likes",
+        joinColumns = @JoinColumn(name = "review_id"),
+        inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private java.util.Set<User> likedByUsers = new java.util.HashSet<>();
 }

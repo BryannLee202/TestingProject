@@ -474,24 +474,32 @@ export default function AdminOrders() {
                       onChange={(e) => setShippingStatus(e.target.value)}
                       className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-primary text-sm bg-white"
                     >
-                      <option value="PENDING">Chờ chuẩn bị (General: PROCESSING)</option>
-                      <option value="PROCESSING">Đang đóng gói (General: PROCESSING)</option>
-                      <option value="SHIPPING">Đang vận chuyển (General: PROCESSING)</option>
-                      <option value="DELIVERED">Đã giao hàng thành công (General: COMPLETED)</option>
-                      <option value="CANCELLED">Hủy đơn / Hủy giao (General: CANCELLED)</option>
+                      <option value="PENDING">Chờ chuẩn bị</option>
+                      <option value="PROCESSING">Đang đóng gói</option>
+                      <option value="SHIPPING">Đang vận chuyển</option>
+                      <option value="DELIVERED">Đã giao hàng thành công</option>
+                      <option value="CANCELLED">Hủy đơn / Hủy giao</option>
                     </select>
                   </div>
 
                   {/* Đơn vị vận chuyển */}
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-gray-600 uppercase">Đơn vị giao hàng</label>
-                    <input 
-                      type="text"
+                    <select
                       value={shippingPartner}
                       onChange={(e) => setShippingPartner(e.target.value)}
-                      placeholder="Giao Hàng Nhanh, J&T..."
                       className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-primary text-sm bg-white"
-                    />
+                    >
+                      <option value="">-- Chọn đơn vị --</option>
+                      <option value="Giao Hàng Nhanh (GHN)">Giao Hàng Nhanh (GHN)</option>
+                      <option value="Giao Hàng Tiết Kiệm (GHTK)">Giao Hàng Tiết Kiệm (GHTK)</option>
+                      <option value="Viettel Post">Viettel Post</option>
+                      <option value="J&T Express">J&T Express</option>
+                      <option value="VNPost">VNPost</option>
+                      <option value="Ninja Van">Ninja Van</option>
+                      <option value="Ahamove">Ahamove</option>
+                      <option value="GrabExpress">GrabExpress</option>
+                    </select>
                   </div>
 
                   {/* Mã vận đơn */}

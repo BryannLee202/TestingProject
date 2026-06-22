@@ -102,6 +102,9 @@ public class RewardService {
                     .minOrderAmount(0.0)
                     .expirationDate(LocalDateTime.now().plusDays(30))
                     .isActive(true)
+                    .userId(user.getId())
+                    .category("DISCOUNT")
+                    .usageLimit(1)
                     .build();
             couponRepository.save(coupon);
         } else if ("DISCOUNT_50K".equals(rewardType)) {
@@ -113,6 +116,9 @@ public class RewardService {
                     .minOrderAmount(0.0)
                     .expirationDate(LocalDateTime.now().plusDays(30))
                     .isActive(true)
+                    .userId(user.getId())
+                    .category("DISCOUNT")
+                    .usageLimit(1)
                     .build();
             couponRepository.save(coupon);
         } else {

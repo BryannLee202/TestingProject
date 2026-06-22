@@ -294,9 +294,9 @@ public class DataSeeder implements CommandLineRunner {
 
     private Category getOrCreateCategory(List<Category> list, String name, String description) {
         return list.stream()
-                .filter(c -> c.getName().equalsIgnoreCase(name))
+                .filter(c -> c.getName().equals(name))
                 .findFirst()
-                .orElseGet(() -> categoryRepository.save(new Category(null, name, description, null)));
+                .orElseGet(() -> categoryRepository.save(new Category(null, name, description, null, false, null)));
     }
 
     private void saveBookIfNotExist(List<Book> list, Book book) {

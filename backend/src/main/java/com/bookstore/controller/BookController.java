@@ -54,13 +54,26 @@ public class BookController {
     }
 
     @GetMapping("/recommendations/{userId}")
-    public ResponseEntity<List<Book>> getRecommendations(@PathVariable String userId) {
-        return ResponseEntity.ok(bookService.getRecommendations(userId));
+    public ResponseEntity<List<Book>> getRecommendations(
+            @PathVariable String userId,
+            @RequestParam(required = false) Long categoryId) {
+        return ResponseEntity.ok(bookService.getRecommendations(userId, categoryId));
     }
 
     @GetMapping("/latest")
     public ResponseEntity<List<Book>> getLatestBooks() {
         return ResponseEntity.ok(bookService.getLatestBooks());
+    }
+
+    @GetMapping("/featured")
+    public ResponseEntity<List<Book>> getFeaturedBooks() {
+        return ResponseEntity.ok(bookService.getFeaturedBooks());
+    }
+
+    @PutMapping("/{id}/featured")
+    public ResponseEntity<Book> toggleFeaturedStatus(@PathVariable Long id, @RequestBody java.util.Map<String, Boolean> payload) {
+        boolean isFeatured = payload.getOrDefault("isFeatured", false);
+        return ResponseEntity.ok(bookService.toggleFeaturedStatus(id, isFeatured));
     }
 
     @GetMapping("/discounted")

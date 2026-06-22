@@ -355,7 +355,11 @@ export default function Profile() {
   };
 
   if (!user) {
-    return <div className="flex justify-center items-center h-64 text-gray-500">Vui lòng đăng nhập để xem thông tin.</div>;
+    return (
+      <div className="flex justify-center items-center h-64 text-gray-500">
+        Vui lòng <Link to="/login" className="text-[#C92127] hover:underline mx-1 font-semibold">đăng nhập</Link> để xem thông tin.
+      </div>
+    );
   }
 
   const getRankDetails = (acc) => {

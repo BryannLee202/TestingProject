@@ -19,7 +19,8 @@ export default function AdminCoupons() {
     maxDiscountAmount: '',
     minOrderAmount: '',
     expirationDate: '',
-    isActive: true
+    isActive: true,
+    userId: ''
   });
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
@@ -56,7 +57,10 @@ export default function AdminCoupons() {
       maxDiscountAmount: '',
       minOrderAmount: '',
       expirationDate: '',
-      isActive: true
+      isActive: true,
+      userId: '',
+      category: 'DISCOUNT',
+      usageLimit: 1
     });
     setIsModalOpen(true);
   };
@@ -70,7 +74,10 @@ export default function AdminCoupons() {
       maxDiscountAmount: coupon.maxDiscountAmount || '',
       minOrderAmount: coupon.minOrderAmount || 0,
       expirationDate: coupon.expirationDate ? coupon.expirationDate.substring(0, 16) : '',
-      isActive: coupon.isActive
+      isActive: coupon.isActive,
+      userId: coupon.userId || '',
+      category: coupon.category || 'DISCOUNT',
+      usageLimit: coupon.usageLimit || 1
     });
     setIsModalOpen(true);
   };
@@ -114,7 +121,10 @@ export default function AdminCoupons() {
       discountValue: Number(formData.discountValue),
       maxDiscountAmount: formData.discountType === 'PERCENTAGE' && formData.maxDiscountAmount ? Number(formData.maxDiscountAmount) : null,
       minOrderAmount: Number(formData.minOrderAmount) || 0,
-      expirationDate: formData.expirationDate ? new Date(formData.expirationDate).toISOString() : null
+      expirationDate: formData.expirationDate ? new Date(formData.expirationDate).toISOString() : null,
+      userId: formData.userId ? Number(formData.userId) : null,
+      category: formData.category,
+      usageLimit: formData.usageLimit ? Number(formData.usageLimit) : 1
     };
 
     try {
@@ -190,8 +200,11 @@ export default function AdminCoupons() {
                 <tr className="bg-gray-50 border-b border-gray-100 text-gray-500 text-xs uppercase tracking-wider">
                   <th className="px-6 py-4 font-semibold">Mã Voucher</th>
                   <th className="px-6 py-4 font-semibold">Loại giảm</th>
+                  <th className="px-6 py-4 font-semibold">Loại Voucher</th>
                   <th className="px-6 py-4 font-semibold">Mức giảm</th>
                   <th className="px-6 py-4 font-semibold">Đơn tối thiểu</th>
+                  <th className="px-6 py-4 font-semibold">Phạm vi</th>
+                  <th className="px-6 py-4 font-semibold">Lượt dùng</th>
                   <th className="px-6 py-4 font-semibold">Hạn sử dụng</th>
                   <th className="px-6 py-4 font-semibold">Trạng thái</th>
                   <th className="px-6 py-4 font-semibold text-right">Thao tác</th>
@@ -210,6 +223,13 @@ export default function AdminCoupons() {
                         <span className="text-green-600 font-medium bg-green-50 px-2 py-1 rounded-md text-xs">Cố định</span>
                       )}
                     </td>
+                    <td className="px-6 py-4">
+                      {coupon.category === 'SHIPPING' ? (
+                        <span className="text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded-md text-xs">Vận chuyển</span>
+                      ) : (
+                        <span className="text-orange-600 font-medium bg-orange-50 px-2 py-1 rounded-md text-xs">Sản phẩm</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4 font-medium text-gray-800">
                       {coupon.discountType === 'PERCENTAGE' ? (
                         <div>
@@ -226,6 +246,16 @@ export default function AdminCoupons() {
                     </td>
                     <td className="px-6 py-4 text-gray-600">
                       {coupon.minOrderAmount ? `${coupon.minOrderAmount.toLocaleString('vi-VN')} đ` : '0 đ'}
+                    </td>
+                    <td className="px-6 py-4">
+                      {coupon.userId ? (
+                        <span className="text-purple-600 font-medium bg-purple-50 px-2 py-1 rounded-md text-xs">Cá nhân (ID: {coupon.userId})</span>
+                      ) : (
+                        <span className="text-gray-600 font-medium bg-gray-100 px-2 py-1 rounded-md text-xs">Hệ thống</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-gray-800 font-medium">
+                      {coupon.usageLimit != null ? `x${coupon.usageLimit}` : 'Không'}
                     </td>
                     <td className="px-6 py-4 text-gray-600 text-sm">
                       {coupon.expirationDate ? new Date(coupon.expirationDate).toLocaleString('vi-VN') : 'Không giới hạn'}
@@ -356,12 +386,48 @@ export default function AdminCoupons() {
                   <p className="text-xs text-gray-500 mt-1">Để trống hoặc nhập 0 nếu áp dụng cho mọi đơn.</p>
                 </div>
 
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Loại Voucher</label>
+                    <select 
+                      value={formData.category}
+                      onChange={(e) => setFormData({...formData, category: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+                    >
+                      <option value="DISCOUNT">Giảm giá Sản phẩm</option>
+                      <option value="SHIPPING">Miễn phí Vận chuyển</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Số lượt sử dụng</label>
+                    <input 
+                      type="number" 
+                      min="1"
+                      value={formData.usageLimit}
+                      onChange={(e) => setFormData({...formData, usageLimit: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">Ngày giờ hết hạn</label>
                   <input 
                     type="datetime-local" 
                     value={formData.expirationDate}
                     onChange={(e) => setFormData({...formData, expirationDate: e.target.value})}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">ID Người dùng (Tùy chọn)</label>
+                  <input 
+                    type="number" 
+                    min="1"
+                    value={formData.userId}
+                    onChange={(e) => setFormData({...formData, userId: e.target.value})}
+                    placeholder="Nhập ID người dùng nếu muốn gắn riêng (để trống: Toàn hệ thống)"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                   />
                 </div>

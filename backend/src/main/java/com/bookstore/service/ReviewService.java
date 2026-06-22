@@ -19,6 +19,7 @@ public class ReviewService {
     private final PointTransactionRepository pointTransactionRepository;
     private final ReviewCommentRepository reviewCommentRepository;
     private final NotificationRepository notificationRepository;
+    private final OrderRepository orderRepository;
 
     public List<Review> getReviewsByBookId(Long bookId) {
         return reviewRepository.findByBookIdOrderByCreatedAtDesc(bookId);
@@ -30,12 +31,40 @@ public class ReviewService {
         return reviewRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
     }
 
+    public java.util.Map<String, Object> getReviewEligibilityReason(String username, Long bookId) {
+        try {
+            User user = userRepository.findByUsername(username).orElse(null);
+            Book book = bookRepository.findById(bookId).orElse(null);
+            if (user == null || book == null) return java.util.Map.of("eligible", false, "reason", "INVALID");
+            
+            long purchases = orderRepository.countUserDeliveredPurchases(user, book, ShippingStatus.DELIVERED);
+            if (purchases == 0) return java.util.Map.of("eligible", false, "reason", "NOT_BOUGHT");
+            
+            long reviews = reviewRepository.countByUserIdAndBookId(user.getId(), book.getId());
+            if (reviews >= purchases) return java.util.Map.of("eligible", false, "reason", "ALREADY_REVIEWED");
+            
+            return java.util.Map.of("eligible", true, "reason", "ELIGIBLE");
+        } catch (Exception e) {
+            return java.util.Map.of("eligible", false, "reason", "ERROR");
+        }
+    }
+
     @Transactional
     public Review createReview(String username, Long bookId, Integer rating, String comment, String imageUrl) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng!"));
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sách!"));
+
+        long purchases = orderRepository.countUserDeliveredPurchases(user, book, ShippingStatus.DELIVERED);
+        if (purchases == 0) {
+            throw new RuntimeException("Bạn cần mua và nhận hàng thành công để đánh giá sản phẩm này!");
+        }
+
+        long reviews = reviewRepository.countByUserIdAndBookId(user.getId(), book.getId());
+        if (reviews >= purchases) {
+            throw new RuntimeException("Số lượt đánh giá của bạn đã đạt giới hạn so với số lần mua thành công!");
+        }
 
         if (rating < 1 || rating > 5) {
             throw new RuntimeException("Đánh giá phải từ 1 đến 5 sao!");
@@ -62,7 +91,7 @@ public class ReviewService {
         book.setAverageRating(Math.round(newAvg * 10.0) / 10.0);
         bookRepository.save(book);
 
-        // Reward points
+        // Reward points for every successful review (one review per purchase)
         int pointsEarned = 200; // Base points for rating
         if (comment != null && !comment.trim().isEmpty()) {
             pointsEarned += 200; // Extra points for comment
@@ -140,11 +169,21 @@ public class ReviewService {
     }
 
     @Transactional
-    public Review likeReview(Long reviewId) {
+    public Review likeReview(Long reviewId, String username) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đánh giá!"));
-        int current = review.getLikesCount() == null ? 0 : review.getLikesCount();
-        review.setLikesCount(current + 1);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng!"));
+
+        if (review.getLikedByUsers().contains(user)) {
+            review.getLikedByUsers().remove(user);
+            int current = review.getLikesCount() == null ? 0 : review.getLikesCount();
+            review.setLikesCount(Math.max(0, current - 1));
+        } else {
+            review.getLikedByUsers().add(user);
+            int current = review.getLikesCount() == null ? 0 : review.getLikesCount();
+            review.setLikesCount(current + 1);
+        }
         return reviewRepository.save(review);
     }
 

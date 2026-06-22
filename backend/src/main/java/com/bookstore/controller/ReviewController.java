@@ -44,8 +44,11 @@ public class ReviewController {
 
     // --- Like a review ---
     @PostMapping("/{reviewId}/like")
-    public ResponseEntity<Review> likeReview(@PathVariable Long reviewId) {
-        return ResponseEntity.ok(reviewService.likeReview(reviewId));
+    public ResponseEntity<Review> likeReview(@PathVariable Long reviewId, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(reviewService.likeReview(reviewId, authentication.getName()));
     }
 
     // --- Add a comment to a review ---
@@ -58,6 +61,15 @@ public class ReviewController {
             return ResponseEntity.status(401).build();
         }
         return ResponseEntity.ok(reviewService.addComment(reviewId, authentication.getName(), request.getContent()));
+    }
+
+    @GetMapping("/check-eligibility/{bookId}")
+    public ResponseEntity<java.util.Map<String, Object>> checkEligibility(@PathVariable Long bookId, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.ok(java.util.Map.of("eligible", false, "reason", "NOT_LOGGED_IN"));
+        }
+        java.util.Map<String, Object> result = reviewService.getReviewEligibilityReason(authentication.getName(), bookId);
+        return ResponseEntity.ok(result);
     }
 
     // --- Get comments for a review ---
@@ -76,5 +88,10 @@ public class ReviewController {
     @Data
     public static class CommentRequest {
         private String content;
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<java.util.Map<String, String>> handleRuntimeException(RuntimeException e) {
+        return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
     }
 }

@@ -10,7 +10,8 @@ public class OrderRequest {
     private String phoneNumber;
     private String paymentMethod;
     private String customerNote;
-    private String couponCode;
+    private String discountCouponCode;
+    private String shippingCouponCode;
     private Double shippingFee;
     private Integer spentPoints;
 

@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -17,16 +18,25 @@ public class CouponController {
     private final CouponService couponService;
 
     @GetMapping
-    public ResponseEntity<List<Coupon>> getAllCoupons() {
-        return ResponseEntity.ok(couponService.getAllActiveCoupons());
+    public ResponseEntity<List<Coupon>> getAllCoupons(Principal principal) {
+        String username = principal != null ? principal.getName() : null;
+        return ResponseEntity.ok(couponService.getAvailableCouponsForUser(username));
+    }
+
+    @GetMapping("/history")
+    public ResponseEntity<?> getCouponHistory(Principal principal) {
+        if (principal == null) return ResponseEntity.status(401).build();
+        return ResponseEntity.ok(couponService.getCouponUsageHistory(principal.getName()));
     }
 
     @GetMapping("/validate")
     public ResponseEntity<CouponResponse> validateCoupon(
             @RequestParam String code,
-            @RequestParam Double amount) {
+            @RequestParam Double amount,
+            Principal principal) {
         try {
-            Coupon coupon = couponService.validateCoupon(code, amount);
+            String username = principal != null ? principal.getName() : null;
+            Coupon coupon = couponService.validateCoupon(code, amount, username);
             Double discount = couponService.calculateDiscount(coupon, amount);
             return ResponseEntity.ok(new CouponResponse(true, coupon, discount, null));
         } catch (Exception e) {
