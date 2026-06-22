@@ -11,6 +11,6 @@ public class SiteSetting {
     @Column(name = "setting_key", length = 100)
     private String settingKey;
 
-    @Column(name = "setting_value", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "setting_value", columnDefinition = "TEXT")
     private String settingValue;
 }

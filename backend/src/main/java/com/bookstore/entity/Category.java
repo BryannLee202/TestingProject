@@ -22,10 +22,10 @@ public class Category {
     @Column(nullable = false, length = 255)
     private String name;
 
-    @Column(columnDefinition = "NVARCHAR(MAX)")
+    @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(columnDefinition = "NVARCHAR(MAX)")
+    @Column(columnDefinition = "TEXT")
     private String imageUrl;
 
     @Column(nullable = false, columnDefinition = "bit default 0")

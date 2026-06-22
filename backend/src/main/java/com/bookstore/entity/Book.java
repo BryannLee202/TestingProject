@@ -29,7 +29,7 @@ public class Book {
     @Column(length = 255)
     private String publisher;
 
-    @Column(columnDefinition = "NVARCHAR(MAX)")
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @Column(nullable = false, precision = 18, scale = 2)
@@ -44,7 +44,7 @@ public class Book {
     @Column(name = "stock_quantity", nullable = false)
     private Integer stockQuantity = 0;
     
-    @Column(name = "image_url", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;
 
     @Column(name = "average_rating")
@@ -68,6 +68,6 @@ public class Book {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "book_additional_images", joinColumns = @JoinColumn(name = "book_id"))
-    @Column(name = "image_url", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "image_url", columnDefinition = "TEXT")
     private java.util.List<String> additionalImages = new java.util.ArrayList<>();
 }
