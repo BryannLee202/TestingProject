@@ -16,7 +16,9 @@ import {
   FaTicketAlt,
   FaGift,
   FaBell,
-  FaCommentDots
+  FaCommentDots,
+  FaCog,
+  FaEnvelope
 } from 'react-icons/fa';
 
 export default function AdminLayout() {
@@ -45,8 +47,11 @@ export default function AdminLayout() {
   const navItems = [
     { to: '/admin/dashboard', icon: <FaChartLine />, label: 'Thống kê' },
     { to: '/admin/books', icon: <FaBook />, label: 'Quản lý Sách' },
+    { to: '/admin/featured-books', icon: <FaBook />, label: 'Quản lý Đề Cử/Ads' },
     { to: '/admin/categories', icon: <FaThList />, label: 'Quản lý Danh mục' },
     { to: '/admin/banners', icon: <FaImages />, label: 'Quản lý Banner' },
+    { to: '/admin/settings', icon: <FaCog />, label: 'Cấu hình Web' },
+    { to: '/admin/newsletter', icon: <FaEnvelope />, label: 'Gửi Email Bản Tin' },
     { to: '/admin/orders', icon: <FaShoppingBag />, label: 'Quản lý Đơn hàng' },
     { to: '/admin/users', icon: <FaUsers />, label: 'Quản lý Tài khoản' },
     { to: '/admin/coupons', icon: <FaTicketAlt />, label: 'Quản lý Voucher' },
