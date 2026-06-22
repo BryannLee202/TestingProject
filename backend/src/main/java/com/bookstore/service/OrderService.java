@@ -240,8 +240,10 @@ public class OrderService {
         
         Order savedOrder = orderRepository.save(order);
 
-        if (!"VNPAY".equalsIgnoreCase(request.getPaymentMethod())) {
-            cartService.clearCart(username);
+        if ("COD".equalsIgnoreCase(request.getPaymentMethod())) {
+            for (OrderRequest.OrderItemRequest itemReq : request.getItems()) {
+                cartService.removeCartItem(username, itemReq.getBookId());
+            }
             if (discountCoupon != null) couponService.useCoupon(discountCoupon);
             if (shippingCoupon != null) couponService.useCoupon(shippingCoupon);
         }
@@ -261,7 +263,9 @@ public class OrderService {
             order.setStatus("PENDING");
             orderRepository.save(order);
 
-            cartService.clearCart(user.getUsername());
+            for (com.bookstore.entity.OrderItem item : order.getItems()) {
+                cartService.removeCartItem(user.getUsername(), item.getBook().getId());
+            }
 
             if (order.getDiscountCouponCode() != null && !order.getDiscountCouponCode().isEmpty()) {
                 couponRepository.findByCodeIgnoreCaseAndIsActiveTrue(order.getDiscountCouponCode())

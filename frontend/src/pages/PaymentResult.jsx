@@ -21,7 +21,9 @@ export default function PaymentResult() {
           return;
         }
 
-        const res = await axios.get(`${API_BASE_URL}/payment/vnpay-return${searchParams}`);
+        const isMomo = searchParams.includes('partnerCode');
+        const endpoint = isMomo ? '/payment/momo-return' : '/payment/vnpay-return';
+        const res = await axios.get(`${API_BASE_URL}${endpoint}${searchParams}`);
         setResult(res.data);
       } catch (error) {
         if (error.response && error.response.data) {
@@ -61,7 +63,7 @@ export default function PaymentResult() {
             </div>
             <h2 className="text-3xl font-extrabold text-gray-900 mb-2">Thanh toán thành công!</h2>
             <p className="text-gray-500 mb-8">
-              Giao dịch qua VNPay đã hoàn tất. Cảm ơn bạn đã mua sắm tại YiYi Book!
+              Giao dịch đã hoàn tất. Cảm ơn bạn đã mua sắm tại YiYi Book!
             </p>
             <div className="space-y-3">
               <Link

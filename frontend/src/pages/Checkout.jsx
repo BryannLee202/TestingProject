@@ -334,7 +334,8 @@ export default function Checkout() {
             }
           } catch (paymentError) {
             console.error('Lỗi khi tạo URL thanh toán:', paymentError);
-            Swal.fire('Lỗi', 'Không thể kết nối đến cổng thanh toán', 'error');
+            const errorMsg = paymentError.response?.data?.message || 'Không thể kết nối đến cổng thanh toán';
+            Swal.fire('Lỗi', errorMsg, 'error');
             return;
           }
         }

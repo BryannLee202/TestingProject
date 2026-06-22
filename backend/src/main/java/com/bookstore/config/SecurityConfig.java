@@ -31,6 +31,7 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/banners/**").permitAll() // Xem banner thoải mái
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/notifications/**").permitAll() // Xem thông báo thoải mái
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/settings/**").permitAll() // Xem cấu hình web
+                .requestMatchers("/api/payment/**").permitAll() // Cho phép callback từ cổng thanh toán
                 .requestMatchers("/error").permitAll() // Cho phép truy cập /error để hiển thị đúng mã lỗi
                 
                 // Quyền Admin

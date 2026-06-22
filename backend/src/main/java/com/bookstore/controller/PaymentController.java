@@ -7,6 +7,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.bookstore.config.MoMoConfig;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.web.client.RestTemplate;
+
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -99,12 +105,66 @@ public class PaymentController {
     }
 
     @GetMapping("/momo/create-url")
-    public ResponseEntity<Map<String, String>> createMomoUrl(
+    public ResponseEntity<?> createMomoUrl(
             @RequestParam("amount") long amount,
-            @RequestParam("orderId") String orderId) {
-        // MoMo requires registered Sandbox PartnerCode & keys. We will use a mock URL for demonstration.
-        String mockUrl = "http://localhost:5173/payment/mock-gateway?method=MOMO&orderId=" + orderId + "&amount=" + amount;
-        return ResponseEntity.ok(Map.of("url", mockUrl));
+            @RequestParam("orderId") String orderIdStr) {
+        try {
+            String requestId = String.valueOf(System.currentTimeMillis());
+            String orderId = orderIdStr + "_" + requestId;
+            String orderInfo = "Thanh toan don hang " + orderIdStr;
+            String returnUrl = MoMoConfig.RETURN_URL;
+            String notifyUrl = MoMoConfig.NOTIFY_URL;
+            String amountStr = String.valueOf(amount);
+            String extraData = "";
+            String requestType = "captureWallet";
+
+            String rawSignature = "accessKey=" + MoMoConfig.ACCESS_KEY +
+                    "&amount=" + amountStr +
+                    "&extraData=" + extraData +
+                    "&ipnUrl=" + notifyUrl +
+                    "&orderId=" + orderId +
+                    "&orderInfo=" + orderInfo +
+                    "&partnerCode=" + MoMoConfig.PARTNER_CODE +
+                    "&redirectUrl=" + returnUrl +
+                    "&requestId=" + requestId +
+                    "&requestType=" + requestType;
+
+            String signature = MoMoConfig.hmacSHA256(rawSignature, MoMoConfig.SECRET_KEY);
+
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("partnerCode", MoMoConfig.PARTNER_CODE);
+            requestBody.put("partnerName", "Test");
+            requestBody.put("storeId", "MomoTestStore");
+            requestBody.put("requestId", requestId);
+            requestBody.put("amount", amount);
+            requestBody.put("orderId", orderId);
+            requestBody.put("orderInfo", orderInfo);
+            requestBody.put("redirectUrl", returnUrl);
+            requestBody.put("ipnUrl", notifyUrl);
+            requestBody.put("lang", "vi");
+            requestBody.put("extraData", extraData);
+            requestBody.put("requestType", requestType);
+            requestBody.put("signature", signature);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<Map> response = restTemplate.postForEntity(MoMoConfig.ENDPOINT, entity, Map.class);
+            
+            if (response.getBody() != null && response.getBody().get("payUrl") != null) {
+                return ResponseEntity.ok(Map.of("url", response.getBody().get("payUrl").toString()));
+            } else {
+                return ResponseEntity.badRequest().body(Map.of("message", "Error from MoMo: " + response.getBody()));
+            }
+        } catch (org.springframework.web.client.HttpStatusCodeException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("message", "MoMo API Error: " + e.getResponseBodyAsString()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("message", "Failed to create MoMo URL: " + e.getMessage()));
+        }
     }
 
     @GetMapping("/zalopay/create-url")
@@ -187,6 +247,110 @@ public class PaymentController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of("status", "error", "message", "Internal server error"));
+        }
+    }
+    @GetMapping("/momo-return")
+    public ResponseEntity<?> momoReturn(HttpServletRequest request) {
+        try {
+            String partnerCode = request.getParameter("partnerCode");
+            String orderIdStr = request.getParameter("orderId");
+            String requestId = request.getParameter("requestId");
+            String amount = request.getParameter("amount");
+            String orderInfo = request.getParameter("orderInfo");
+            String orderType = request.getParameter("orderType");
+            String transId = request.getParameter("transId");
+            String resultCode = request.getParameter("resultCode");
+            String message = request.getParameter("message");
+            String payType = request.getParameter("payType");
+            String responseTime = request.getParameter("responseTime");
+            String extraData = request.getParameter("extraData");
+            String signature = request.getParameter("signature");
+
+            String rawSignature = "accessKey=" + MoMoConfig.ACCESS_KEY +
+                    "&amount=" + amount +
+                    "&extraData=" + extraData +
+                    "&message=" + message +
+                    "&orderId=" + orderIdStr +
+                    "&orderInfo=" + orderInfo +
+                    "&orderType=" + orderType +
+                    "&partnerCode=" + partnerCode +
+                    "&payType=" + payType +
+                    "&requestId=" + requestId +
+                    "&responseTime=" + responseTime +
+                    "&resultCode=" + resultCode +
+                    "&transId=" + transId;
+
+            String signValue = MoMoConfig.hmacSHA256(rawSignature, MoMoConfig.SECRET_KEY);
+
+            if (signValue.equals(signature)) {
+                String realOrderIdStr = orderIdStr.split("_")[0];
+                Long orderId = Long.parseLong(realOrderIdStr);
+
+                if ("0".equals(resultCode)) {
+                    orderService.confirmVNPayPayment(orderId, true);
+                    return ResponseEntity.ok(Map.of("status", "success", "message", "Payment success", "orderId", orderId));
+                } else {
+                    orderService.confirmVNPayPayment(orderId, false);
+                    return ResponseEntity.badRequest().body(Map.of("status", "failed", "message", message));
+                }
+            } else {
+                return ResponseEntity.badRequest().body(Map.of("status", "error", "message", "Invalid signature"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", "Internal server error"));
+        }
+    }
+
+    @PostMapping("/momo-ipn")
+    public ResponseEntity<?> momoIpn(@RequestBody Map<String, Object> payload) {
+        try {
+            String partnerCode = (String) payload.get("partnerCode");
+            String orderIdStr = (String) payload.get("orderId");
+            String requestId = (String) payload.get("requestId");
+            String amount = String.valueOf(payload.get("amount"));
+            String orderInfo = (String) payload.get("orderInfo");
+            String orderType = (String) payload.get("orderType");
+            String transId = String.valueOf(payload.get("transId"));
+            String resultCode = String.valueOf(payload.get("resultCode"));
+            String message = (String) payload.get("message");
+            String payType = (String) payload.get("payType");
+            String responseTime = String.valueOf(payload.get("responseTime"));
+            String extraData = (String) payload.get("extraData");
+            String signature = (String) payload.get("signature");
+
+            String rawSignature = "accessKey=" + MoMoConfig.ACCESS_KEY +
+                    "&amount=" + amount +
+                    "&extraData=" + extraData +
+                    "&message=" + message +
+                    "&orderId=" + orderIdStr +
+                    "&orderInfo=" + orderInfo +
+                    "&orderType=" + orderType +
+                    "&partnerCode=" + partnerCode +
+                    "&payType=" + payType +
+                    "&requestId=" + requestId +
+                    "&responseTime=" + responseTime +
+                    "&resultCode=" + resultCode +
+                    "&transId=" + transId;
+
+            String signValue = MoMoConfig.hmacSHA256(rawSignature, MoMoConfig.SECRET_KEY);
+
+            if (signValue.equals(signature)) {
+                String realOrderIdStr = orderIdStr.split("_")[0];
+                Long orderId = Long.parseLong(realOrderIdStr);
+
+                if ("0".equals(resultCode)) {
+                    orderService.confirmVNPayPayment(orderId, true);
+                } else {
+                    orderService.confirmVNPayPayment(orderId, false);
+                }
+                return ResponseEntity.ok().build();
+            } else {
+                return ResponseEntity.badRequest().build();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
         }
     }
 }
