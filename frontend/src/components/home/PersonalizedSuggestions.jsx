@@ -1,11 +1,10 @@
 import React from 'react';
 import { FaRobot, FaStar } from 'react-icons/fa';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation } from 'swiper/modules';
 import { Link } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
+import SwiperNavButtons from '../common/SwiperNavButtons';
 import 'swiper/css';
-import 'swiper/css/navigation';
 
 export default function PersonalizedSuggestions({ data = [] }) {
   const { addToCart } = useCart();
@@ -22,12 +21,10 @@ export default function PersonalizedSuggestions({ data = [] }) {
       </div>
 
       {/* Product Slider */}
-      <div>
+      <div className="relative">
         <Swiper
-          modules={[Navigation]}
           spaceBetween={16}
           slidesPerView={2.2}
-          navigation
           breakpoints={{
             640: { slidesPerView: 3.2 },
             768: { slidesPerView: 4.2 },
@@ -100,6 +97,7 @@ export default function PersonalizedSuggestions({ data = [] }) {
               </Link>
             </SwiperSlide>
           ))}
+          <SwiperNavButtons />
         </Swiper>
       </div>
     </div>

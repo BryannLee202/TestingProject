@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import HeroBanner from '../components/home/HeroBanner';
+import FeaturedBooksSection from '../components/home/FeaturedBooksSection';
 import QuickLinks from '../components/home/QuickLinks';
 import FlashSale from '../components/home/FlashSale';
 import BestSellersByCategory from '../components/home/BestSellersByCategory';
@@ -28,11 +29,15 @@ export default function Home() {
       try {
         setLoading(true);
         const userId = user ? user.id : 0; // use 0 or null for guest
+        const lastCategoryId = localStorage.getItem('lastViewedCategoryId');
+        const recommendUrl = lastCategoryId 
+            ? `${API_BASE_URL}/books/recommendations/${userId}?categoryId=${lastCategoryId}`
+            : `${API_BASE_URL}/books/recommendations/${userId}`;
 
         const [bestsellerRes, comboRes, recommendRes] = await Promise.all([
           axios.get(`${API_BASE_URL}/books/bestsellers`),
           axios.get(`${API_BASE_URL}/books/combos`),
-          axios.get(`${API_BASE_URL}/books/recommendations/${userId}`)
+          axios.get(recommendUrl)
         ]);
 
         if (Array.isArray(bestsellerRes.data)) {
@@ -88,6 +93,7 @@ export default function Home() {
     <div className="bg-gray-100 pb-10 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 flex flex-col gap-6">
         <HeroBanner />
+        <FeaturedBooksSection />
         <QuickLinks />
         <FlashSale />
         
@@ -105,7 +111,7 @@ export default function Home() {
         <BestSellersByCategory />
         
         <ProductSection 
-          title="Sách Mới Nổi Bật" 
+          title="Khám Phá Sách" 
           tabs={['Mới Nhất', 'Bán Chạy', 'Giảm Giá']} 
           products={sectionProducts}
           activeTab={activeSectionTab}

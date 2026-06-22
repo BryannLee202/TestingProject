@@ -9,6 +9,7 @@ import Checkout from './pages/Checkout';
 import Orders from './pages/Orders';
 import OrderDetail from './pages/OrderDetail';
 import OrderSuccess from './pages/OrderSuccess';
+import PaymentResult from './pages/PaymentResult';
 import Notifications from './pages/Notifications';
 import Profile from './pages/Profile';
 
@@ -18,18 +19,30 @@ import Search from './pages/Search';
 import Coupons from './pages/Coupons';
 import FlashSale from './pages/FlashSale';
 
+// Policy pages
+import Terms from './pages/policies/Terms';
+import Privacy from './pages/policies/Privacy';
+import PaymentPrivacy from './pages/policies/PaymentPrivacy';
+import Returns from './pages/policies/Returns';
+import Warranty from './pages/policies/Warranty';
+import Shipping from './pages/policies/Shipping';
+
 // Admin views
 import AdminLayout from './layouts/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminBooks from './pages/admin/AdminBooks';
 import AdminCategories from './pages/admin/AdminCategories';
 import AdminBanners from './pages/admin/AdminBanners';
+import AdminSiteSettings from './pages/admin/AdminSiteSettings';
+import AdminNewsletter from './pages/admin/AdminNewsletter';
+import AdminFeaturedBooks from './pages/admin/AdminFeaturedBooks';
 import AdminOrders from './pages/admin/AdminOrders';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminCoupons from './pages/admin/AdminCoupons';
 import AdminRewardVouchers from './pages/admin/AdminRewardVouchers';
 import AdminNotifications from './pages/admin/AdminNotifications';
 import AdminReviews from './pages/admin/AdminReviews';
+import MockPaymentGateway from './pages/MockPaymentGateway';
 
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
@@ -47,9 +60,11 @@ function App() {
               <Route path="book/:id" element={<ProductDetail />} />
               <Route path="cart" element={<Cart />} />
               <Route path="checkout" element={<Checkout />} />
+              <Route path="payment-result" element={<PaymentResult />} />
               <Route path="orders" element={<Orders />} />
               <Route path="orders/:id" element={<OrderDetail />} />
               <Route path="order-success/:id" element={<OrderSuccess />} />
+              <Route path="payment/mock-gateway" element={<MockPaymentGateway />} />
               <Route path="notifications" element={<Notifications />} />
               <Route path="profile" element={<Profile />} />
               <Route path="login" element={<Login />} />
@@ -57,6 +72,12 @@ function App() {
               <Route path="search" element={<Search />} />
               <Route path="coupons" element={<Coupons />} />
               <Route path="flash-sale" element={<FlashSale />} />
+              <Route path="terms" element={<Terms />} />
+              <Route path="privacy" element={<Privacy />} />
+              <Route path="payment-privacy" element={<PaymentPrivacy />} />
+              <Route path="returns" element={<Returns />} />
+              <Route path="warranty" element={<Warranty />} />
+              <Route path="shipping" element={<Shipping />} />
             </Route>
 
             {/* Admin Routes */}
@@ -64,8 +85,11 @@ function App() {
               <Route index element={<Navigate to="/admin/dashboard" replace />} />
               <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="books" element={<AdminBooks />} />
+              <Route path="featured-books" element={<AdminFeaturedBooks />} />
               <Route path="categories" element={<AdminCategories />} />
               <Route path="banners" element={<AdminBanners />} />
+              <Route path="settings" element={<AdminSiteSettings />} />
+              <Route path="newsletter" element={<AdminNewsletter />} />
               <Route path="orders" element={<AdminOrders />} />
               <Route path="users" element={<AdminUsers />} />
               <Route path="coupons" element={<AdminCoupons />} />

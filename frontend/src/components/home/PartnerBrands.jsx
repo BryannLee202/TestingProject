@@ -14,7 +14,7 @@ export default function PartnerBrands() {
     { name: 'Kim Đồng', desc: 'Nhà xuất bản cho thiếu nhi', image: logoKimDong },
     { name: 'Alphabooks', desc: 'Sách quản trị, kinh tế, kỹ năng', image: logoAlpha },
     { name: 'Đông A', desc: 'Sách bách khoa toàn thư, mỹ thuật', image: logoDongA },
-    { name: 'Fahasa', desc: 'Hệ thống nhà sách toàn quốc', image: logoFahasa }
+    { name: 'NXB Phụ Nữ', desc: 'Sách văn học, kỹ năng sống', image: logoTre }
   ];
 
   return (

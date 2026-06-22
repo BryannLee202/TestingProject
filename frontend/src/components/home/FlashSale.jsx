@@ -1,24 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { FaBolt, FaChevronRight } from 'react-icons/fa';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation } from 'swiper/modules';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import 'swiper/css';
-import 'swiper/css/navigation';
 import { useCart } from '../../context/CartContext';
+import SwiperNavButtons from '../common/SwiperNavButtons';
 
 export default function FlashSale() {
   const { addToCart } = useCart();
   const [timeLeft, setTimeLeft] = useState({ hours: 2, minutes: 15, seconds: 30 });
   const [flashSaleProducts, setFlashSaleProducts] = useState([
-    { id: 1, title: 'Sách giáo khoa Toán lớp 1', price: 15000, oldPrice: 20000, discount: 25, soldPercent: 85, img: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_3609.jpg' },
-    { id: 2, title: 'Tôi Thấy Hoa Vàng Trên Cỏ Xanh (Tái Bản)', price: 75000, oldPrice: 105000, discount: 28, soldPercent: 50, img: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_3609.jpg' },
-    { id: 3, title: 'Nhà Giả Kim - The Alchemist', price: 55000, oldPrice: 79000, discount: 30, soldPercent: 90, img: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_3609.jpg' },
-    { id: 4, title: 'Đắc Nhân Tâm', price: 60000, oldPrice: 86000, discount: 30, soldPercent: 70, img: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_3609.jpg' },
+    { id: 1, title: 'Sách Giảm Giá Đặc Biệt', price: 15000, oldPrice: 20000, discount: 25, soldPercent: 85, img: 'https://placehold.co/150x200?text=Book+1' },
+    { id: 2, title: 'Tiểu Thuyết Bán Chạy', price: 75000, oldPrice: 105000, discount: 28, soldPercent: 50, img: 'https://placehold.co/150x200?text=Book+2' },
+    { id: 3, title: 'Kỹ Năng Sống Mới', price: 55000, oldPrice: 79000, discount: 30, soldPercent: 90, img: 'https://placehold.co/150x200?text=Book+3' },
+    { id: 4, title: 'Sách Kinh Tế Hot', price: 60000, oldPrice: 86000, discount: 30, soldPercent: 70, img: 'https://placehold.co/150x200?text=Book+4' },
   ]);
+  const [flashSaleTitle, setFlashSaleTitle] = useState('Flash Sale');
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/settings`);
+        if (res.data) {
+          if (res.data.flashSaleTitle) {
+            setFlashSaleTitle(res.data.flashSaleTitle);
+          }
+          if (res.data.flashSaleEndTime) {
+            setTimeLeft({ hours: parseInt(res.data.flashSaleEndTime), minutes: 0, seconds: 0 });
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching settings for FlashSale:', error);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -77,7 +96,7 @@ export default function FlashSale() {
           <div className="flex items-center gap-2">
             <FaBolt className="text-yellow-400 text-3xl animate-pulse drop-shadow-[0_0_8px_rgba(250,204,21,0.6)]" />
             <h2 className="text-2xl sm:text-3xl font-black italic text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-300 uppercase tracking-wider drop-shadow-sm">
-              Flash Sale
+              {flashSaleTitle}
             </h2>
           </div>
           <div className="flex items-center gap-1.5 font-mono text-base sm:text-xl font-bold">
@@ -94,12 +113,10 @@ export default function FlashSale() {
       </div>
 
       {/* Product Slider */}
-      <div className="p-4 sm:p-5 bg-white">
+      <div className="p-4 sm:p-5 bg-white relative">
         <Swiper
-          modules={[Navigation]}
           spaceBetween={16}
           slidesPerView={2.2}
-          navigation
           breakpoints={{
             640: { slidesPerView: 3.2 },
             768: { slidesPerView: 4.2 },
@@ -181,6 +198,7 @@ export default function FlashSale() {
               </Link>
             </SwiperSlide>
           ))}
+          <SwiperNavButtons />
         </Swiper>
       </div>
     </div>

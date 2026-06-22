@@ -21,7 +21,10 @@ import {
   FaCheckDouble,
   FaTag,
   FaInfoCircle,
-  FaRegClock
+  FaRegClock,
+  FaHistory,
+  FaSyncAlt,
+  FaChartLine
 } from 'react-icons/fa';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
@@ -41,16 +44,71 @@ export default function Header() {
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchRef = React.useRef(null);
+  const [defaultSuggestions, setDefaultSuggestions] = useState({ categories: [], bestsellers: [], featured: [] });
+  const [allCategories, setAllCategories] = useState([]);
+  const [searchHistory, setSearchHistory] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('searchHistory')) || [];
+    } catch {
+      return [];
+    }
+  });
+
+  const addSearchHistory = (term) => {
+    if (!term.trim()) return;
+    const newHistory = [term, ...searchHistory.filter(t => t !== term)].slice(0, 8);
+    setSearchHistory(newHistory);
+    localStorage.setItem('searchHistory', JSON.stringify(newHistory));
+  };
+
+  const removeSearchHistory = (term) => {
+    const newHistory = searchHistory.filter(t => t !== term);
+    setSearchHistory(newHistory);
+    localStorage.setItem('searchHistory', JSON.stringify(newHistory));
+  };
+
+  const clearSearchHistory = () => {
+    setSearchHistory([]);
+    localStorage.removeItem('searchHistory');
+  };
 
   const handleSearch = (e) => {
     if (e) e.preventDefault();
     if (searchQuery.trim()) {
+      addSearchHistory(searchQuery.trim());
       setShowSuggestions(false);
       navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
+
+  useEffect(() => {
+    const fetchDefaultSuggestions = async () => {
+      try {
+        const [catRes, bestRes, featRes] = await Promise.all([
+          axios.get(`${API_BASE_URL}/categories`),
+          axios.get(`${API_BASE_URL}/books/bestsellers`),
+          axios.get(`${API_BASE_URL}/books/featured`)
+        ]);
+        const categories = catRes.data || [];
+        setAllCategories(categories);
+        
+        const featuredCats = categories.filter(c => c.featured);
+        const nonFeaturedCats = categories.filter(c => !c.featured);
+        const displayCategories = [...featuredCats, ...nonFeaturedCats].slice(0, 4);
+
+        setDefaultSuggestions({
+          categories: displayCategories,
+          bestsellers: Array.isArray(bestRes.data) ? bestRes.data.slice(0, 3) : (bestRes.data?.data || []).slice(0, 3),
+          featured: (featRes.data || []).slice(0, 3)
+        });
+      } catch (error) {
+        console.error('Error fetching default suggestions:', error);
+      }
+    };
+    fetchDefaultSuggestions();
+  }, [API_BASE_URL]);
 
   // Fetch suggestions with debounce
   useEffect(() => {
@@ -128,17 +186,9 @@ export default function Header() {
     }
   };
 
-  const getNotificationIcon = (type) => {
-    switch (type) {
-      case 'PROMO':
-        return <div className="w-10 h-10 rounded-full bg-red-100 text-red-500 flex items-center justify-center shrink-0 shadow-sm"><FaTag className="text-lg" /></div>;
-      case 'ORDER':
-        return <div className="w-10 h-10 rounded-full bg-green-100 text-green-500 flex items-center justify-center shrink-0 shadow-sm"><FaShoppingCart className="text-lg" /></div>;
-      case 'SYSTEM':
-      default:
-        return <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-500 flex items-center justify-center shrink-0 shadow-sm"><FaInfoCircle className="text-lg" /></div>;
-    }
-  };
+  const matchedCategories = searchQuery.trim().length > 0 
+    ? allCategories.filter(cat => cat.name.toLowerCase().includes(searchQuery.toLowerCase().trim()))
+    : [];
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
@@ -147,14 +197,6 @@ export default function Header() {
         <Link to="/" className="flex items-center gap-2 text-2xl font-bold text-primary mr-4">
           <img src="/src/assets/logo_ngang_thay_chu.png" alt="YiYi Book" className="h-10 object-contain" />
         </Link>
-
-        {/* Category Dropdown (Placeholder) */}
-        {/* <div className="hidden md:flex items-center gap-2 cursor-pointer text-gray-700 hover:text-primary transition-colors">
-          <FaThLarge className="text-xl" />
-          <span className="font-medium">Danh Mục</span>
-          <FaChevronDown className="text-sm" />
-        </div> */}
-
 
         {/* Search */}
         <div className="flex-1 max-w-xl mx-8 relative hidden lg:block" ref={searchRef}>
@@ -176,40 +218,182 @@ export default function Header() {
           </form>
 
           {/* Suggestions Dropdown */}
-          {showSuggestions && searchQuery.trim().length > 0 && (
+          {showSuggestions && (
             <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50">
-              {suggestions.length > 0 ? (
-                <div className="divide-y divide-gray-50">
-                  {suggestions.map(book => (
-                    <Link 
-                      key={book.id} 
-                      to={`/book/${book.id}`}
-                      onClick={() => {
-                        setShowSuggestions(false);
-                        setSearchQuery('');
-                      }}
-                      className="flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors"
-                    >
-                      <img src={book.imageUrl || 'https://placehold.co/40'} alt={book.title} className="w-10 h-14 object-cover rounded" />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-bold text-gray-800 truncate">{book.title}</div>
-                        <div className="text-xs text-gray-500 truncate">{book.author}</div>
+              {searchQuery.trim().length > 0 ? (
+                <>
+                  {matchedCategories.length > 0 && (
+                    <div className="p-3 border-b border-gray-100">
+                      <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Đề xuất danh mục</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {matchedCategories.slice(0, 3).map(cat => (
+                          <Link 
+                            key={cat.id} 
+                            to={`/category/${cat.id}`}
+                            onClick={() => {
+                              setShowSuggestions(false);
+                              setSearchQuery('');
+                            }}
+                            className="text-xs px-3 py-1.5 bg-gray-100 hover:bg-primary hover:text-white text-gray-700 rounded-full transition-colors flex items-center gap-1.5"
+                          >
+                            <FaSearch className="text-[10px]" /> {cat.name}
+                          </Link>
+                        ))}
                       </div>
-                      <div className="text-primary font-bold text-sm whitespace-nowrap">
-                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(book.price)}
+                    </div>
+                  )}
+                  {suggestions.length > 0 ? (
+                    <div className="divide-y divide-gray-50">
+                      {suggestions.map(book => (
+                        <Link 
+                          key={book.id} 
+                          to={`/book/${book.id}`}
+                          onClick={() => {
+                            addSearchHistory(book.title);
+                            setShowSuggestions(false);
+                            setSearchQuery('');
+                          }}
+                          className="flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors"
+                        >
+                          <img src={book.imageUrl || 'https://placehold.co/40'} alt={book.title} className="w-10 h-14 object-cover rounded" />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-bold text-gray-800 truncate">{book.title}</div>
+                            <div className="text-xs text-gray-500 truncate">{book.author}</div>
+                          </div>
+                          <div className="text-primary font-bold text-sm whitespace-nowrap">
+                            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(book.price)}
+                          </div>
+                        </Link>
+                      ))}
+                      <div 
+                        onClick={handleSearch}
+                        className="p-3 text-center text-sm text-primary font-medium hover:bg-gray-50 cursor-pointer"
+                      >
+                        Xem tất cả kết quả cho "{searchQuery}"
                       </div>
-                    </Link>
-                  ))}
-                  <div 
-                    onClick={handleSearch}
-                    className="p-3 text-center text-sm text-primary font-medium hover:bg-gray-50 cursor-pointer"
-                  >
-                    Xem tất cả kết quả cho "{searchQuery}"
-                  </div>
-                </div>
+                    </div>
+                  ) : matchedCategories.length === 0 ? (
+                    <div className="p-4 text-center text-sm text-gray-500">
+                      Không tìm thấy kết quả nào khớp với từ khóa
+                    </div>
+                  ) : null}
+                </>
               ) : (
-                <div className="p-4 text-center text-sm text-gray-500">
-                  Không tìm thấy sách nào khớp với từ khóa
+                <div className="p-4 max-h-[450px] overflow-y-auto bg-white">
+                  {/* Search History */}
+                  {searchHistory.length > 0 && (
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                          <FaHistory className="text-gray-500" /> Lịch sử tìm kiếm
+                        </h4>
+                        <button onClick={clearSearchHistory} className="text-xs text-red-500 hover:underline">
+                          Xóa tất cả
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {searchHistory.map((term, index) => (
+                          <div key={index} className="flex items-center bg-gray-100 rounded-md px-3 py-1.5 group">
+                            <span 
+                              className="text-sm text-gray-700 cursor-pointer mr-2 hover:text-primary"
+                              onClick={() => {
+                                setSearchQuery(term);
+                                setShowSuggestions(false);
+                                navigate(`/search?q=${encodeURIComponent(term)}`);
+                              }}
+                            >
+                              {term}
+                            </span>
+                            <FaTimes 
+                              className="text-gray-400 hover:text-red-500 cursor-pointer text-[10px]" 
+                              onClick={() => removeSearchHistory(term)}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      <div className="border-b border-gray-100 mt-4"></div>
+                    </div>
+                  )}
+
+                  {/* Hot Keywords (Using Bestsellers to mock) */}
+                  {defaultSuggestions.bestsellers.length > 0 && (
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                          <FaChartLine className="text-gray-500" /> Từ khóa hot
+                        </h4>
+                        <button className="text-gray-400 hover:text-primary transition-colors">
+                          <FaSyncAlt className="text-xs" />
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        {defaultSuggestions.bestsellers.slice(0, 6).map(book => (
+                          <Link 
+                            key={`hot-${book.id}`} 
+                            to={`/book/${book.id}`}
+                            onClick={() => setShowSuggestions(false)}
+                            className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors border border-transparent hover:border-gray-100"
+                          >
+                            <img src={book.imageUrl || 'https://placehold.co/40'} alt={book.title} className="w-10 h-10 object-contain" />
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm text-gray-700 line-clamp-2 leading-tight">{book.title}</div>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                      <div className="border-b border-gray-100 mt-4"></div>
+                    </div>
+                  )}
+
+                  {/* Featured Categories (Using Categories to mock) */}
+                  {defaultSuggestions.categories.length > 0 && (
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                          <FaThLarge className="text-gray-500" /> Danh mục nổi bật
+                        </h4>
+                        <button className="text-gray-400 hover:text-primary transition-colors">
+                          <FaSyncAlt className="text-xs" />
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-4 gap-4">
+                        {defaultSuggestions.categories.slice(0, 4).map((cat, i) => {
+                          const getCategoryImage = (name, index) => {
+                            const lowerName = name.toLowerCase();
+                            if (lowerName.includes('thiếu nhi')) return 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&q=80&w=150&h=150';
+                            if (lowerName.includes('tiểu thuyết') || lowerName.includes('văn học')) return 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=150&h=150';
+                            if (lowerName.includes('khoa học') || lowerName.includes('công nghệ')) return 'https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&q=80&w=150&h=150';
+                            if (lowerName.includes('kinh tế') || lowerName.includes('kinh doanh')) return 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=150&h=150';
+                            if (lowerName.includes('tâm lý') || lowerName.includes('kỹ năng')) return 'https://images.unsplash.com/photo-1499209974431-9dddcece7f88?auto=format&fit=crop&q=80&w=150&h=150';
+                            
+                            const fallbackImages = [
+                              'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&q=80&w=150&h=150',
+                              'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=150&h=150',
+                              'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&q=80&w=150&h=150',
+                              'https://images.unsplash.com/photo-1519682337058-a94d519337bc?auto=format&fit=crop&q=80&w=150&h=150',
+                            ];
+                            return fallbackImages[index % fallbackImages.length];
+                          };
+
+                          return (
+                            <Link 
+                              key={`fcat-${cat.id}`} 
+                              to={`/category/${cat.id}`}
+                              onClick={() => setShowSuggestions(false)}
+                              className="flex flex-col items-center text-center group"
+                            >
+                              <div className="w-16 h-16 rounded-full bg-gray-50 mb-2 overflow-hidden shadow-sm border border-gray-100 group-hover:border-primary group-hover:shadow-md transition-all">
+                                <img src={cat.imageUrl || getCategoryImage(cat.name, i)} alt={cat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                              </div>
+                              <span className="text-xs font-medium text-gray-700 group-hover:text-primary transition-colors line-clamp-2 leading-tight">
+                                {cat.name}
+                              </span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

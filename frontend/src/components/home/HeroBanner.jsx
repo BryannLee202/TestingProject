@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Pagination, Navigation, Autoplay } from 'swiper/modules';
+import { Pagination, Autoplay } from 'swiper/modules';
 import axios from 'axios';
+import SwiperNavButtons from '../common/SwiperNavButtons';
 import 'swiper/css';
 import 'swiper/css/pagination';
-import 'swiper/css/navigation';
 
 export default function HeroBanner() {
   const [mainBanners, setMainBanners] = useState([
-    'https://cdn0.fahasa.com/media/magentothem/banner7/Banner-Manga-thang-05_840x320.jpg',
-    'https://cdn0.fahasa.com/media/magentothem/banner7/Ngoai-Van-T5-Slide_840x320.jpg',
-    'https://cdn0.fahasa.com/media/magentothem/banner7/Trang-Do-choi-Slide_840x320.jpg',
+    'https://placehold.co/840x320/007bff/ffffff?text=Banner+Chinh+1',
+    'https://placehold.co/840x320/28a745/ffffff?text=Banner+Chinh+2',
+    'https://placehold.co/840x320/dc3545/ffffff?text=Banner+Chinh+3',
   ]);
 
   const [sideBanners, setSideBanners] = useState([
-    'https://cdn0.fahasa.com/media/magentothem/banner7/Fahasa_deal_392x156.jpg',
-    'https://cdn0.fahasa.com/media/magentothem/banner7/VNPAY_392x156.jpg',
+    'https://placehold.co/392x156/ffc107/000000?text=Banner+Phu+1',
+    'https://placehold.co/392x156/17a2b8/ffffff?text=Banner+Phu+2',
   ]);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
@@ -39,12 +39,11 @@ export default function HeroBanner() {
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 h-auto lg:h-80">
-      <div className="w-full lg:w-[70%] h-48 sm:h-64 lg:h-full rounded-xl overflow-hidden shadow-sm bg-white">
+      <div className="w-full lg:w-[70%] h-48 sm:h-64 lg:h-full rounded-xl overflow-hidden shadow-sm bg-white relative">
         <Swiper
-          modules={[Pagination, Navigation, Autoplay]}
+          modules={[Pagination, Autoplay]}
           spaceBetween={0}
           slidesPerView={1}
-          navigation
           pagination={{ clickable: true }}
           autoplay={{ delay: 4000, disableOnInteraction: false }}
           className="w-full h-full"
@@ -54,6 +53,7 @@ export default function HeroBanner() {
               <img src={src} alt={`Main Banner ${index + 1}`} className="w-full h-full object-cover" />
             </SwiperSlide>
           ))}
+          <SwiperNavButtons />
         </Swiper>
       </div>
 
