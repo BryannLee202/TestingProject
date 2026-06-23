@@ -44,40 +44,45 @@ Hệ thống được chia làm hai phân hệ chính:
 Sơ đồ Use Case thể hiện các tác nhân chính (**Khách hàng** và **Admin**) tương tác với các tính năng trọng tâm của hệ thống **YiYi Book**:
 
 ```mermaid
-leftToRightDirection
-actor "Khách Hàng" as Customer
-actor "Quản Trị Viên (Admin)" as Admin
-
-rectangle "Hệ Thống YiYi Book" {
-  usecase "Đăng ký & Đăng nhập (JWT)" as UC_Auth
-  usecase "Xem & Tìm kiếm sách" as UC_Search
-  usecase "Quản lý giỏ hàng" as UC_Cart
-  usecase "Đặt hàng & Thanh toán (Online/COD)" as UC_Checkout
-  usecase "Tích lũy & Đổi điểm Y-Point" as UC_Points
-  usecase "Đánh giá sách (Review & Reply)" as UC_Review
-  usecase "Xem thông báo" as UC_Notify
+graph LR
+  subgraph Khách Hàng
+    Customer((Khách Hàng))
+  end
   
-  usecase "Quản lý sản phẩm & Kho hàng" as UC_ManageBooks
-  usecase "Quản lý đơn hàng" as UC_ManageOrders
-  usecase "Thống kê doanh thu (Dashboard)" as UC_Dashboard
-  usecase "Gửi thông báo hệ thống" as UC_SendNotify
-  usecase "Kiểm duyệt Đánh giá" as UC_ModerateReviews
-}
+  subgraph Admin [Quản Trị Viên]
+    AdminUser((Admin))
+  end
+  
+  subgraph System [Hệ Thống YiYi Book]
+    UC1(Đăng ký & Đăng nhập JWT)
+    UC2(Xem & Tìm kiếm sách)
+    UC3(Quản lý giỏ hàng)
+    UC4(Đặt hàng & Thanh toán)
+    UC5(Tích lũy & Đổi điểm Y-Point)
+    UC6(Đánh giá & Phản hồi)
+    UC7(Xem thông báo)
+    
+    UC8(Quản lý sản phẩm & Kho hàng)
+    UC9(Quản lý đơn hàng)
+    UC10(Thống kê doanh thu Dashboard)
+    UC11(Gửi thông báo hệ thống)
+    UC12(Kiểm duyệt Đánh giá)
+  end
 
-Customer --> UC_Auth
-Customer --> UC_Search
-Customer --> UC_Cart
-Customer --> UC_Checkout
-Customer --> UC_Points
-Customer --> UC_Review
-Customer --> UC_Notify
+  Customer --> UC1
+  Customer --> UC2
+  Customer --> UC3
+  Customer --> UC4
+  Customer --> UC5
+  Customer --> UC6
+  Customer --> UC7
 
-Admin --> UC_Auth
-Admin --> UC_ManageBooks
-Admin --> UC_ManageOrders
-Admin --> UC_Dashboard
-Admin --> UC_SendNotify
-Admin --> UC_ModerateReviews
+  AdminUser --> UC1
+  AdminUser --> UC8
+  AdminUser --> UC9
+  AdminUser --> UC10
+  AdminUser --> UC11
+  AdminUser --> UC12
 ```
 
 ---
@@ -126,48 +131,39 @@ Admin --> UC_ModerateReviews
 Dưới đây là sơ đồ quy trình hoạt động (Activity Diagram) thể hiện luồng xử lý từ lúc Khách hàng vào giỏ hàng đến khi hoàn tất đơn hàng:
 
 ```mermaid
-|Khách Hàng|
-start
-:Vào Trang Giỏ Hàng;
-:Nhấn Thanh Toán;
-if (Tài khoản đã đăng nhập?) then (Chưa)
-  :Chuyển hướng đăng nhập;
-  stop
-else (Rồi)
-  :Nhập Địa Chỉ & Thông Tin VAT;
-  :Chọn Coupon / Đổi Y-Point giảm giá;
-  :Chọn Phương Thức Thanh Toán;
-  if (Phương thức thanh toán là COD?) then (COD - Tiền Mặt)
-    |Hệ Thống & Admin|
-    :Tạo đơn hàng trạng thái PENDING;
-    :Trừ số lượng tồn kho trong database;
-    :Giải phóng giỏ hàng;
-    :Chuyển đơn hàng sang tab "Chờ Giao Hàng";
-    :Admin duyệt đơn và giao cho ĐVVC;
-    |Shipper & Khách Hàng|
-    :Giao hàng và thu tiền mặt;
-    :Cập nhật trạng thái đã giao & Đã thanh toán;
-  else (Online - VNPay/MoMo/ZaloPay)
-    |Hệ Thống & Admin|
-    :Tạo đơn hàng trạng thái PENDING_PAYMENT;
-    :Chuyển hướng sang cổng thanh toán;
-    |Khách Hàng|
-    :Thực hiện thanh toán trên cổng / quét mã;
-    if (Thanh toán thành công?) then (Có)
-      |Hệ Thống & Admin|
-      :Cập nhật trạng thái đơn thành PENDING;
-      :Giải phóng giỏ hàng & áp dụng coupon;
-      :Cập nhật mốc "Đã Thanh Toán" ở bước 2;
-      :Admin giao cho ĐVVC;
-    else (Không)
-      :Hiển thị lỗi thanh toán;
-      :Đơn hàng giữ ở tab "Chờ Thanh Toán";
-      stop
-    endif
-  endif
-endif
-:Khách hàng nhận hàng và Đánh giá (Review);
-stop
+graph TD
+  Start([Bắt đầu]) --> GoToCart[Vào Trang Giỏ Hàng]
+  GoToCart --> PressCheckout[Nhấn Thanh Toán]
+  PressCheckout --> CheckLogin{Đã đăng nhập?}
+  
+  CheckLogin -- Chưa --> RedirectLogin[Chuyển hướng đăng nhập] --> End1([Kết thúc])
+  CheckLogin -- Rồi --> InputInfo[Nhập Địa Chỉ & Thông Tin VAT]
+  
+  InputInfo --> ChoosePromo[Chọn Coupon / Đổi Y-Point giảm giá]
+  ChoosePromo --> SelectPayment[Chọn Phương Thức Thanh Toán]
+  
+  SelectPayment --> CheckCOD{Phương thức COD?}
+  
+  CheckCOD -- COD Tiền Mặt --> CreatePendingOrder[Tạo đơn hàng PENDING]
+  CreatePendingOrder --> ReleaseCart[Giải phóng giỏ hàng & trừ tồn kho]
+  ReleaseCart --> MoveToProcessing[Đơn sang tab Chờ Giao Hàng]
+  MoveToProcessing --> AdminShip[Admin duyệt & giao cho ĐVVC]
+  AdminShip --> Delivery[Giao hàng & thu tiền mặt]
+  Delivery --> CompleteCOD[Cập nhật hoàn thành & đã thanh toán] --> ReviewStep[Khách hàng đánh giá & phản hồi]
+  
+  CheckCOD -- Online VNPay/MoMo/ZaloPay --> CreatePaymentOrder[Tạo đơn hàng PENDING_PAYMENT]
+  CreatePaymentOrder --> RedirectPayment[Chuyển hướng sang cổng thanh toán]
+  RedirectPayment --> PaySuccess{Thanh toán thành công?}
+  
+  PaySuccess -- Không --> PayError[Hiển thị lỗi thanh toán] --> KeepInPending[Đơn nằm ở tab Chờ Thanh Toán] --> End2([Kết thúc])
+  
+  PaySuccess -- Có --> UpdatePaidOrder[Cập nhật trạng thái PENDING & mốc Đã Thanh toán ở bước 2]
+  UpdatePaidOrder --> ReleaseCartOnline[Giải phóng giỏ hàng & trừ tồn kho]
+  ReleaseCartOnline --> AdminShipOnline[Admin duyệt & giao cho ĐVVC]
+  AdminShipOnline --> DeliveryOnline[Giao hàng đến khách]
+  DeliveryOnline --> CompleteOnline[Cập nhật hoàn thành] --> ReviewStep
+  
+  ReviewStep --> End3([Kết thúc])
 ```
 
 ---
