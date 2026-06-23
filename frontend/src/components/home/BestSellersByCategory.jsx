@@ -59,6 +59,44 @@ export default function BestSellersByCategory() {
     fetchBooksByCategory();
   }, [activeCategory]);
 
+  // Hiệu ứng tự động nhảy giữa các sách và chuyển mục (Category)
+  useEffect(() => {
+    if (books.length === 0) return;
+
+    const timer = setInterval(() => {
+      const currentIndex = books.findIndex(b => b.id === selectedBook?.id);
+      
+      if (currentIndex !== -1 && currentIndex < books.length - 1) {
+        // Nhảy sang cuốn sách tiếp theo trong cùng danh mục
+        setSelectedBook(books[currentIndex + 1]);
+        setExpandedDesc(false);
+      } else {
+        // Đã đi hết danh mục hiện tại (Top 5), tự động chuyển sang danh mục tiếp theo
+        if (categories.length > 0) {
+          const currentCatIndex = categories.findIndex(c => c.id === activeCategory?.id);
+          const nextCatIndex = (currentCatIndex + 1) % categories.length;
+          
+          // Chỉ cuộn thanh tab ngang thay vì cuộn toàn bộ cửa sổ trình duyệt (tránh nhảy màn hình)
+          const container = document.getElementById('best-seller-tabs-container');
+          const btn = document.getElementById(`cat-tab-${categories[nextCatIndex].id}`);
+          if (container && btn) {
+            const containerWidth = container.offsetWidth;
+            const btnLeft = btn.offsetLeft;
+            const btnWidth = btn.offsetWidth;
+            container.scrollTo({
+              left: btnLeft - containerWidth / 2 + btnWidth / 2,
+              behavior: 'smooth'
+            });
+          }
+
+          setActiveCategory(categories[nextCatIndex]);
+        }
+      }
+    }, 4500); // Đổi sau mỗi 4.5 giây
+
+    return () => clearInterval(timer);
+  }, [books, selectedBook, categories, activeCategory]);
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mt-6">
       {/* Header */}
@@ -68,10 +106,11 @@ export default function BestSellersByCategory() {
       </div>
 
       {/* Tabs */}
-      <div className="flex overflow-x-auto no-scrollbar gap-6 border-b border-gray-100 pb-2 mb-6">
+      <div id="best-seller-tabs-container" className="flex overflow-x-auto no-scrollbar gap-6 border-b border-gray-100 pb-2 mb-6">
         {categories.map((cat) => (
           <button
             key={cat.id}
+            id={`cat-tab-${cat.id}`}
             onClick={() => setActiveCategory(cat)}
             className={`whitespace-nowrap font-medium pb-2 border-b-2 transition-colors ${
               activeCategory?.id === cat.id

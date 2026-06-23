@@ -1,6 +1,7 @@
 import React from 'react';
 import { FaRobot, FaStar } from 'react-icons/fa';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import { Autoplay } from 'swiper/modules';
 import { Link } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import SwiperNavButtons from '../common/SwiperNavButtons';
@@ -23,8 +24,11 @@ export default function PersonalizedSuggestions({ data = [] }) {
       {/* Product Slider */}
       <div className="relative">
         <Swiper
+          modules={[Autoplay]}
           spaceBetween={16}
           slidesPerView={2.2}
+          loop={data && data.length > 6}
+          autoplay={{ delay: 4000, disableOnInteraction: false }}
           breakpoints={{
             640: { slidesPerView: 3.2 },
             768: { slidesPerView: 4.2 },
@@ -55,7 +59,7 @@ export default function PersonalizedSuggestions({ data = [] }) {
                 </div>
                 
                 {/* Title */}
-                <h3 className="text-sm font-medium text-gray-800 line-clamp-2 mb-2 min-h-[40px] leading-snug group-hover:text-indigo-600 transition-colors">
+                <h3 className="text-sm font-medium text-gray-800 line-clamp-2 mb-2 h-[40px] leading-[20px] group-hover:text-indigo-600 transition-colors">
                   {product.title}
                 </h3>
                 
@@ -99,6 +103,16 @@ export default function PersonalizedSuggestions({ data = [] }) {
           ))}
           <SwiperNavButtons />
         </Swiper>
+      </div>
+
+      {/* View All Button */}
+      <div className="mt-5 text-center">
+        <Link 
+          to="/search"
+          className="px-8 py-2 border border-indigo-500 text-indigo-600 font-medium rounded-md hover:bg-indigo-500 hover:text-white transition-colors inline-block"
+        >
+          Xem Tất Cả
+        </Link>
       </div>
     </div>
   );

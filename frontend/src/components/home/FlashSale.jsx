@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaBolt, FaChevronRight } from 'react-icons/fa';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import { Autoplay } from 'swiper/modules';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import 'swiper/css';
@@ -115,8 +116,11 @@ export default function FlashSale() {
       {/* Product Slider */}
       <div className="p-4 sm:p-5 bg-white relative">
         <Swiper
+          modules={[Autoplay]}
           spaceBetween={16}
           slidesPerView={2.2}
+          loop={flashSaleProducts.length > 6}
+          autoplay={{ delay: 3500, disableOnInteraction: false }}
           breakpoints={{
             640: { slidesPerView: 3.2 },
             768: { slidesPerView: 4.2 },
@@ -148,7 +152,7 @@ export default function FlashSale() {
                 </div>
                 
                 {/* Title */}
-                <h3 className="text-sm font-medium text-gray-800 line-clamp-2 mb-2 min-h-[40px] leading-tight group-hover:text-primary transition-colors">
+                <h3 className="text-sm font-medium text-gray-800 line-clamp-2 mb-2 h-[40px] leading-[20px] group-hover:text-primary transition-colors">
                   {product.title}
                 </h3>
                 
