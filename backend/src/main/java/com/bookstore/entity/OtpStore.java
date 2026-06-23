@@ -16,7 +16,7 @@ public class OtpStore {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "`key`", nullable = false)
+    @Column(name = "otp_key", nullable = false)
     private String email; // email hoặc phone
 
     @Column(nullable = false, length = 6)

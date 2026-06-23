@@ -54,7 +54,7 @@ public class AdminUserController {
 
         try {
             // Dùng SQL trực tiếp để tránh vấn đề transaction rollback-only
-            jdbcTemplate.update("DELETE FROM otp_store WHERE `key` = (SELECT email FROM users WHERE id = ?)", id);
+            jdbcTemplate.update("DELETE FROM otp_store WHERE otp_key = (SELECT email FROM users WHERE id = ?)", id);
             jdbcTemplate.update("DELETE FROM notifications WHERE user_id = ?", id);
             jdbcTemplate.update("DELETE FROM wishlists WHERE user_id = ?", id);
             jdbcTemplate.update("DELETE FROM point_transactions WHERE user_id = ?", id);
