@@ -82,7 +82,7 @@ public class Order {
     @Column(name = "return_bank", length = 255)
     private String returnBank;
 
-    @Column(name = "return_details_text", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "return_details_text", columnDefinition = "TEXT")
     private String returnDetails;
 
     @Column(nullable = false)
