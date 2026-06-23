@@ -7,8 +7,8 @@ import com.bookstore.entity.Cart;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,13 +22,7 @@ public class AdminUserController {
 
     @Autowired private UserRepository userRepository;
     @Autowired private CartRepository cartRepository;
-    @Autowired private OrderRepository orderRepository;
-    @Autowired private ReviewRepository reviewRepository;
-    @Autowired private PointTransactionRepository pointTransactionRepository;
-    @Autowired private AddressRepository addressRepository;
-    @Autowired private NotificationRepository notificationRepository;
-    @Autowired private WishlistRepository wishlistRepository;
-    @Autowired private OtpStoreRepository otpStoreRepository;
+    @Autowired private JdbcTemplate jdbcTemplate;
 
     @GetMapping
     public ResponseEntity<List<User>> getAllUsers() {
@@ -53,53 +47,33 @@ public class AdminUserController {
     }
 
     @DeleteMapping("/{id}")
-    @Transactional
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
-        Optional<User> userOpt = userRepository.findById(id);
-        if (userOpt.isEmpty()) {
+        if (!userRepository.existsById(id)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found"));
         }
 
-        User user = userOpt.get();
         try {
-            // Xóa OTP entries
-            try {
-                var otps = otpStoreRepository.findAll().stream()
-                        .filter(o -> o.getKey().equals(user.getEmail()) || o.getKey().equals(user.getUsername()))
-                        .toList();
-                otpStoreRepository.deleteAll(otps);
-            } catch (Exception ignored) {}
+            // Dùng SQL trực tiếp để tránh vấn đề transaction rollback-only
+            jdbcTemplate.update("DELETE FROM otp_store WHERE `key` = (SELECT email FROM users WHERE id = ?)", id);
+            jdbcTemplate.update("DELETE FROM notifications WHERE user_id = ?", id);
+            jdbcTemplate.update("DELETE FROM wishlists WHERE user_id = ?", id);
+            jdbcTemplate.update("DELETE FROM point_transactions WHERE user_id = ?", id);
+            jdbcTemplate.update("DELETE FROM review_comments WHERE review_id IN (SELECT id FROM reviews WHERE user_id = ?)", id);
+            jdbcTemplate.update("DELETE FROM reviews WHERE user_id = ?", id);
+            // Xóa order items trước, rồi xóa orders
+            jdbcTemplate.update("DELETE FROM order_items WHERE order_id IN (SELECT id FROM orders WHERE user_id = ?)", id);
+            jdbcTemplate.update("DELETE FROM orders WHERE user_id = ?", id);
+            jdbcTemplate.update("DELETE FROM addresses WHERE user_id = ?", id);
+            jdbcTemplate.update("DELETE FROM vat_invoices WHERE user_id = ?", id);
+            jdbcTemplate.update("DELETE FROM user_rewards WHERE user_id = ?", id);
+            // Xóa cart items trước, rồi xóa cart
+            jdbcTemplate.update("DELETE FROM cart_items WHERE cart_id IN (SELECT id FROM carts WHERE user_id = ?)", id);
+            jdbcTemplate.update("DELETE FROM carts WHERE user_id = ?", id);
+            // Xóa coupon của user này
+            jdbcTemplate.update("DELETE FROM coupons WHERE user_id = ?", id);
+            // Cuối cùng xóa user
+            jdbcTemplate.update("DELETE FROM users WHERE id = ?", id);
 
-            // Xóa thông báo
-            try {
-                notificationRepository.deleteAll(
-                    notificationRepository.findByUserIdOrUserIdIsNullOrderByCreatedAtDesc(id)
-                        .stream().filter(n -> id.equals(n.getUserId())).toList()
-                );
-            } catch (Exception ignored) {}
-
-            // Xóa wishlist
-            try { wishlistRepository.deleteAll(wishlistRepository.findByUserIdOrderByCreatedAtDesc(id)); } catch (Exception ignored) {}
-
-            // Xóa lịch sử điểm
-            try { pointTransactionRepository.deleteAll(pointTransactionRepository.findByUserIdOrderByCreatedAtDesc(id)); } catch (Exception ignored) {}
-
-            // Xóa đánh giá
-            try { reviewRepository.deleteAll(reviewRepository.findByUserIdOrderByCreatedAtDesc(id)); } catch (Exception ignored) {}
-
-            // Xóa đơn hàng
-            try { orderRepository.deleteAll(orderRepository.findByUserOrderByCreatedAtDesc(user)); } catch (Exception ignored) {}
-
-            // Xóa địa chỉ
-            try { addressRepository.deleteAll(addressRepository.findByUserId(id)); } catch (Exception ignored) {}
-
-            // Xóa giỏ hàng
-            try {
-                Optional<Cart> cartOpt = cartRepository.findByUserId(id);
-                cartOpt.ifPresent(cartRepository::delete);
-            } catch (Exception ignored) {}
-
-            userRepository.deleteById(id);
             return ResponseEntity.ok(Map.of("message", "Đã xóa người dùng thành công!"));
         } catch (Exception e) {
             e.printStackTrace();
