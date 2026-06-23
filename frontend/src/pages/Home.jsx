@@ -142,7 +142,7 @@ export default function Home() {
           </div>
         ) : (
           <>
-            {recommendations.length > 0 && <PersonalizedSuggestions data={recommendations} maxRows={1} />}
+            {recommendations.length > 0 && <PersonalizedSuggestions data={recommendations} maxRows={2} />}
             {combos.length > 0 && <ComboTrending data={combos} />}
           </>
         )}
@@ -168,18 +168,6 @@ export default function Home() {
             loading={otherLoading}
           />
         )}
-        
-        <FahasaSimpleSection 
-          title="GỢI Ý CHO BẠN" 
-          data={otherProducts} 
-          maxItems={10} 
-        />
-        
-        <FahasaSimpleSection 
-          title="XU HƯỚNG TÌM KIẾM" 
-          data={bookProducts} 
-          maxItems={10} 
-        />
         
         <PartnerBrands />
       </div>
