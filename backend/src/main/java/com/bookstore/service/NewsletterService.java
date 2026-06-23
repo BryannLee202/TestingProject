@@ -84,4 +84,15 @@ public class NewsletterService {
             }
         });
     }
+
+    public List<NewsletterSubscriber> getAllSubscribers() {
+        return repository.findAll();
+    }
+
+    public void deleteSubscriber(Long id) {
+        if (!repository.existsById(id)) {
+            throw new IllegalArgumentException("Không tìm thấy email đăng ký này.");
+        }
+        repository.deleteById(id);
+    }
 }

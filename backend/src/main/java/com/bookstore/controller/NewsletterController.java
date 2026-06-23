@@ -42,4 +42,27 @@ public class NewsletterController {
             return ResponseEntity.internalServerError().body(Map.of("message", "Lỗi khi gửi bản tin."));
         }
     }
+
+    @GetMapping
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getAllSubscribers() {
+        try {
+            return ResponseEntity.ok(newsletterService.getAllSubscribers());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("message", "Lỗi lấy danh sách đăng ký."));
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteSubscriber(@PathVariable Long id) {
+        try {
+            newsletterService.deleteSubscriber(id);
+            return ResponseEntity.ok(Map.of("message", "Đã xóa email đăng ký thành công."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("message", "Lỗi xóa email đăng ký."));
+        }
+    }
 }
