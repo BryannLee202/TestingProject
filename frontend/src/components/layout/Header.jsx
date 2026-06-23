@@ -34,6 +34,7 @@ import { useAuth } from '../../context/AuthContext';
 export default function Header() {
   const [isNotifyOpen, setIsNotifyOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [recentNotifications, setRecentNotifications] = useState([]);
   const [allNotifications, setAllNotifications] = useState([]);
@@ -548,9 +549,15 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Mobile Search Bar - only shows on screens < lg */}
-      <div className="lg:hidden border-t border-gray-100 px-4 py-2" ref={searchRef}>
-        <form onSubmit={handleSearch} className="relative">
+      {/* Mobile Search Bar & Menu Button - only shows on screens < lg */}
+      <div className="lg:hidden border-t border-gray-100 px-4 py-2 flex items-center gap-3 relative" ref={searchRef}>
+        <button 
+          onClick={() => setIsMobileMenuOpen(true)} 
+          className="text-gray-600 hover:text-primary transition-colors shrink-0"
+        >
+          <FaThLarge className="text-2xl" />
+        </button>
+        <form onSubmit={handleSearch} className="relative flex-1">
           <input
             type="text"
             value={searchQuery}
@@ -560,9 +567,9 @@ export default function Header() {
             }}
             onFocus={() => setShowSuggestions(true)}
             placeholder="Tìm kiếm sách, tác giả..."
-            className="w-full pl-4 pr-12 py-2 rounded-full border border-gray-300 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm"
+            className="w-full pl-4 pr-10 py-2 rounded-full border border-gray-300 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm"
           />
-          <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-primary text-white p-1.5 rounded-full hover:bg-primary-light transition-colors">
+          <button type="submit" className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-primary text-white p-1.5 rounded-full hover:bg-primary-light transition-colors">
             <FaSearch className="text-sm" />
           </button>
         </form>
@@ -840,6 +847,94 @@ export default function Header() {
           </div>
         </div>
       )}
+
+      {/* Mobile Sidebar Menu */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-[110] flex">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/50 transition-opacity"
+            onClick={() => setIsMobileMenuOpen(false)}
+          ></div>
+          
+          {/* Sidebar */}
+          <div className="relative w-[85%] max-w-sm bg-gray-50 h-full flex flex-col shadow-2xl animate-slide-in-left overflow-hidden">
+            <div className="bg-primary text-white p-4 flex items-center justify-between shrink-0">
+              <h3 className="font-bold text-lg">Danh Mục Sản Phẩm</h3>
+              <button 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-white hover:text-gray-200 transition-colors p-1"
+              >
+                <FaTimes size={20} />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto">
+              {/* Login/User area in mobile menu */}
+              <div className="bg-white p-4 mb-2 flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center shrink-0">
+                  <FaRegUser size={24} />
+                </div>
+                {user ? (
+                  <div className="flex-1">
+                    <div className="font-bold text-gray-800">{user.fullName || user.name}</div>
+                    <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="text-sm text-primary hover:underline">Quản lý tài khoản</Link>
+                  </div>
+                ) : (
+                  <div className="flex-1 flex gap-2">
+                    <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="flex-1 py-1.5 text-center bg-primary text-white text-sm font-medium rounded">Đăng nhập</Link>
+                    <Link to="/register" onClick={() => setIsMobileMenuOpen(false)} className="flex-1 py-1.5 text-center bg-white border border-primary text-primary text-sm font-medium rounded">Đăng ký</Link>
+                  </div>
+                )}
+              </div>
+
+              {/* Main Categories Menu */}
+              <div className="bg-white">
+                <div className="py-2">
+                  <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-between px-4 py-3 text-sm font-bold text-primary border-l-4 border-primary bg-primary/5">
+                    <div className="flex items-center gap-3">
+                      <FaThLarge className="text-primary text-lg" />
+                      TẤT CẢ SẢN PHẨM
+                    </div>
+                  </Link>
+                  
+                  {allCategories.map(cat => (
+                    <Link 
+                      key={`sidebar-${cat.id}`}
+                      to={`/category/${cat.id}`} 
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 border-b border-gray-50 ml-4"
+                    >
+                      <div className="flex items-center gap-3 uppercase">
+                        {cat.name}
+                      </div>
+                      <FaChevronRight className="text-gray-300 text-xs" />
+                    </Link>
+                  ))}
+                  
+                  <Link to="/search?q=hot" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 border-b border-gray-50 ml-4">
+                    <div className="flex items-center gap-3 uppercase">Sách Bán Chạy</div>
+                    <FaChevronRight className="text-gray-300 text-xs" />
+                  </Link>
+                  <Link to="/search?q=sale" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 border-b border-gray-50 ml-4">
+                    <div className="flex items-center gap-3 uppercase text-red-500">Flash Sale</div>
+                    <FaChevronRight className="text-gray-300 text-xs" />
+                  </Link>
+                </div>
+              </div>
+
+              {user && (
+                <div className="mt-2 bg-white">
+                  <button onClick={() => { logout(); setIsMobileMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-4 text-sm font-medium text-red-500 hover:bg-gray-50 text-left">
+                    <FaSignOutAlt className="text-lg" /> Đăng xuất
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
+
