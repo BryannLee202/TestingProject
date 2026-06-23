@@ -512,7 +512,7 @@ export default function Orders({ embedded = false }) {
                         <div className="text-xs sm:text-sm text-gray-700 mt-1">x{item.quantity}</div>
                       </div>
                       <div className="text-right flex flex-col justify-center min-w-[70px]">
-                        {item.book?.oldPrice && item.book.oldPrice > item.price && (
+                        {item.book?.oldPrice > item.price && (
                           <span className="text-xs text-gray-400 line-through">
                             {item.book.oldPrice.toLocaleString('vi-VN')}đ
                           </span>

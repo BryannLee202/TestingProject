@@ -561,7 +561,7 @@ export default function OrderDetail() {
                   <div className="text-sm text-gray-700 mt-1">x{item.quantity}</div>
                 </div>
                 <div className="text-right flex flex-col justify-center h-20">
-                  {item.book?.oldPrice && item.book.oldPrice > item.price && (
+                  {item.book?.oldPrice > item.price && (
                     <span className="text-sm text-gray-400 line-through mr-2">
                       {item.book.oldPrice.toLocaleString('vi-VN')}đ
                     </span>

@@ -3,6 +3,8 @@ import { useLocation, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FaCheckCircle, FaTimesCircle, FaSpinner } from 'react-icons/fa';
 
+import { useCart } from '../context/CartContext';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
 export default function PaymentResult() {
@@ -10,6 +12,7 @@ export default function PaymentResult() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [result, setResult] = useState(null);
+  const { refreshCart } = useCart();
 
   useEffect(() => {
     const processPaymentReturn = async () => {
@@ -22,9 +25,16 @@ export default function PaymentResult() {
         }
 
         const isMomo = searchParams.includes('partnerCode');
-        const endpoint = isMomo ? '/payment/momo-return' : '/payment/vnpay-return';
+        const isZaloPay = searchParams.includes('apptransid');
+        let endpoint = '/payment/vnpay-return';
+        if (isMomo) endpoint = '/payment/momo-return';
+        if (isZaloPay) endpoint = '/payment/zalopay-return';
+        
         const res = await axios.get(`${API_BASE_URL}${endpoint}${searchParams}`);
         setResult(res.data);
+        if (res.data && res.data.status === 'success') {
+          refreshCart();
+        }
       } catch (error) {
         if (error.response && error.response.data) {
           setResult(error.response.data);

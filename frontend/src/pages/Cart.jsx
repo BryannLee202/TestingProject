@@ -9,7 +9,7 @@ import { showNotification } from '../utils/alert';
 import PersonalizedSuggestions from '../components/home/PersonalizedSuggestions';
 
 export default function Cart() {
-  const { cart, updateQuantity, removeFromCart } = useCart();
+  const { cart, updateQuantity, removeFromCart, clearCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -81,9 +81,40 @@ export default function Cart() {
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
-      setSelectedItems(cart.map(i => i.id));
+      setSelectedItems(cart.map((item) => item.id));
     } else {
       setSelectedItems([]);
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedItems.length === 0) {
+      showNotification('Thông báo', 'Vui lòng chọn sản phẩm cần xóa', 'warning');
+      return;
+    }
+    
+    const result = await Swal.fire({
+      title: 'Xóa sản phẩm?',
+      text: `Bạn có chắc chắn muốn xóa ${selectedItems.length === cart.length ? 'tất cả' : selectedItems.length} sản phẩm đã chọn khỏi giỏ hàng?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#C92127',
+      cancelButtonColor: '#9ca3af',
+      confirmButtonText: 'Có, xóa ngay',
+      cancelButtonText: 'Hủy'
+    });
+
+    if (result.isConfirmed) {
+      if (selectedItems.length === cart.length) {
+        await clearCart();
+      } else {
+        // Delete one by one since context doesn't have a bulk delete
+        for (const id of selectedItems) {
+          await removeFromCart(id);
+        }
+      }
+      setSelectedItems([]);
+      showNotification('Thành công', 'Đã xóa sản phẩm khỏi giỏ hàng', 'success');
     }
   };
 
@@ -196,7 +227,7 @@ export default function Cart() {
           
           {recommendations.length > 0 && (
             <div className="mt-8">
-              <PersonalizedSuggestions data={recommendations} />
+              <PersonalizedSuggestions data={recommendations} maxRows={2} />
             </div>
           )}
         </div>
@@ -228,7 +259,15 @@ export default function Cart() {
               </div>
               <div className="w-24 text-center hidden md:block text-gray-500">Số lượng</div>
               <div className="w-32 text-right hidden md:block text-gray-500">Thành tiền</div>
-              <div className="w-10"></div>
+              <div className="w-10 flex justify-center">
+                <button 
+                  onClick={handleDeleteSelected}
+                  title="Xóa sản phẩm đã chọn"
+                  className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                >
+                  <FaTrash />
+                </button>
+              </div>
             </div>
 
             {/* Product List */}
@@ -467,7 +506,7 @@ export default function Cart() {
         
         {recommendations.length > 0 && (
           <div className="mt-8">
-            <PersonalizedSuggestions data={recommendations} />
+            <PersonalizedSuggestions data={recommendations} maxRows={2} />
           </div>
         )}
       </div>

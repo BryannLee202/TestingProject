@@ -16,33 +16,33 @@ export const CartProvider = ({ children }) => {
   
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
-  // Lấy giỏ hàng khi user đăng nhập hoặc từ localStorage nếu là khách
-  useEffect(() => {
+  const refreshCart = async () => {
     if (user) {
-      const fetchDBCart = async () => {
-        try {
-          const res = await axios.get(`${API_BASE_URL}/cart`);
-          if (res.data && res.data.items) {
-            // Map the DB structure to frontend structure
-            const dbCart = res.data.items.map(item => ({
-              id: item.book.id,
-              title: item.book.title,
-              price: item.book.price,
-              oldPrice: item.book.oldPrice || item.book.price,
-              img: item.book.imageUrl || item.book.image_url || 'https://placehold.co/100',
-              quantity: item.quantity
-            }));
-            setCart(dbCart);
-          }
-        } catch (error) {
-          console.error('Error fetching DB cart', error);
+      try {
+        const res = await axios.get(`${API_BASE_URL}/cart`);
+        if (res.data && res.data.items) {
+          const dbCart = res.data.items.map(item => ({
+            id: item.book.id,
+            title: item.book.title,
+            price: item.book.price,
+            oldPrice: item.book.oldPrice || item.book.price,
+            img: item.book.imageUrl || item.book.image_url || 'https://placehold.co/100',
+            quantity: item.quantity
+          }));
+          setCart(dbCart);
         }
-      };
-      fetchDBCart();
+      } catch (error) {
+        console.error('Error fetching DB cart', error);
+      }
     } else {
       const savedCart = localStorage.getItem('bookstore_cart');
       if (savedCart) setCart(JSON.parse(savedCart));
     }
+  };
+
+  // Lấy giỏ hàng khi user đăng nhập hoặc từ localStorage nếu là khách
+  useEffect(() => {
+    refreshCart();
   }, [user]);
 
   // Lưu vào localStorage nếu là khách
@@ -152,6 +152,7 @@ export const CartProvider = ({ children }) => {
     updateQuantity,
     removeFromCart,
     clearCart,
+    refreshCart,
     getCartTotal,
     getCartCount,
   };

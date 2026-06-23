@@ -1,13 +1,14 @@
 package com.bookstore.controller;
 
 import com.bookstore.config.VNPayConfig;
+import com.bookstore.config.MoMoConfig;
+import com.bookstore.config.ZaloPayConfig;
 import com.bookstore.service.OrderService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.bookstore.config.MoMoConfig;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -116,7 +117,7 @@ public class PaymentController {
             String notifyUrl = MoMoConfig.NOTIFY_URL;
             String amountStr = String.valueOf(amount);
             String extraData = "";
-            String requestType = "captureWallet";
+            String requestType = "payWithATM";
 
             String rawSignature = "accessKey=" + MoMoConfig.ACCESS_KEY +
                     "&amount=" + amountStr +
@@ -171,9 +172,79 @@ public class PaymentController {
     public ResponseEntity<Map<String, String>> createZaloPayUrl(
             @RequestParam("amount") long amount,
             @RequestParam("orderId") String orderId) {
-        // ZaloPay requires registered AppID & keys. We will use a mock URL for demonstration.
-        String mockUrl = "http://localhost:5173/payment/mock-gateway?method=ZALOPAY&orderId=" + orderId + "&amount=" + amount;
-        return ResponseEntity.ok(Map.of("url", mockUrl));
+        try {
+            String appTransId = new java.text.SimpleDateFormat("yyMMdd").format(new java.util.Date()) + "_" + orderId;
+            String appTime = String.valueOf(System.currentTimeMillis());
+            String embedData = "{\"redirecturl\": \"http://localhost:5173/payment-result\"}";
+            String item = "[]";
+            
+            String macData = ZaloPayConfig.APP_ID + "|" + appTransId + "|user123|" + amount + "|" + appTime + "|" + embedData + "|" + item;
+            String mac = ZaloPayConfig.hmacSHA256(macData, ZaloPayConfig.KEY1);
+
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+
+            Map<String, Object> order = new HashMap<>();
+            order.put("app_id", Integer.parseInt(ZaloPayConfig.APP_ID));
+            order.put("app_trans_id", appTransId);
+            order.put("app_user", "user123");
+            order.put("app_time", Long.parseLong(appTime));
+            order.put("item", item);
+            order.put("embed_data", embedData);
+            order.put("amount", amount);
+            order.put("description", "Thanh toan don hang #" + orderId);
+            order.put("bank_code", "");
+            order.put("mac", mac);
+
+            org.springframework.http.HttpEntity<Map<String, Object>> entity = new org.springframework.http.HttpEntity<>(order, headers);
+
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<Map> response = restTemplate.postForEntity(ZaloPayConfig.CREATE_ORDER_URL, entity, Map.class);
+            
+            if (response.getBody() != null && response.getBody().get("return_code").toString().equals("1")) {
+                return ResponseEntity.ok(Map.of("url", response.getBody().get("order_url").toString()));
+            } else {
+                return ResponseEntity.badRequest().body(Map.of("message", "Error from ZaloPay: " + response.getBody()));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("message", "Failed to create ZaloPay URL: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/zalopay-return")
+    public ResponseEntity<?> zalopayReturn(@RequestParam("apptransid") String appTransId) {
+        try {
+            String[] parts = appTransId.split("_");
+            if (parts.length != 2) return ResponseEntity.badRequest().body(Map.of("status", "error", "message", "Invalid apptransid"));
+            Long orderId = Long.parseLong(parts[1]);
+
+            String macData = ZaloPayConfig.APP_ID + "|" + appTransId + "|" + ZaloPayConfig.KEY1;
+            String mac = ZaloPayConfig.hmacSHA256(macData, ZaloPayConfig.KEY1);
+
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.setContentType(org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED);
+
+            org.springframework.util.MultiValueMap<String, String> map = new org.springframework.util.LinkedMultiValueMap<>();
+            map.add("app_id", ZaloPayConfig.APP_ID);
+            map.add("app_trans_id", appTransId);
+            map.add("mac", mac);
+
+            org.springframework.http.HttpEntity<org.springframework.util.MultiValueMap<String, String>> request = new org.springframework.http.HttpEntity<>(map, headers);
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<Map> response = restTemplate.postForEntity(ZaloPayConfig.QUERY_ORDER_URL, request, Map.class);
+            
+            if (response.getBody() != null && response.getBody().get("return_code").toString().equals("1")) {
+                orderService.confirmVNPayPayment(orderId, true);
+                return ResponseEntity.ok(Map.of("status", "success", "message", "Payment success", "orderId", orderId));
+            } else {
+                orderService.confirmVNPayPayment(orderId, false);
+                return ResponseEntity.badRequest().body(Map.of("status", "failed", "message", "Payment failed or cancelled"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", e.getMessage()));
+        }
     }
 
     @PostMapping("/mock-return")

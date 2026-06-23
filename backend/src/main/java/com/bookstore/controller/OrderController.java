@@ -68,6 +68,12 @@ public class OrderController {
         return ResponseEntity.ok().build();
     }
 
+    @PutMapping("/{id}/confirm-received")
+    public ResponseEntity<Void> confirmReceived(Authentication authentication, @PathVariable Long id) {
+        orderService.confirmOrderReceived(id, authentication.getName());
+        return ResponseEntity.ok().build();
+    }
+
     @PutMapping("/{id}/return/approve")
     public ResponseEntity<Void> approveReturnOrder(@PathVariable Long id) {
         orderService.adminApproveReturn(id);
