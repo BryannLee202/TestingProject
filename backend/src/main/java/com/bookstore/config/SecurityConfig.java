@@ -26,6 +26,7 @@ public class SecurityConfig {
             .cors(org.springframework.security.config.Customizer.withDefaults())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll() // Cho phép truy cập không cần login
+                .requestMatchers("/api/ping").permitAll() // Ping endpoint để chống ngủ đông
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/books/**").permitAll() // Xem sách thoải mái
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/categories/**").permitAll() // Xem danh mục thoải mái
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/banners/**").permitAll() // Xem banner thoải mái
