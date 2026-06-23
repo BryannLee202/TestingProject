@@ -35,6 +35,7 @@ export default function Header() {
   const [isNotifyOpen, setIsNotifyOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDesktopCategoryOpen, setIsDesktopCategoryOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [recentNotifications, setRecentNotifications] = useState([]);
   const [allNotifications, setAllNotifications] = useState([]);
@@ -221,13 +222,83 @@ export default function Header() {
         {/* Search */}
         <div className="flex-1 max-w-xl mx-8 relative hidden lg:flex items-center gap-3" ref={searchRef}>
           {/* Desktop Category Menu Button */}
-          <div className="relative">
-            <button 
-              onClick={() => setIsMobileMenuOpen(true)} // Reusing the sidebar menu for consistency, or we can build a dropdown. Let's just use the sidebar! It's very smooth.
-              className="flex items-center justify-center p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
-            >
-              <FaThLarge className="text-2xl" />
+          <div 
+            className="relative"
+            onMouseEnter={() => setIsDesktopCategoryOpen(true)}
+            onMouseLeave={() => setIsDesktopCategoryOpen(false)}
+          >
+            <button className="flex items-center justify-center p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors gap-1">
+              <FaThLarge className="text-2xl" /> <FaChevronDown className="text-[10px]" />
             </button>
+
+            {/* Mega Menu Dropdown */}
+            {isDesktopCategoryOpen && (
+               <div className="absolute top-full left-0 mt-2 w-[850px] bg-white rounded-lg shadow-2xl border border-gray-100 flex overflow-hidden z-[60] min-h-[450px]">
+                 {/* Left Sidebar */}
+                 <div className="w-64 bg-gray-50 flex flex-col py-2 shrink-0 border-r border-gray-100">
+                   <div className="px-5 py-3 font-bold text-gray-800 text-lg border-b border-gray-200 bg-white">Danh mục sản phẩm</div>
+                   <div className="flex-1 overflow-y-auto">
+                     <div className="px-5 py-3 bg-white font-bold text-primary cursor-pointer border-l-4 border-primary">Sách Trong Nước</div>
+                     <div className="px-5 py-3 font-bold text-gray-700 cursor-pointer hover:bg-gray-100 border-l-4 border-transparent hover:text-primary transition-colors">FOREIGN BOOKS</div>
+                     <div className="px-5 py-3 font-bold text-gray-700 cursor-pointer hover:bg-gray-100 border-l-4 border-transparent hover:text-primary transition-colors">VPP - Dụng Cụ Học Sinh</div>
+                     <div className="px-5 py-3 font-bold text-gray-700 cursor-pointer hover:bg-gray-100 border-l-4 border-transparent hover:text-primary transition-colors">Đồ Chơi</div>
+                     <div className="px-5 py-3 font-bold text-gray-700 cursor-pointer hover:bg-gray-100 border-l-4 border-transparent hover:text-primary transition-colors">Làm Đẹp - Sức Khỏe</div>
+                     <div className="px-5 py-3 font-bold text-gray-700 cursor-pointer hover:bg-gray-100 border-l-4 border-transparent hover:text-primary transition-colors">Sách Giáo Khoa 2026</div>
+                     <div className="px-5 py-3 font-bold text-gray-700 cursor-pointer hover:bg-gray-100 border-l-4 border-transparent hover:text-primary transition-colors">Bách Hóa Online</div>
+                   </div>
+                 </div>
+                 {/* Right Content */}
+                 <div className="flex-1 p-6 bg-white overflow-y-auto">
+                   <h3 className="text-lg font-bold text-gray-800 mb-5 flex items-center gap-2 border-b border-gray-100 pb-2">
+                      <FaThLarge className="text-primary" /> Sách Trong Nước
+                   </h3>
+                   <div className="grid grid-cols-3 gap-x-6 gap-y-8">
+                     <div className="flex flex-col gap-2.5">
+                       <span className="font-bold text-gray-800 text-[13px] mb-1 uppercase tracking-wide">VĂN HỌC</span>
+                       {allCategories.filter(c => c.name.toLowerCase().includes('văn') || c.name.toLowerCase().includes('tiểu thuyết')).map(c => (
+                         <Link key={`mega-${c.id}`} to={`/category/${c.id}`} onClick={() => setIsDesktopCategoryOpen(false)} className="text-[13px] text-gray-600 hover:text-primary transition-colors">{c.name}</Link>
+                       ))}
+                       {allCategories.filter(c => c.name.toLowerCase().includes('văn') || c.name.toLowerCase().includes('tiểu thuyết')).length === 0 && (
+                         <span className="text-[13px] text-gray-400">Tiểu Thuyết</span>
+                       )}
+                     </div>
+                     <div className="flex flex-col gap-2.5">
+                       <span className="font-bold text-gray-800 text-[13px] mb-1 uppercase tracking-wide">KINH TẾ</span>
+                       {allCategories.filter(c => c.name.toLowerCase().includes('kinh')).map(c => (
+                         <Link key={`mega-${c.id}`} to={`/category/${c.id}`} onClick={() => setIsDesktopCategoryOpen(false)} className="text-[13px] text-gray-600 hover:text-primary transition-colors">{c.name}</Link>
+                       ))}
+                     </div>
+                     <div className="flex flex-col gap-2.5">
+                       <span className="font-bold text-gray-800 text-[13px] mb-1 uppercase tracking-wide">TÂM LÝ - KỸ NĂNG</span>
+                       {allCategories.filter(c => c.name.toLowerCase().includes('tâm') || c.name.toLowerCase().includes('kỹ') || c.name.toLowerCase().includes('kĩ')).map(c => (
+                         <Link key={`mega-${c.id}`} to={`/category/${c.id}`} onClick={() => setIsDesktopCategoryOpen(false)} className="text-[13px] text-gray-600 hover:text-primary transition-colors">{c.name}</Link>
+                       ))}
+                     </div>
+                     <div className="flex flex-col gap-2.5">
+                       <span className="font-bold text-gray-800 text-[13px] mb-1 uppercase tracking-wide">THIẾU NHI</span>
+                       {allCategories.filter(c => c.name.toLowerCase().includes('thiếu nhi')).map(c => (
+                         <Link key={`mega-${c.id}`} to={`/category/${c.id}`} onClick={() => setIsDesktopCategoryOpen(false)} className="text-[13px] text-gray-600 hover:text-primary transition-colors">{c.name}</Link>
+                       ))}
+                     </div>
+                     <div className="flex flex-col gap-2.5">
+                       <span className="font-bold text-gray-800 text-[13px] mb-1 uppercase tracking-wide">GIÁO KHOA - THAM KHẢO</span>
+                       {allCategories.filter(c => c.name.toLowerCase().includes('giáo khoa') || c.name.toLowerCase().includes('tham khảo')).map(c => (
+                         <Link key={`mega-${c.id}`} to={`/category/${c.id}`} onClick={() => setIsDesktopCategoryOpen(false)} className="text-[13px] text-gray-600 hover:text-primary transition-colors">{c.name}</Link>
+                       ))}
+                       {allCategories.filter(c => c.name.toLowerCase().includes('giáo khoa') || c.name.toLowerCase().includes('tham khảo')).length === 0 && (
+                         <span className="text-[13px] text-gray-400">Sách Giáo Khoa</span>
+                       )}
+                     </div>
+                     <div className="flex flex-col gap-2.5">
+                       <span className="font-bold text-gray-800 text-[13px] mb-1 uppercase tracking-wide">DANH MỤC KHÁC</span>
+                       {allCategories.filter(c => !c.name.toLowerCase().match(/(văn|tiểu thuyết|kinh|tâm|kỹ|kĩ|thiếu nhi|giáo khoa|tham khảo)/)).map(c => (
+                         <Link key={`mega-${c.id}`} to={`/category/${c.id}`} onClick={() => setIsDesktopCategoryOpen(false)} className="text-[13px] text-gray-600 hover:text-primary transition-colors">{c.name}</Link>
+                       ))}
+                     </div>
+                   </div>
+                 </div>
+               </div>
+            )}
           </div>
 
           <form onSubmit={handleSearch} className="relative flex-1">
@@ -762,24 +833,7 @@ export default function Header() {
         )}
       </div>
 
-      {/* Navigation Menu */}
-      <div className="bg-white border-t border-gray-100">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-          <ul className="flex items-center gap-6 md:gap-8 h-10 md:h-12 text-[13px] md:text-sm font-medium text-gray-700 overflow-x-auto scrollbar-hide whitespace-nowrap">
-            <li className="hover:text-primary cursor-pointer flex items-center gap-2 shrink-0">
-              <FaThLarge className="text-primary" /> Danh Mục Sản Phẩm
-            </li>
-            <li className="hover:text-primary cursor-pointer shrink-0">Sách Bán Chạy</li>
-            <li className="hover:text-primary cursor-pointer shrink-0 flex items-center gap-1">
-              <FaBolt className="text-yellow-500" /> Flash Sale
-            </li>
-            <li className="hover:text-primary cursor-pointer shrink-0">Sách Mới</li>
-            <li className="hover:text-primary cursor-pointer shrink-0">Văn Phòng Phẩm</li>
-            <li className="hover:text-primary cursor-pointer shrink-0">Đồ Chơi</li>
-            <li className="hover:text-primary cursor-pointer shrink-0">Sách Ngoại Văn</li>
-          </ul>
-        </div>
-      </div>
+
 
       {/* All Notifications Modal */}
       {showAllNotificationsModal && (
