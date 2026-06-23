@@ -30,7 +30,7 @@ public class OtpService {
 
         // Lưu OTP vào database với thời hạn 5 phút
         OtpStore store = OtpStore.builder()
-                .key(email != null && !email.isEmpty() ? email : phone)
+                .email(email != null && !email.isEmpty() ? email : phone)
                 .otp(otp)
                 .expiresAt(LocalDateTime.now().plusMinutes(5))
                 .used(false)
@@ -56,7 +56,7 @@ public class OtpService {
         }
 
         Optional<OtpStore> stored = otpStoreRepository
-                .findTopByKeyAndUsedFalseOrderByExpiresAtDesc(key);
+                .findTopByEmailAndUsedFalseOrderByExpiresAtDesc(key);
 
         if (stored.isEmpty()) {
             System.err.println("Không tìm thấy OTP cho key: " + key);
