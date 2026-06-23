@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 import { FaChevronLeft, FaReceipt, FaMoneyBillWave, FaTruck, FaBoxOpen, FaStar, FaStore, FaCommentDots } from 'react-icons/fa';
 
 export default function OrderDetail() {
@@ -10,6 +11,7 @@ export default function OrderDetail() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { addToCart } = useCart();
   const navigate = useNavigate();
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
@@ -229,16 +231,11 @@ export default function OrderDetail() {
     try {
       setLoading(true);
       for (const item of order.items) {
-        await axios.post(`${API_BASE_URL}/cart`, {
-          bookId: item.book.id,
-          quantity: item.quantity
-        }, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        });
+        await addToCart(item.book, item.quantity);
       }
       navigate('/cart');
     } catch (error) {
-      Swal.fire('Lỗi', 'Không thể thêm sản phẩm vào giỏ hàng', 'error');
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -464,7 +461,7 @@ export default function OrderDetail() {
                       Mua Lại
                     </button>
                   </>
-                ) : (order.status === 'PENDING' || order.status === 'PENDING_PAYMENT') ? (
+                ) : (order.status === 'PENDING' || order.status === 'PENDING_PAYMENT') && order.paymentMethod !== 'COD' ? (
                   <>
                     <button onClick={handlePayment} className="bg-primary text-white w-full py-2.5 text-sm rounded shadow-sm hover:bg-primary-light transition-colors">
                       Thanh Toán Ngay
@@ -479,7 +476,11 @@ export default function OrderDetail() {
                   </button>
                 ) : (
                   <>
-                    <button onClick={handleReceived} className="bg-primary text-white w-full py-2.5 text-sm rounded shadow-sm hover:bg-primary-light transition-colors">
+                    <button 
+                      disabled={order.shippingStatus !== 'DELIVERED'}
+                      onClick={handleReceived} 
+                      className={`w-full py-2.5 text-sm rounded shadow-sm transition-colors ${order.shippingStatus === 'DELIVERED' ? 'bg-primary text-white hover:bg-primary-light' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                    >
                       Đã Nhận Được Hàng
                     </button>
                   </>

@@ -303,7 +303,9 @@ export default function Checkout() {
       });
 
       if (res.status === 200 || res.status === 201) {
-        checkoutCart.forEach(item => removeFromCart(item.id));
+        if (paymentMethod === 'COD') {
+          checkoutCart.forEach(item => removeFromCart(item.id));
+        }
         if (refreshUser) refreshUser();
 
         if (['VNPAY', 'ATM', 'VISA', 'MOMO', 'ZALOPAY'].includes(paymentMethod)) {

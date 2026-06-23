@@ -2,15 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 import Swal from 'sweetalert2';
 import { FaStore, FaCommentDots, FaBoxOpen, FaSearch } from 'react-icons/fa';
 
 export default function Orders({ embedded = false }) {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('ALL');
+  const [activeTab, setActiveTab] = useState('PENDING');
   const [searchTerm, setSearchTerm] = useState('');
   const { user } = useAuth();
+  const { addToCart } = useCart();
   const navigate = useNavigate();
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
@@ -250,16 +252,11 @@ export default function Orders({ embedded = false }) {
     try {
       setLoading(true);
       for (const item of order.items) {
-        await axios.post(`${API_BASE_URL}/cart`, {
-          bookId: item.book.id,
-          quantity: item.quantity
-        }, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        });
+        await addToCart(item.book, item.quantity);
       }
       navigate('/cart');
     } catch (error) {
-      Swal.fire('Lỗi', 'Không thể thêm sản phẩm vào giỏ hàng', 'error');
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -351,6 +348,7 @@ export default function Orders({ embedded = false }) {
             confirmButtonColor: '#C92127'
           }).then(() => {
             fetchOrders();
+            setActiveTab('PROCESSING');
           });
           return;
         }
@@ -384,6 +382,25 @@ export default function Orders({ embedded = false }) {
     );
   }
 
+  const getTabCount = (tabId) => {
+    return orders.filter(order => {
+      if (tabId === 'PENDING') {
+        return (order.status === 'PENDING' || order.status === 'PENDING_PAYMENT') && order.paymentMethod !== 'COD';
+      } else if (tabId === 'SHIPPING') {
+        return order.shippingStatus === 'SHIPPING';
+      } else if (tabId === 'PROCESSING') {
+        return (order.status === 'PROCESSING' || ((order.status === 'PENDING' || order.status === 'PENDING_PAYMENT') && order.paymentMethod === 'COD')) && order.shippingStatus !== 'SHIPPING';
+      } else if (tabId === 'COMPLETED') {
+        return order.status === 'COMPLETED';
+      } else if (tabId === 'CANCELLED') {
+        return order.status === 'CANCELLED';
+      } else if (tabId === 'RETURN') {
+        return order.status === 'RETURNED' || order.shippingStatus === 'RETURNED' || order.status === 'REFUNDED';
+      }
+      return false;
+    }).length;
+  };
+
   return (
     <div className={embedded ? "" : "min-h-screen bg-gray-100 pb-12 pt-6"}>
       <div className={embedded ? "" : "max-w-5xl mx-auto px-4 sm:px-6 lg:px-8"}>
@@ -391,29 +408,31 @@ export default function Orders({ embedded = false }) {
         {/* Shopee-style Tabs */}
         <div className="bg-white flex w-full overflow-x-auto scrollbar-hide mb-4 shadow-sm">
           {[
-            { id: 'ALL', label: 'Tất cả' },
             { id: 'PENDING', label: 'Chờ thanh toán' },
             { id: 'PROCESSING', label: 'Chờ giao hàng' },
             { id: 'SHIPPING', label: 'Vận chuyển' },
             { id: 'COMPLETED', label: 'Hoàn thành' },
             { id: 'CANCELLED', label: 'Đã hủy' },
             { id: 'RETURN', label: 'Trả hàng/Hoàn tiền' }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`whitespace-nowrap flex-1 py-4 px-2 text-sm sm:text-base text-center transition-colors shrink-0 relative ${
-                activeTab === tab.id 
-                  ? 'text-primary font-medium' 
-                  : 'text-gray-700 hover:text-primary'
-              }`}
-            >
-              {tab.label}
-              {activeTab === tab.id && (
-                <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary"></div>
-              )}
-            </button>
-          ))}
+          ].map(tab => {
+            const count = getTabCount(tab.id);
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`whitespace-nowrap flex-1 py-4 px-2 text-sm sm:text-base text-center transition-colors shrink-0 relative ${
+                  activeTab === tab.id 
+                    ? 'text-primary font-medium' 
+                    : 'text-gray-700 hover:text-primary'
+                }`}
+              >
+                {tab.label} {count > 0 && `(${count})`}
+                {activeTab === tab.id && (
+                  <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary"></div>
+                )}
+              </button>
+            );
+          })}
         </div>
 
         {/* Search Bar */}
@@ -531,7 +550,7 @@ export default function Orders({ embedded = false }) {
                           Xem Chi Tiết
                         </Link>
                       </>
-                    ) : order.status === 'PENDING' || order.status === 'PENDING_PAYMENT' ? (
+                    ) : (order.status === 'PENDING' || order.status === 'PENDING_PAYMENT') && order.paymentMethod !== 'COD' ? (
                       <>
                         <button onClick={() => handlePayment(order)} className="bg-primary text-white border border-primary px-8 py-2 text-sm rounded hover:bg-primary-light transition-colors">
                           Thanh Toán Ngay
@@ -551,7 +570,11 @@ export default function Orders({ embedded = false }) {
                       </>
                     ) : (
                       <>
-                        <button onClick={() => handleReceived(order.id)} className="bg-primary text-white border border-primary px-8 py-2 text-sm rounded hover:bg-primary-light transition-colors">
+                        <button 
+                          disabled={order.shippingStatus !== 'DELIVERED'}
+                          onClick={() => handleReceived(order.id)} 
+                          className={`border px-8 py-2 text-sm rounded transition-colors ${order.shippingStatus === 'DELIVERED' ? 'bg-primary text-white border-primary hover:bg-primary-light' : 'bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed'}`}
+                        >
                           Đã Nhận Được Hàng
                         </button>
                         <Link to={`/orders/${order.id}`} className="bg-white text-gray-700 border border-gray-300 px-4 py-2 text-sm flex items-center justify-center rounded hover:bg-gray-50 transition-colors">
