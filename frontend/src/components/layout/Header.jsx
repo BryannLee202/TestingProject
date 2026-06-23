@@ -219,8 +219,18 @@ export default function Header() {
         </Link>
 
         {/* Search */}
-        <div className="flex-1 max-w-xl mx-8 relative hidden lg:block" ref={searchRef}>
-          <form onSubmit={handleSearch} className="relative">
+        <div className="flex-1 max-w-xl mx-8 relative hidden lg:flex items-center gap-3" ref={searchRef}>
+          {/* Desktop Category Menu Button */}
+          <div className="relative">
+            <button 
+              onClick={() => setIsMobileMenuOpen(true)} // Reusing the sidebar menu for consistency, or we can build a dropdown. Let's just use the sidebar! It's very smooth.
+              className="flex items-center justify-center p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
+            >
+              <FaThLarge className="text-2xl" />
+            </button>
+          </div>
+
+          <form onSubmit={handleSearch} className="relative flex-1">
             <input 
               type="text" 
               value={searchQuery}
