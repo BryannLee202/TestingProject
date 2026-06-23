@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import Swal from 'sweetalert2';
 import axios from 'axios';
 import { showNotification } from '../utils/alert';
+import PersonalizedSuggestions from '../components/home/PersonalizedSuggestions';
 
 export default function Cart() {
   const { cart, updateQuantity, removeFromCart } = useCart();
@@ -16,6 +17,7 @@ export default function Cart() {
   const [coupons, setCoupons] = useState([]);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [copiedCode, setCopiedCode] = useState('');
+  const [recommendations, setRecommendations] = useState([]);
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
   // On mount or when cart changes, initialize selected items
@@ -47,6 +49,28 @@ export default function Cart() {
     };
     fetchCoupons();
   }, [API_BASE_URL]);
+
+  useEffect(() => {
+    const fetchRecommendations = async () => {
+      try {
+        const userId = user ? user.id : 0;
+        const lastCategoryId = localStorage.getItem('lastViewedCategoryId');
+        const recommendUrl = lastCategoryId 
+            ? `${API_BASE_URL}/books/recommendations/${userId}?categoryId=${lastCategoryId}`
+            : `${API_BASE_URL}/books/recommendations/${userId}`;
+            
+        const res = await axios.get(recommendUrl);
+        if (Array.isArray(res.data)) {
+          setRecommendations(res.data);
+        } else if (res.data?.success) {
+          setRecommendations(res.data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching recommendations:', error);
+      }
+    };
+    fetchRecommendations();
+  }, [user, API_BASE_URL]);
 
   const handleCopy = (code) => {
     navigator.clipboard.writeText(code);
@@ -169,6 +193,12 @@ export default function Cart() {
               TIẾP TỤC MUA SẮM
             </Link>
           </div>
+          
+          {recommendations.length > 0 && (
+            <div className="mt-8">
+              <PersonalizedSuggestions data={recommendations} />
+            </div>
+          )}
         </div>
       </div>
     );
@@ -434,6 +464,12 @@ export default function Cart() {
           </div>
 
         </div>
+        
+        {recommendations.length > 0 && (
+          <div className="mt-8">
+            <PersonalizedSuggestions data={recommendations} />
+          </div>
+        )}
       </div>
     </div>
   );
