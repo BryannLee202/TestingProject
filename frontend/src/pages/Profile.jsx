@@ -114,9 +114,9 @@ export default function Profile() {
   const [seriesBooks, setSeriesBooks] = useState([]);
   const [seriesLoading, setSeriesLoading] = useState(false);
 
-  // ---- LIVE STATS STATE ----
   const [liveUser, setLiveUser] = useState(user);
   const [orderCount, setOrderCount] = useState(0);
+  const [voucherCount, setVoucherCount] = useState(0);
 
   useEffect(() => {
     if (user) {
@@ -165,6 +165,15 @@ export default function Profile() {
         } catch(e) { console.error(e); }
       };
       fetchProfile();
+
+      const fetchVoucherCount = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const res = await axios.get(`${API_BASE_URL}/coupons/my-coupons`, { headers: { Authorization: `Bearer ${token}` } });
+          setVoucherCount(Array.isArray(res.data) ? res.data.length : 0);
+        } catch(e) { /* ignore */ }
+      };
+      fetchVoucherCount();
     }
   }, [user]);
 
@@ -437,7 +446,9 @@ export default function Profile() {
             </button>
             <button onClick={() => setActiveTab('vouchers')} className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-3 relative ${activeTab === 'vouchers' ? 'text-[#C92127] font-bold' : 'text-gray-700 hover:text-[#C92127]'}`}>
               <FaTicketAlt className="text-gray-400 text-lg" /> Ví voucher
-              <span className="absolute right-4 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">1</span>
+              {voucherCount > 0 && (
+                <span className="absolute right-4 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">{voucherCount}</span>
+              )}
             </button>
             <button onClick={() => setActiveTab('ypoint')} className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-3 ${activeTab === 'ypoint' ? 'text-[#C92127] font-bold' : 'text-gray-700 hover:text-[#C92127]'}`}>
               <div className="w-4 h-4 bg-yellow-400 text-white rounded-full flex items-center justify-center text-[10px] font-bold">Y</div> Tài khoản Y-Point / Freeship

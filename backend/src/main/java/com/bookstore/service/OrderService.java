@@ -68,12 +68,16 @@ public class OrderService {
 
         if (isFirstOrder) {
             com.bookstore.entity.Coupon freeship = com.bookstore.entity.Coupon.builder()
-                    .code("FREESHIP_NEW_" + System.currentTimeMillis())
-                    .discountType(com.bookstore.entity.DiscountType.PERCENTAGE)
-                    .discountValue(100.0) // 100% freeship
+                    .code("FREESHIP_NEW_" + user.getId() + "_" + System.currentTimeMillis())
+                    .discountType(com.bookstore.entity.DiscountType.FIXED)
+                    .discountValue(30000.0) // Giảm tối đa 30K phí vận chuyển
+                    .maxDiscountAmount(30000.0)
                     .minOrderAmount(0.0)
                     .expirationDate(LocalDateTime.now().plusYears(1))
                     .isActive(true)
+                    .category("SHIPPING")
+                    .userId(user.getId())
+                    .usageLimit(1)
                     .build();
             couponRepository.save(freeship);
         }
