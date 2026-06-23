@@ -64,8 +64,9 @@ public class PaymentController {
             vnp_Params.put("vnp_BankCode", bankCode);
         }
 
-        Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
+        Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
+        formatter.setTimeZone(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
         String vnp_CreateDate = formatter.format(cld.getTime());
         vnp_Params.put("vnp_CreateDate", vnp_CreateDate);
         
@@ -176,7 +177,9 @@ public class PaymentController {
             @RequestParam("amount") long amount,
             @RequestParam("orderId") String orderId) {
         try {
-            String appTransId = new java.text.SimpleDateFormat("yyMMdd").format(new java.util.Date()) + "_" + orderId;
+            java.text.SimpleDateFormat zlpFormatter = new java.text.SimpleDateFormat("yyMMdd");
+            zlpFormatter.setTimeZone(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
+            String appTransId = zlpFormatter.format(new java.util.Date()) + "_" + orderId;
             String appTime = String.valueOf(System.currentTimeMillis());
             String embedData = "{\"redirecturl\": \"" + frontendUrl + "/payment-result\"}";
             String item = "[]";
