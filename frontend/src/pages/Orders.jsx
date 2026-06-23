@@ -84,7 +84,15 @@ export default function Orders({ embedded = false }) {
     }
 
     return tabMatch && searchMatch;
-  }).sort((a, b) => b.id - a.id);
+  }).sort((a, b) => {
+    // Ưu tiên đơn hàng vừa thanh toán xong (PROCESSING) lên đầu
+    const aIsNew = a.status === 'PROCESSING' && a.shippingStatus !== 'SHIPPING';
+    const bIsNew = b.status === 'PROCESSING' && b.shippingStatus !== 'SHIPPING';
+    if (aIsNew && !bIsNew) return -1;
+    if (!aIsNew && bIsNew) return 1;
+    // Còn lại sắp xếp theo ID mới nhất
+    return b.id - a.id;
+  });
 
   const handleCancel = async (orderId) => {
     try {
@@ -536,9 +544,6 @@ export default function Orders({ embedded = false }) {
                   <div className="flex gap-2">
                     {order.status === 'COMPLETED' ? (
                       <>
-                        <button disabled className="border px-8 py-2 text-sm rounded transition-colors bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed">
-                          Đã Nhận Được Hàng
-                        </button>
                         <button onClick={() => navigate(`/books/${order.items[0]?.book?.id}#reviews`)} className="bg-primary text-white border border-primary px-8 py-2 text-sm rounded hover:bg-primary-light transition-colors">
                           Đánh Giá
                         </button>
