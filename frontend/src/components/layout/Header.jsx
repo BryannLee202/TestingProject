@@ -25,7 +25,8 @@ import {
   FaRegClock,
   FaHistory,
   FaSyncAlt,
-  FaChartLine
+  FaChartLine,
+  FaBolt
 } from 'react-icons/fa';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
@@ -742,6 +743,25 @@ export default function Header() {
             )}
           </div>
         )}
+      </div>
+
+      {/* Navigation Menu */}
+      <div className="bg-white border-t border-gray-100">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+          <ul className="flex items-center gap-6 md:gap-8 h-10 md:h-12 text-[13px] md:text-sm font-medium text-gray-700 overflow-x-auto scrollbar-hide whitespace-nowrap">
+            <li className="hover:text-primary cursor-pointer flex items-center gap-2 shrink-0">
+              <FaThLarge className="text-primary" /> Danh Mục Sản Phẩm
+            </li>
+            <li className="hover:text-primary cursor-pointer shrink-0">Sách Bán Chạy</li>
+            <li className="hover:text-primary cursor-pointer shrink-0 flex items-center gap-1">
+              <FaBolt className="text-yellow-500" /> Flash Sale
+            </li>
+            <li className="hover:text-primary cursor-pointer shrink-0">Sách Mới</li>
+            <li className="hover:text-primary cursor-pointer shrink-0">Văn Phòng Phẩm</li>
+            <li className="hover:text-primary cursor-pointer shrink-0">Đồ Chơi</li>
+            <li className="hover:text-primary cursor-pointer shrink-0">Sách Ngoại Văn</li>
+          </ul>
+        </div>
       </div>
 
       {/* All Notifications Modal */}
