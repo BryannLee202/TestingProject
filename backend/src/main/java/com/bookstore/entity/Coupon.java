@@ -48,4 +48,7 @@ public class Coupon {
 
     @Column(name = "usage_limit")
     private Integer usageLimit;
+
+    @Column(name = "is_partner")
+    private Boolean isPartner = false;
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { showNotification } from '../utils/alert';
@@ -7,7 +7,7 @@ import {
   FaRegUserCircle, FaMapMarkerAlt, FaLock, FaFileInvoice, FaGift, 
   FaClipboardList, FaTicketAlt, FaCoins, FaRegBell, FaHeart, 
   FaBookOpen, FaStar, FaCrown, FaTimes, FaBoxOpen, FaEye, 
-  FaCalendarAlt, FaCreditCard, FaTruck, FaMoneyBillWave, FaCopy, FaCheck 
+  FaCalendarAlt, FaCreditCard, FaTruck, FaMoneyBillWave, FaCopy, FaCheck, FaChevronDown
 } from 'react-icons/fa';
 import Select from 'react-select';
 import treeData from '../data/provinces.json';
@@ -36,6 +36,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api'
 export default function Profile() {
   const { user, updateProfile } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Persist active tab via localStorage so F5 preserves the current tab
   const [activeTab, setActiveTabState] = useState(() => {
@@ -51,8 +52,9 @@ export default function Profile() {
   useEffect(() => {
     if (location.state?.tab) {
       setActiveTab(location.state.tab);
+      navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location.state?.tab]);
+  }, [location.state?.tab, location.pathname, navigate]);
 
   // ---- PROFILE STATE ----
   const [firstName, setFirstName] = useState('');
@@ -983,6 +985,7 @@ function YPointAccount({ liveUser, setLiveUser, updateProfile }) {
   const [voucherCode, setVoucherCode] = useState('');
   const [redeemError, setRedeemError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [visibleHistoryLimit, setVisibleHistoryLimit] = useState(10);
 
   useEffect(() => {
     fetchHistory();
@@ -1137,7 +1140,7 @@ function YPointAccount({ liveUser, setLiveUser, updateProfile }) {
                 <td colSpan="5" className="p-10 text-center text-gray-500 bg-white">Chưa có giao dịch điểm nào</td>
               </tr>
             ) : (
-              pointHistory.map((tx) => (
+              pointHistory.slice(0, visibleHistoryLimit).map((tx) => (
                 <tr key={tx.id} className="border-b border-gray-100 hover:bg-gray-50 bg-white transition-colors">
                   <td className="p-4 text-xs text-gray-500">{new Date(tx.createdAt).toLocaleString('vi-VN', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'})}</td>
                   <td className="p-4 font-medium text-gray-800">{tx.description}</td>
@@ -1152,6 +1155,18 @@ function YPointAccount({ liveUser, setLiveUser, updateProfile }) {
           </tbody>
         </table>
       </div>
+      
+      {pointHistory.length > visibleHistoryLimit && (
+        <div className="mt-4 flex justify-center">
+          <button 
+            onClick={() => setVisibleHistoryLimit(prev => prev + 10)}
+            className="flex items-center gap-2 px-6 py-2 border border-gray-300 rounded-md text-gray-600 hover:bg-gray-50 hover:text-[#C92127] transition-colors bg-white font-medium text-sm"
+          >
+            <span>Xem thêm</span>
+            <FaChevronDown className="text-xs" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -1305,16 +1320,28 @@ function MemberRulesModal({ onClose }) {
 // Subcomponent for My Vouchers
 function MyVouchersTab() {
   const [coupons, setCoupons] = useState([]);
+  const [partnerCouponsList, setPartnerCouponsList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [copiedCode, setCopiedCode] = useState('');
   const [voucherTab, setVoucherTab] = useState('mine');
+  const [selectedCoupon, setSelectedCoupon] = useState(null);
 
   useEffect(() => {
     const fetchCoupons = async () => {
       try {
         setLoading(true);
         const res = await axios.get(`${API_BASE_URL}/coupons`);
-        setCoupons(res.data || []);
+        const allCoupons = res.data || [];
+        
+        // Filter only saved coupons
+        const saved = JSON.parse(localStorage.getItem('savedCoupons') || '[]');
+        
+        // Separating into myCoupons (not partner) and partnerCoupons
+        const myCoupons = allCoupons.filter(c => saved.includes(c.code) && !c.isPartner);
+        const partnerCoupons = allCoupons.filter(c => saved.includes(c.code) && c.isPartner);
+        
+        setCoupons(myCoupons);
+        setPartnerCouponsList(partnerCoupons);
       } catch (error) {
         console.error('Error fetching coupons:', error);
       } finally {
@@ -1404,9 +1431,12 @@ function MyVouchersTab() {
                   </div>
 
                   {/* Chi tiết link */}
-                  <div className="absolute top-3 right-3 text-[#2489F4] text-xs font-medium cursor-pointer hover:underline">
+                  <button 
+                    onClick={() => setSelectedCoupon(coupon)}
+                    className="absolute top-3 right-3 text-[#2489F4] text-xs font-medium hover:underline"
+                  >
                     Chi tiết
-                  </div>
+                  </button>
                 </div>
               </div>
             ))}
@@ -1417,8 +1447,126 @@ function MyVouchersTab() {
           </div>
         )
       ) : (
-        <div className="bg-gray-50 rounded-xl p-12 text-center text-gray-500 border border-gray-100">
-          Hiện tại chưa có voucher đối tác.
+        partnerCouponsList.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {partnerCouponsList.map((coupon) => (
+              <div key={coupon.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden flex relative shadow-sm hover:shadow-md transition-shadow min-h-[130px]">
+                {/* Left Side: Orange Background for Partner */}
+                <div className="w-[100px] bg-orange-500 text-white flex items-center justify-center shrink-0">
+                  <FaTicketAlt className="text-3xl" />
+                </div>
+
+                {/* Right Side: Details */}
+                <div className="flex-1 p-3 flex flex-col justify-between relative">
+                  <div className="pr-16">
+                    <h3 className="font-semibold text-gray-800 text-sm leading-tight line-clamp-1">
+                      {coupon.discountType === 'PERCENTAGE' 
+                        ? `Giảm ${coupon.discountValue}% đơn hàng`
+                        : `Giảm ${coupon.discountValue.toLocaleString('vi-VN')} đ`
+                      }
+                    </h3>
+                    <p className="text-[11px] text-gray-500 mt-1 line-clamp-2 leading-tight">
+                      Đơn tối thiểu {coupon.minOrderAmount.toLocaleString('vi-VN')} đ. Không bao gồm giá trị của các sản phẩm sau Manga, Ngoại Văn, Phiếu Quà Tặng,...
+                    </p>
+                  </div>
+                  
+                  <div className="mt-2 flex items-center">
+                    <div className="bg-gray-200 text-gray-700 text-xs font-medium px-2 py-1 rounded flex items-center gap-1 w-fit">
+                      <FaCopy className="text-[10px]" /> {coupon.code}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-end mt-1">
+                    <span className="text-xs text-[#2489F4]">HSD: {formatDate(coupon.expirationDate)}</span>
+                    <button 
+                      onClick={() => handleCopy(coupon.code)}
+                      className={`text-white text-xs font-bold px-4 py-1.5 rounded transition-colors ${
+                        copiedCode === coupon.code ? 'bg-orange-600' : 'bg-orange-500 hover:bg-orange-600'
+                      }`}
+                    >
+                      {copiedCode === coupon.code ? 'Đã copy' : 'Copy mã'}
+                    </button>
+                  </div>
+
+                  {/* Chi tiết link */}
+                  <button 
+                    onClick={() => setSelectedCoupon(coupon)}
+                    className="absolute top-3 right-3 text-[#2489F4] text-xs font-medium hover:underline"
+                  >
+                    Chi tiết
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-gray-50 rounded-xl p-12 text-center text-gray-500 border border-gray-100">
+            Hiện tại chưa có voucher đối tác nào được lưu.
+          </div>
+        )
+      )}
+
+      {/* Detail Modal */}
+      {selectedCoupon && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setSelectedCoupon(null)}></div>
+          <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-fade-in-up">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+              <h3 className="text-lg font-bold text-gray-800">Chi tiết Voucher</h3>
+              <button 
+                onClick={() => setSelectedCoupon(null)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-6 space-y-4 text-sm text-gray-600">
+              <div className="flex justify-between items-start border-b border-gray-50 pb-3">
+                <span className="font-medium text-gray-500">Mã Voucher:</span>
+                <span className="font-mono font-bold text-gray-800 bg-gray-100 px-2 py-0.5 rounded">{selectedCoupon.code}</span>
+              </div>
+              <div className="flex justify-between items-start border-b border-gray-50 pb-3">
+                <span className="font-medium text-gray-500">Phân loại:</span>
+                <span className={`font-semibold px-2 py-0.5 rounded-md text-xs ${selectedCoupon.isPartner ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700'}`}>
+                  {selectedCoupon.isPartner ? 'Voucher Đối Tác' : 'Voucher Hệ Thống (Tất cả)'}
+                </span>
+              </div>
+              <div className="flex justify-between items-start border-b border-gray-50 pb-3">
+                <span className="font-medium text-gray-500">Mức ưu đãi:</span>
+                <span className="font-bold text-green-600 text-right">
+                  {selectedCoupon.discountType === 'PERCENTAGE' 
+                    ? `Giảm ${selectedCoupon.discountValue}% (Tối đa ${selectedCoupon.maxDiscountAmount ? selectedCoupon.maxDiscountAmount.toLocaleString('vi-VN') + ' đ' : 'Không giới hạn'})`
+                    : `Giảm ${selectedCoupon.discountValue.toLocaleString('vi-VN')} đ`
+                  }
+                </span>
+              </div>
+              <div className="flex justify-between items-start border-b border-gray-50 pb-3">
+                <span className="font-medium text-gray-500">Đơn tối thiểu:</span>
+                <span className="font-semibold text-gray-800">{selectedCoupon.minOrderAmount.toLocaleString('vi-VN')} đ</span>
+              </div>
+              <div className="flex justify-between items-start border-b border-gray-50 pb-3">
+                <span className="font-medium text-gray-500">Hạn sử dụng:</span>
+                <span className="font-semibold text-gray-800">{formatDate(selectedCoupon.expirationDate)}</span>
+              </div>
+
+              <div className="pt-2">
+                <span className="font-bold text-gray-800 block mb-1">Cách sử dụng:</span>
+                <ul className="list-disc pl-5 space-y-1.5 text-gray-600">
+                  <li>Mã này đã được thêm vào <b>Ví Voucher</b> của bạn.</li>
+                  <li>Mã sẽ được tự động áp dụng (nếu có giá trị cao nhất) ở bước <b>Giỏ hàng</b> hoặc <b>Thanh toán</b>.</li>
+                  <li>Bạn cũng có thể copy mã <span className="font-mono bg-gray-100 px-1 rounded">{selectedCoupon.code}</span> để tự nhập thủ công.</li>
+                </ul>
+              </div>
+            </div>
+            <div className="p-4 bg-gray-50 flex justify-end">
+              <button 
+                onClick={() => setSelectedCoupon(null)}
+                className="px-5 py-2 bg-[#C92127] text-white font-medium rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Đã hiểu
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

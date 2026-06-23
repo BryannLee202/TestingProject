@@ -20,6 +20,7 @@ export default function AdminCoupons() {
     minOrderAmount: '',
     expirationDate: '',
     isActive: true,
+    isPartner: false,
     userId: ''
   });
 
@@ -58,6 +59,7 @@ export default function AdminCoupons() {
       minOrderAmount: '',
       expirationDate: '',
       isActive: true,
+      isPartner: false,
       userId: '',
       category: 'DISCOUNT',
       usageLimit: 1
@@ -75,6 +77,7 @@ export default function AdminCoupons() {
       minOrderAmount: coupon.minOrderAmount || 0,
       expirationDate: coupon.expirationDate ? coupon.expirationDate.substring(0, 16) : '',
       isActive: coupon.isActive,
+      isPartner: coupon.isPartner || false,
       userId: coupon.userId || '',
       category: coupon.category || 'DISCOUNT',
       usageLimit: coupon.usageLimit || 1
@@ -122,6 +125,8 @@ export default function AdminCoupons() {
       maxDiscountAmount: formData.discountType === 'PERCENTAGE' && formData.maxDiscountAmount ? Number(formData.maxDiscountAmount) : null,
       minOrderAmount: Number(formData.minOrderAmount) || 0,
       expirationDate: formData.expirationDate ? new Date(formData.expirationDate).toISOString() : null,
+      isActive: formData.isActive,
+      isPartner: formData.isPartner,
       userId: formData.userId ? Number(formData.userId) : null,
       category: formData.category,
       usageLimit: formData.usageLimit ? Number(formData.usageLimit) : 1
@@ -250,6 +255,8 @@ export default function AdminCoupons() {
                     <td className="px-6 py-4">
                       {coupon.userId ? (
                         <span className="text-purple-600 font-medium bg-purple-50 px-2 py-1 rounded-md text-xs">Cá nhân (ID: {coupon.userId})</span>
+                      ) : coupon.isPartner ? (
+                        <span className="text-orange-600 font-medium bg-orange-50 px-2 py-1 rounded-md text-xs">Đối tác</span>
                       ) : (
                         <span className="text-gray-600 font-medium bg-gray-100 px-2 py-1 rounded-md text-xs">Hệ thống</span>
                       )}
@@ -432,17 +439,31 @@ export default function AdminCoupons() {
                   />
                 </div>
 
-                <div className="flex items-center gap-3 pt-2">
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      className="sr-only peer" 
-                      checked={formData.isActive}
-                      onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
-                  </label>
-                  <span className="text-sm font-medium text-gray-700">Kích hoạt Voucher</span>
+                <div className="flex flex-col gap-3 pt-2">
+                  <div className="flex items-center gap-3">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        className="sr-only peer" 
+                        checked={formData.isActive}
+                        onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                    </label>
+                    <span className="text-sm font-medium text-gray-700">Kích hoạt Voucher</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        className="sr-only peer" 
+                        checked={formData.isPartner}
+                        onChange={(e) => setFormData({...formData, isPartner: e.target.checked})}
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                    </label>
+                    <span className="text-sm font-medium text-gray-700">Voucher Đối tác</span>
+                  </div>
                 </div>
               </form>
             </div>
