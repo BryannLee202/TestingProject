@@ -48,6 +48,7 @@ export default function Header() {
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchRef = useRef(null);
+  const mobileSearchRef = useRef(null);
   const notifyRef = useRef(null);
   const userMenuRef = useRef(null);
   const [defaultSuggestions, setDefaultSuggestions] = useState({ categories: [], bestsellers: [], featured: [] });
@@ -140,7 +141,10 @@ export default function Header() {
   // Click outside to close menus and suggestions
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (searchRef.current && !searchRef.current.contains(event.target)) {
+      const isOutsideDesktop = searchRef.current && !searchRef.current.contains(event.target);
+      const isOutsideMobile = mobileSearchRef.current && !mobileSearchRef.current.contains(event.target);
+      
+      if (isOutsideDesktop && isOutsideMobile) {
         setShowSuggestions(false);
       }
       if (notifyRef.current && !notifyRef.current.contains(event.target)) {
@@ -233,39 +237,26 @@ export default function Header() {
 
             {/* Mega Menu Dropdown */}
             {isDesktopCategoryOpen && (
-               <div className="absolute top-full left-0 pt-3 w-[800px] z-[60]">
-                 <div className="bg-white rounded-xl shadow-2xl border border-gray-100 flex overflow-hidden min-h-[350px]">
-                   {/* Left Sidebar */}
-                   <div className="w-56 bg-gray-50 flex flex-col py-2 shrink-0 border-r border-gray-100">
-                     <div className="px-5 py-3 font-bold text-gray-800 text-lg border-b border-gray-200 bg-white">Khám Phá</div>
-                     <div className="flex-1 overflow-y-auto">
-                       <div className="px-5 py-4 bg-white font-bold text-gray-800 text-[15px] cursor-pointer border-l-4 border-primary">Tất Cả Danh Mục</div>
-                       <Link to="/search?q=hot" onClick={() => setIsDesktopCategoryOpen(false)} className="block px-5 py-4 font-bold text-red-600 text-[15px] hover:bg-gray-100 border-l-4 border-transparent transition-colors">Sách Bán Chạy</Link>
-                       <Link to="/search?q=new" onClick={() => setIsDesktopCategoryOpen(false)} className="block px-5 py-4 font-bold text-slate-700 text-[15px] hover:bg-gray-100 border-l-4 border-transparent transition-colors">Sách Mới</Link>
-                       <Link to="/search?q=sale" onClick={() => setIsDesktopCategoryOpen(false)} className="block px-5 py-4 font-bold text-red-600 text-[15px] hover:bg-gray-100 border-l-4 border-transparent transition-colors">Flash Sale</Link>
-                     </div>
-                   </div>
-                   {/* Right Content */}
-                   <div className="flex-1 p-6 bg-white overflow-y-auto max-h-[60vh]">
-                     <h3 className="text-lg font-bold text-gray-800 mb-5 flex items-center gap-2 border-b border-gray-100 pb-2">
-                        <FaThLarge className="text-primary" /> Tất Cả Danh Mục Sản Phẩm
-                     </h3>
-                     <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-                        {allCategories.map(c => (
-                           <Link 
-                             key={`mega-${c.id}`} 
-                             to={`/category/${c.id}`} 
-                             onClick={() => setIsDesktopCategoryOpen(false)} 
-                             className="px-4 py-2.5 bg-gray-50 rounded-lg text-[13px] font-medium text-gray-700 hover:bg-primary hover:text-white transition-all flex items-center justify-between group shadow-sm hover:shadow"
-                           >
-                              <span className="line-clamp-2 leading-tight">{c.name}</span>
-                              <FaChevronRight className="text-gray-300 group-hover:text-white text-[10px] shrink-0 ml-2" />
-                           </Link>
-                        ))}
-                        {allCategories.length === 0 && (
-                           <div className="col-span-full text-center text-gray-500 py-10">Đang tải danh mục...</div>
-                        )}
-                     </div>
+               <div className="absolute top-full left-0 pt-3 w-[700px] z-[60]">
+                 <div className="bg-white rounded-xl shadow-2xl border border-gray-100 p-6 flex flex-col overflow-hidden max-h-[70vh]">
+                   <h3 className="text-lg font-bold text-gray-800 mb-5 flex items-center gap-2 border-b border-gray-100 pb-2">
+                      <FaThLarge className="text-primary" /> Tất Cả Danh Mục Sản Phẩm
+                   </h3>
+                   <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 overflow-y-auto pr-2">
+                      {allCategories.map(c => (
+                         <Link 
+                           key={`mega-${c.id}`} 
+                           to={`/category/${c.id}`} 
+                           onClick={() => setIsDesktopCategoryOpen(false)} 
+                           className="px-4 py-3 bg-gray-50 rounded-lg text-[13px] font-medium text-gray-700 hover:bg-primary hover:text-white transition-all flex items-center justify-between group shadow-sm hover:shadow"
+                         >
+                            <span className="line-clamp-2 leading-tight">{c.name}</span>
+                            <FaChevronRight className="text-gray-300 group-hover:text-white text-[10px] shrink-0 ml-2" />
+                         </Link>
+                      ))}
+                      {allCategories.length === 0 && (
+                         <div className="col-span-full text-center text-gray-500 py-10">Đang tải danh mục...</div>
+                      )}
                    </div>
                  </div>
                </div>
@@ -602,7 +593,7 @@ export default function Header() {
       </div>
 
       {/* Mobile Search Bar & Menu Button - only shows on screens < lg */}
-      <div className="lg:hidden border-t border-gray-100 px-4 py-2 flex items-center gap-3 relative" ref={searchRef}>
+      <div className="lg:hidden border-t border-gray-100 px-4 py-2 flex items-center gap-3 relative" ref={mobileSearchRef}>
         <button 
           onClick={() => setIsMobileMenuOpen(true)} 
           className="text-gray-600 hover:text-primary transition-colors shrink-0"

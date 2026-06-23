@@ -258,7 +258,7 @@ export default function AddressModal({ isOpen, onClose, addresses, onSelect, onA
                           <span className="font-bold text-gray-800 text-lg">{addr.recipientName}</span>
                           <span className="text-gray-400">|</span>
                           <span className="text-gray-600">{addr.phone}</span>
-                          {addr.isDefault && (
+                          {(addr.isDefault || addr.default) && (
                             <span className="px-2 py-0.5 bg-blue-100 text-primary text-xs font-bold rounded-full ml-2 flex items-center gap-1">
                               <FaCheckCircle /> Mặc định
                             </span>
@@ -271,8 +271,8 @@ export default function AddressModal({ isOpen, onClose, addresses, onSelect, onA
                         <button onClick={() => handleEditClick(addr)} className="text-sm font-medium text-blue-500 hover:text-blue-600 transition-colors">
                           Sửa
                         </button>
-                        {!addr.isDefault && (
-                          <button onClick={() => onSetDefaultAddress(addr.id)} className="text-sm font-medium text-gray-500 hover:text-primary transition-colors">
+                        {!(addr.isDefault || addr.default) && (
+                          <button onClick={() => onSetDefaultAddress(addr.id)} className="text-sm font-medium text-gray-500 hover:text-primary transition-colors border border-gray-300 px-2 py-1 rounded">
                             Đặt mặc định
                           </button>
                         )}
