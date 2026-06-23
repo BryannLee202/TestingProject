@@ -13,7 +13,10 @@ export default function AdminUsers() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API_BASE_URL}/admin/users`);
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_BASE_URL}/admin/users`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setUsers(res.data || []);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -50,7 +53,10 @@ export default function AdminUsers() {
 
     if (result.isConfirmed) {
       try {
-        await axios.put(`${API_BASE_URL}/admin/users/${user.id}/role`, { role: newRole });
+        const token = localStorage.getItem('token');
+        await axios.put(`${API_BASE_URL}/admin/users/${user.id}/role`, { role: newRole }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         Swal.fire('Thành công!', 'Đã cập nhật quyền tài khoản.', 'success');
         fetchUsers();
       } catch (error) {
@@ -73,15 +79,15 @@ export default function AdminUsers() {
 
     if (result.isConfirmed) {
       try {
-        await axios.delete(`${API_BASE_URL}/admin/users/${userId}`);
-        Swal.fire('Đã xóa!', 'Tài khoản đã bị xóa.', 'success');
+        const token = localStorage.getItem('token');
+        await axios.delete(`${API_BASE_URL}/admin/users/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        Swal.fire('Đã xóa!', 'Tài khoản đã bị xóa vĩnh viễn.', 'success');
         fetchUsers();
       } catch (error) {
-        if (error.response && error.response.status === 409) {
-          Swal.fire('Từ chối xóa!', error.response.data.message || 'Tài khoản này đã có dữ liệu giao dịch.', 'warning');
-        } else {
-          Swal.fire('Lỗi!', 'Không thể xóa tài khoản này.', 'error');
-        }
+        const msg = error.response?.data?.message || 'Không thể xóa tài khoản này.';
+        Swal.fire('Lỗi!', msg, 'error');
       }
     }
   };
