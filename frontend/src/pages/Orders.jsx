@@ -242,7 +242,7 @@ export default function Orders({ embedded = false }) {
 
       if (result.isConfirmed) {
         setLoading(true);
-        await axios.put(`${API_BASE_URL}/orders/${orderId}/shipping?status=DELIVERED`, {}, {
+        await axios.put(`${API_BASE_URL}/orders/${orderId}/confirm-received`, {}, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         Swal.fire({
@@ -417,7 +417,7 @@ export default function Orders({ embedded = false }) {
 
   return (
     <div className={embedded ? "" : "min-h-screen bg-gray-100 pb-12 pt-6"}>
-      <div className={embedded ? "" : "max-w-5xl mx-auto px-4 sm:px-6 lg:px-8"}>
+      <div className={embedded ? "px-0" : "max-w-5xl mx-auto px-4 sm:px-6 lg:px-8"}>
         
         {/* Shopee-style Tabs */}
         <div className="bg-white flex w-full overflow-x-auto scrollbar-hide mb-4 shadow-sm">

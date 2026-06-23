@@ -688,7 +688,9 @@ export default function Profile() {
             
             {/* ĐƠN HÀNG CỦA TÔI */}
             {activeTab === 'orders' && (
-              <Orders embedded={true} />
+              <div className="-mx-6 md:-mx-8 -mt-6 md:-mt-8">
+                <Orders embedded={true} />
+              </div>
             )}
 
             {/* VÍ VOUCHER */}
