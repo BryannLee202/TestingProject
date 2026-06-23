@@ -20,9 +20,15 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
-  const [activeSectionTab, setActiveSectionTab] = useState('Mới Nhất');
-  const [sectionProducts, setSectionProducts] = useState([]);
-  const [sectionLoading, setSectionLoading] = useState(false);
+  const [activeBookTab, setActiveBookTab] = useState('Tất cả');
+  const [bookProducts, setBookProducts] = useState([]);
+  const [bookLoading, setBookLoading] = useState(false);
+
+  const [activeOtherTab, setActiveOtherTab] = useState('Tất cả');
+  const [otherProducts, setOtherProducts] = useState([]);
+  const [otherLoading, setOtherLoading] = useState(false);
+
+  const nonBookCategories = ['Văn phòng phẩm', 'Đồ chơi', 'Quà lưu niệm', 'Bách hóa'];
 
   useEffect(() => {
     const fetchHomeData = async () => {
@@ -68,30 +74,62 @@ export default function Home() {
   }, [user]);
 
   useEffect(() => {
-    const fetchSectionProducts = async () => {
-      setSectionLoading(true);
+    const fetchBookProducts = async () => {
+      setBookLoading(true);
       try {
         let endpoint = '/books/latest';
-        if (activeSectionTab === 'Bán Chạy') {
+        if (activeBookTab === 'Bán Chạy') {
           endpoint = '/books/bestsellers';
-        } else if (activeSectionTab === 'Giảm Giá') {
+        } else if (activeBookTab === 'Giảm Giá') {
           endpoint = '/books/discounted';
         }
         const res = await axios.get(`${API_BASE_URL}${endpoint}`);
-        setSectionProducts(res.data);
+        let finalData = res.data;
+        if (activeBookTab === 'Tất cả') {
+          // Shuffle only for the 'Tất cả' tab to keep other lists correctly ordered
+          finalData = [...res.data].sort(() => 0.5 - Math.random());
+        }
+        setBookProducts(finalData.filter(p => !nonBookCategories.includes(p.category?.name)).slice(0, 50));
       } catch (error) {
-        console.error('Error fetching section products:', error);
+        console.error('Error fetching book products:', error);
       } finally {
-        setSectionLoading(false);
+        setBookLoading(false);
       }
     };
 
-    fetchSectionProducts();
-  }, [activeSectionTab]);
+    fetchBookProducts();
+  }, [activeBookTab]);
+
+  useEffect(() => {
+    const fetchOtherProducts = async () => {
+      setOtherLoading(true);
+      try {
+        let endpoint = '/books/latest';
+        if (activeOtherTab === 'Bán Chạy') {
+          endpoint = '/books/bestsellers';
+        } else if (activeOtherTab === 'Giảm Giá') {
+          endpoint = '/books/discounted';
+        }
+        const res = await axios.get(`${API_BASE_URL}${endpoint}`);
+        let finalData = res.data;
+        if (activeOtherTab === 'Tất cả') {
+          // Shuffle only for the 'Tất cả' tab to keep other lists correctly ordered
+          finalData = [...res.data].sort(() => 0.5 - Math.random());
+        }
+        setOtherProducts(finalData.filter(p => nonBookCategories.includes(p.category?.name)).slice(0, 50));
+      } catch (error) {
+        console.error('Error fetching other products:', error);
+      } finally {
+        setOtherLoading(false);
+      }
+    };
+
+    fetchOtherProducts();
+  }, [activeOtherTab]);
 
   return (
     <div className="bg-gray-100 pb-10 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 flex flex-col gap-6">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 flex flex-col gap-6">
         <HeroBanner />
         <QuickLinks />
         <FeaturedBooksSection />
@@ -112,12 +150,23 @@ export default function Home() {
         
         <ProductSection 
           title="Khám Phá Sách" 
-          tabs={['Mới Nhất', 'Bán Chạy', 'Giảm Giá']} 
-          products={sectionProducts}
-          activeTab={activeSectionTab}
-          onTabChange={setActiveSectionTab}
-          loading={sectionLoading}
+          tabs={['Tất cả', 'Mới Nhất', 'Bán Chạy', 'Giảm Giá']} 
+          products={bookProducts}
+          activeTab={activeBookTab}
+          onTabChange={setActiveBookTab}
+          loading={bookLoading}
         />
+
+        {otherProducts.length > 0 && (
+          <ProductSection 
+            title="Khám Phá Sản Phẩm Khác" 
+            tabs={['Tất cả', 'Mới Nhất', 'Bán Chạy', 'Giảm Giá']} 
+            products={otherProducts}
+            activeTab={activeOtherTab}
+            onTabChange={setActiveOtherTab}
+            loading={otherLoading}
+          />
+        )}
         
         <PartnerBrands />
       </div>
