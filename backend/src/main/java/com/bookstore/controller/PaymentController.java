@@ -27,6 +27,9 @@ public class PaymentController {
 
     private final OrderService orderService;
 
+    @org.springframework.beans.factory.annotation.Value("${FRONTEND_URL:http://localhost:5173}")
+    private String frontendUrl;
+
     @GetMapping("/create-url")
     public ResponseEntity<Map<String, String>> createPaymentUrl(
             @RequestParam("amount") long amount,
@@ -54,7 +57,7 @@ public class PaymentController {
         vnp_Params.put("vnp_OrderInfo", "Thanh toan don hang:" + orderId);
         vnp_Params.put("vnp_OrderType", orderType);
         vnp_Params.put("vnp_Locale", "vn");
-        vnp_Params.put("vnp_ReturnUrl", VNPayConfig.vnp_ReturnUrl);
+        vnp_Params.put("vnp_ReturnUrl", frontendUrl + "/payment-result");
         vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
 
         if (bankCode != null && !bankCode.isEmpty()) {
@@ -113,7 +116,7 @@ public class PaymentController {
             String requestId = String.valueOf(System.currentTimeMillis());
             String orderId = orderIdStr + "_" + requestId;
             String orderInfo = "Thanh toan don hang " + orderIdStr;
-            String returnUrl = MoMoConfig.RETURN_URL;
+            String returnUrl = frontendUrl + "/payment-result";
             String notifyUrl = MoMoConfig.NOTIFY_URL;
             String amountStr = String.valueOf(amount);
             String extraData = "";
@@ -175,7 +178,7 @@ public class PaymentController {
         try {
             String appTransId = new java.text.SimpleDateFormat("yyMMdd").format(new java.util.Date()) + "_" + orderId;
             String appTime = String.valueOf(System.currentTimeMillis());
-            String embedData = "{\"redirecturl\": \"http://localhost:5173/payment-result\"}";
+            String embedData = "{\"redirecturl\": \"" + frontendUrl + "/payment-result\"}";
             String item = "[]";
             
             String macData = ZaloPayConfig.APP_ID + "|" + appTransId + "|user123|" + amount + "|" + appTime + "|" + embedData + "|" + item;
