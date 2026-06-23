@@ -547,6 +547,56 @@ export default function Header() {
         </div>
       </div>
 
+      {/* Mobile Search Bar - only shows on screens < lg */}
+      <div className="lg:hidden border-t border-gray-100 px-4 py-2" ref={searchRef}>
+        <form onSubmit={handleSearch} className="relative">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setShowSuggestions(true);
+            }}
+            onFocus={() => setShowSuggestions(true)}
+            placeholder="Tìm kiếm sách, tác giả..."
+            className="w-full pl-4 pr-12 py-2 rounded-full border border-gray-300 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm"
+          />
+          <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-primary text-white p-1.5 rounded-full hover:bg-primary-light transition-colors">
+            <FaSearch className="text-sm" />
+          </button>
+        </form>
+
+        {/* Mobile Suggestions Dropdown */}
+        {showSuggestions && searchQuery.trim().length > 0 && suggestions.length > 0 && (
+          <div className="absolute left-0 right-0 mt-1 bg-white shadow-lg border-t border-gray-100 z-50 max-h-80 overflow-y-auto">
+            {suggestions.map(book => (
+              <Link
+                key={book.id}
+                to={`/book/${book.id}`}
+                onClick={() => {
+                  addSearchHistory(book.title);
+                  setShowSuggestions(false);
+                  setSearchQuery('');
+                }}
+                className="flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors border-b border-gray-50"
+              >
+                <img src={book.imageUrl || 'https://placehold.co/40'} alt={book.title} className="w-10 h-10 object-contain rounded shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-gray-800 line-clamp-1">{book.title}</div>
+                  <div className="text-xs text-gray-500">{book.author}</div>
+                </div>
+                <div className="text-primary font-bold text-sm whitespace-nowrap">
+                  {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(book.price)}
+                </div>
+              </Link>
+            ))}
+            <div onClick={handleSearch} className="p-3 text-center text-sm text-primary font-medium hover:bg-gray-50 cursor-pointer">
+              Xem tất cả kết quả
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* All Notifications Modal */}
       {showAllNotificationsModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
