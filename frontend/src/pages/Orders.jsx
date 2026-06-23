@@ -66,9 +66,9 @@ export default function Orders({ embedded = false }) {
     } else if (activeTab === 'COMPLETED') {
       tabMatch = order.status === 'COMPLETED';
     } else if (activeTab === 'CANCELLED') {
-      tabMatch = order.status === 'CANCELLED';
+      tabMatch = order.status === 'CANCELLED' || (order.status === 'REFUNDED' && order.shippingStatus === 'CANCELLED');
     } else if (activeTab === 'RETURN') {
-      tabMatch = order.status === 'RETURNED' || order.shippingStatus === 'RETURNED' || order.status === 'REFUNDED';
+      tabMatch = order.status === 'RETURNED' || order.shippingStatus === 'RETURNED' || (order.status === 'REFUNDED' && order.shippingStatus !== 'CANCELLED');
     }
 
     // Filter by search term
@@ -410,9 +410,9 @@ export default function Orders({ embedded = false }) {
       } else if (tabId === 'COMPLETED') {
         return order.status === 'COMPLETED';
       } else if (tabId === 'CANCELLED') {
-        return order.status === 'CANCELLED';
+        return order.status === 'CANCELLED' || (order.status === 'REFUNDED' && order.shippingStatus === 'CANCELLED');
       } else if (tabId === 'RETURN') {
-        return order.status === 'RETURNED' || order.shippingStatus === 'RETURNED' || order.status === 'REFUNDED';
+        return order.status === 'RETURNED' || order.shippingStatus === 'RETURNED' || (order.status === 'REFUNDED' && order.shippingStatus !== 'CANCELLED');
       }
       return false;
     }).length;
