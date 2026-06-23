@@ -245,8 +245,15 @@ export default function Orders({ embedded = false }) {
         await axios.put(`${API_BASE_URL}/orders/${orderId}/shipping?status=DELIVERED`, {}, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
-        Swal.fire('Thành công', 'Cảm ơn bạn đã mua sắm tại YiYi Book!', 'success');
-        fetchOrders();
+        Swal.fire({
+          icon: 'success',
+          title: 'Cảm ơn bạn!',
+          text: 'Xác nhận nhận hàng thành công. Bạn có thể đánh giá sản phẩm hoặc yêu cầu trả hàng nếu cần.',
+          confirmButtonColor: '#C92127'
+        }).then(() => {
+          fetchOrders();
+          setActiveTab('COMPLETED');
+        });
       }
     } catch (error) {
       Swal.fire('Lỗi', 'Không thể cập nhật trạng thái đơn hàng', 'error');
@@ -427,7 +434,7 @@ export default function Orders({ embedded = false }) {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`whitespace-nowrap flex-1 py-4 px-2 text-sm sm:text-base text-center transition-colors shrink-0 relative ${
+                className={`whitespace-nowrap flex-shrink-0 sm:flex-1 py-3 px-3 sm:px-2 text-xs sm:text-sm text-center transition-colors relative ${
                   activeTab === tab.id 
                     ? 'text-primary font-medium' 
                     : 'text-gray-700 hover:text-primary'
@@ -443,12 +450,12 @@ export default function Orders({ embedded = false }) {
         </div>
 
         {/* Search Bar */}
-        <div className="bg-gray-200/50 rounded-sm flex items-center px-4 py-2.5 mb-4 border border-gray-300 focus-within:border-gray-400 transition-colors">
-          <FaSearch className="text-gray-400 mr-3" />
+        <div className="bg-white rounded shadow-sm flex items-center px-3 py-2.5 mb-4 border border-gray-200 focus-within:border-primary transition-colors">
+          <FaSearch className="text-gray-400 mr-2 shrink-0" />
           <input
             type="text"
-            placeholder="Bạn có thể tìm kiếm theo ID đơn hàng hoặc Tên Sản phẩm"
-            className="bg-transparent border-none outline-none w-full text-sm text-gray-700 placeholder-gray-500"
+            placeholder="Tìm theo ID đơn hàng hoặc tên sản phẩm"
+            className="bg-transparent border-none outline-none w-full text-sm text-gray-700 placeholder-gray-400"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -468,17 +475,15 @@ export default function Orders({ embedded = false }) {
               <div key={order.id} className="bg-white shadow-sm p-5 hover:shadow-md transition-shadow">
                 
                 {/* Order Header (Shop Info & Status) */}
-                <div className="flex justify-between items-center border-b border-gray-100 pb-3 mb-3">
-                  <div className="flex items-center gap-3">
+                <div className="flex flex-wrap justify-between items-center border-b border-gray-100 pb-3 mb-3 gap-2">
+                  <div className="flex items-center gap-2">
                     <span className="bg-primary text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-sm uppercase">Yêu thích</span>
-                    <span className="font-bold text-gray-800 text-sm flex items-center gap-2">
-                      YiYi Book
-                    </span>
+                    <span className="font-bold text-gray-800 text-sm">YiYi Book</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm">
                     {order.shippingStatus === 'DELIVERED' && (
-                      <span className="text-teal-600 flex items-center gap-1 border-r border-gray-300 pr-2 mr-2">
-                         <span className="text-lg leading-none mb-1">🚚</span> Giao hàng thành công
+                      <span className="text-teal-600 flex items-center gap-1 border-r border-gray-300 pr-2 mr-1">
+                         <span className="text-base leading-none">🚚</span> <span className="hidden sm:inline">Giao hàng thành công</span>
                       </span>
                     )}
                     <span className="text-primary font-medium uppercase">
@@ -488,10 +493,10 @@ export default function Orders({ embedded = false }) {
                 </div>
 
                 {/* Order Items */}
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {order.items?.map((item, index) => (
-                    <Link to={`/book/${item.book?.id}`} key={index} className="flex gap-4 items-start hover:bg-gray-50 p-2 -mx-2 rounded transition-colors">
-                      <div className="w-20 h-24 border border-gray-200 shrink-0 bg-white p-1 rounded">
+                    <Link to={`/book/${item.book?.id}`} key={index} className="flex gap-3 items-start hover:bg-gray-50 p-2 -mx-2 rounded transition-colors">
+                      <div className="w-16 h-20 sm:w-20 sm:h-24 border border-gray-200 shrink-0 bg-white p-1 rounded">
                         <img 
                           src={item.book?.imageUrl || 'https://via.placeholder.com/80'} 
                           alt={item.book?.title} 
@@ -499,13 +504,13 @@ export default function Orders({ embedded = false }) {
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-base text-gray-800 font-medium truncate">{item.book?.title}</h3>
-                        <div className="text-sm text-gray-500 mt-1">Phân loại hàng: Sách in</div>
-                        <div className="text-sm text-gray-700 mt-1">x{item.quantity}</div>
+                        <h3 className="text-sm sm:text-base text-gray-800 font-medium line-clamp-2">{item.book?.title}</h3>
+                        <div className="text-xs sm:text-sm text-gray-500 mt-1">Phân loại hàng: Sách in</div>
+                        <div className="text-xs sm:text-sm text-gray-700 mt-1">x{item.quantity}</div>
                       </div>
-                      <div className="text-right flex flex-col justify-center h-20">
+                      <div className="text-right flex flex-col justify-center min-w-[70px]">
                         {item.book?.oldPrice && item.book.oldPrice > item.price && (
-                          <span className="text-sm text-gray-400 line-through mr-2">
+                          <span className="text-xs text-gray-400 line-through">
                             {item.book.oldPrice.toLocaleString('vi-VN')}đ
                           </span>
                         )}
@@ -537,41 +542,37 @@ export default function Orders({ embedded = false }) {
                 </div>
 
                 {/* Order Actions */}
-                <div className="flex justify-between items-center pt-4">
-                  <div className="text-xs text-gray-500">
-                    {/* Placeholder for alignment */}
-                  </div>
-                  <div className="flex gap-2">
+                <div className="flex flex-wrap justify-end items-center pt-4 gap-2">
                     {order.status === 'COMPLETED' ? (
                       <>
-                        <button onClick={() => navigate(`/books/${order.items[0]?.book?.id}#reviews`)} className="bg-primary text-white border border-primary px-8 py-2 text-sm rounded hover:bg-primary-light transition-colors">
+                        <button onClick={() => navigate(`/books/${order.items[0]?.book?.id}#reviews`)} className="bg-primary text-white border border-primary px-4 sm:px-8 py-2 text-xs sm:text-sm rounded hover:bg-primary-light transition-colors">
                           Đánh Giá
                         </button>
-                        <button onClick={() => handleReturn(order.id)} className="bg-white text-primary border border-primary px-4 py-2 text-sm rounded hover:bg-red-50 transition-colors">
+                        <button onClick={() => handleReturn(order.id)} className="bg-white text-primary border border-primary px-3 sm:px-4 py-2 text-xs sm:text-sm rounded hover:bg-red-50 transition-colors">
                           Trả Hàng/Hoàn Tiền
                         </button>
-                        <button onClick={(() => handleBuyAgain(order))} className="bg-white text-gray-700 border border-gray-300 px-4 py-2 text-sm rounded hover:bg-gray-50 transition-colors">
+                        <button onClick={(() => handleBuyAgain(order))} className="bg-white text-gray-700 border border-gray-300 px-3 sm:px-4 py-2 text-xs sm:text-sm rounded hover:bg-gray-50 transition-colors">
                           Mua Lại
                         </button>
-                        <Link to={`/orders/${order.id}`} className="bg-white text-gray-700 border border-gray-300 px-4 py-2 text-sm rounded flex items-center justify-center hover:bg-gray-50 transition-colors">
+                        <Link to={`/orders/${order.id}`} className="bg-white text-gray-700 border border-gray-300 px-3 sm:px-4 py-2 text-xs sm:text-sm rounded flex items-center justify-center hover:bg-gray-50 transition-colors">
                           Xem Chi Tiết
                         </Link>
                       </>
                     ) : (order.status === 'PENDING' || order.status === 'PENDING_PAYMENT') && order.paymentMethod !== 'COD' ? (
                       <>
-                        <button onClick={() => handlePayment(order)} className="bg-primary text-white border border-primary px-8 py-2 text-sm rounded hover:bg-primary-light transition-colors">
+                        <button onClick={() => handlePayment(order)} className="bg-primary text-white border border-primary px-4 sm:px-8 py-2 text-xs sm:text-sm rounded hover:bg-primary-light transition-colors">
                           Thanh Toán Ngay
                         </button>
-                        <Link to={`/orders/${order.id}`} className="bg-white text-gray-700 border border-gray-300 px-4 py-2 text-sm rounded flex items-center justify-center hover:bg-gray-50 transition-colors">
+                        <Link to={`/orders/${order.id}`} className="bg-white text-gray-700 border border-gray-300 px-3 sm:px-4 py-2 text-xs sm:text-sm rounded flex items-center justify-center hover:bg-gray-50 transition-colors">
                           Xem Chi Tiết
                         </Link>
                       </>
                     ) : order.status === 'CANCELLED' || order.status === 'RETURNED' || order.status === 'REFUNDED' ? (
                       <>
-                        <button onClick={(() => handleBuyAgain(order))} className="bg-primary text-white border border-primary px-8 py-2 text-sm rounded hover:bg-primary-light transition-colors">
+                        <button onClick={(() => handleBuyAgain(order))} className="bg-primary text-white border border-primary px-4 sm:px-8 py-2 text-xs sm:text-sm rounded hover:bg-primary-light transition-colors">
                           Mua Lại
                         </button>
-                        <Link to={`/orders/${order.id}`} className="bg-white text-gray-700 border border-gray-300 px-4 py-2 text-sm rounded flex items-center justify-center hover:bg-gray-50 transition-colors">
+                        <Link to={`/orders/${order.id}`} className="bg-white text-gray-700 border border-gray-300 px-3 sm:px-4 py-2 text-xs sm:text-sm rounded flex items-center justify-center hover:bg-gray-50 transition-colors">
                           Xem Chi Tiết
                         </Link>
                       </>
@@ -580,16 +581,15 @@ export default function Orders({ embedded = false }) {
                         <button 
                           disabled={order.shippingStatus !== 'DELIVERED'}
                           onClick={() => handleReceived(order.id)} 
-                          className={`border px-8 py-2 text-sm rounded transition-colors ${order.shippingStatus === 'DELIVERED' ? 'bg-primary text-white border-primary hover:bg-primary-light' : 'bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed'}`}
+                          className={`border px-4 sm:px-8 py-2 text-xs sm:text-sm rounded transition-colors ${order.shippingStatus === 'DELIVERED' ? 'bg-primary text-white border-primary hover:bg-primary-light' : 'bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed'}`}
                         >
                           Đã Nhận Được Hàng
                         </button>
-                        <Link to={`/orders/${order.id}`} className="bg-white text-gray-700 border border-gray-300 px-4 py-2 text-sm flex items-center justify-center rounded hover:bg-gray-50 transition-colors">
+                        <Link to={`/orders/${order.id}`} className="bg-white text-gray-700 border border-gray-300 px-3 sm:px-4 py-2 text-xs sm:text-sm flex items-center justify-center rounded hover:bg-gray-50 transition-colors">
                           Xem Chi Tiết
                         </Link>
                       </>
                     )}
-                  </div>
                 </div>
 
               </div>
