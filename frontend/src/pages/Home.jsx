@@ -9,6 +9,7 @@ import ProductSection from '../components/home/ProductSection';
 import PartnerBrands from '../components/home/PartnerBrands';
 import ComboTrending from '../components/home/ComboTrending';
 import PersonalizedSuggestions from '../components/home/PersonalizedSuggestions';
+import FahasaSimpleSection from '../components/home/FahasaSimpleSection';
 import { useAuth } from '../context/AuthContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
@@ -141,7 +142,7 @@ export default function Home() {
           </div>
         ) : (
           <>
-            {recommendations.length > 0 && <PersonalizedSuggestions data={recommendations} />}
+            {recommendations.length > 0 && <PersonalizedSuggestions data={recommendations} maxRows={1} />}
             {combos.length > 0 && <ComboTrending data={combos} />}
           </>
         )}
@@ -167,6 +168,18 @@ export default function Home() {
             loading={otherLoading}
           />
         )}
+        
+        <FahasaSimpleSection 
+          title="GỢI Ý CHO BẠN" 
+          data={otherProducts} 
+          maxItems={10} 
+        />
+        
+        <FahasaSimpleSection 
+          title="XU HƯỚNG TÌM KIẾM" 
+          data={bookProducts} 
+          maxItems={10} 
+        />
         
         <PartnerBrands />
       </div>
