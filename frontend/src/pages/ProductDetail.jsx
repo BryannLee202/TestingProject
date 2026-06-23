@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { showNotification } from '../utils/alert';
 import Swal from 'sweetalert2';
 import AddressModal from '../components/checkout/AddressModal';
+import PersonalizedSuggestions from '../components/home/PersonalizedSuggestions';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
@@ -17,6 +18,7 @@ export default function ProductDetail() {
   const [expandedDesc, setExpandedDesc] = useState(false);
   const [book, setBook] = useState(null);
   const [relatedBooks, setRelatedBooks] = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
@@ -109,9 +111,28 @@ export default function ProductDetail() {
       }
     };
 
+    const fetchRecommendations = async () => {
+      try {
+        const userId = user ? user.id : 0;
+        const lastCategoryId = localStorage.getItem('lastViewedCategoryId');
+        const recommendUrl = lastCategoryId 
+            ? `${API_BASE_URL}/books/recommendations/${userId}?categoryId=${lastCategoryId}`
+            : `${API_BASE_URL}/books/recommendations/${userId}`;
+        const res = await axios.get(recommendUrl);
+        if (Array.isArray(res.data)) {
+          setRecommendations(res.data);
+        } else if (res.data?.success) {
+          setRecommendations(res.data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching recommendations:', error);
+      }
+    };
+
     fetchBookDetail();
     fetchReviews();
     fetchCoupons();
+    fetchRecommendations();
     
     // Handle scrolling to hash after data loads
     setTimeout(() => {
@@ -568,7 +589,7 @@ export default function ProductDetail() {
                 <div className="flex justify-between items-center mb-3">
                   <h3 className="font-bold text-gray-800">Ưu đãi liên quan</h3>
                 </div>
-                <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
+                <div className="flex gap-2 flex-wrap pb-2">
                   {availableCoupons.map(coupon => (
                     <div 
                       key={coupon.id}
@@ -576,9 +597,9 @@ export default function ProductDetail() {
                         navigator.clipboard.writeText(coupon.code);
                         showNotification('Đã sao chép!', `Mã giảm giá ${coupon.code} đã được lưu vào bộ nhớ tạm.`, 'success');
                       }}
-                      className="border border-green-200 bg-green-50 rounded flex items-center gap-2 p-1.5 px-3 whitespace-nowrap text-sm cursor-pointer shadow-sm hover:border-green-400 hover:bg-green-100 transition-colors"
+                      className="border border-green-200 bg-green-50 rounded flex items-center gap-2 p-1.5 px-3 text-sm cursor-pointer shadow-sm hover:border-green-400 hover:bg-green-100 transition-colors"
                     >
-                      <div className="w-6 h-6 bg-green-500 rounded text-white flex items-center justify-center font-bold text-xs">%</div>
+                      <div className="w-6 h-6 bg-green-500 rounded text-white flex items-center justify-center font-bold text-xs shrink-0">%</div>
                       <span className="font-medium text-green-700">Mã {coupon.code}: giảm {coupon.discountType === 'PERCENTAGE' ? `${coupon.discountValue}%` : `${coupon.discountValue / 1000}k`}</span>
                     </div>
                   ))}
@@ -910,28 +931,12 @@ export default function ProductDetail() {
         )}
 
         {/* Related Books Slider */}
-        {relatedBooks.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-4">
-            <h2 className="text-lg font-bold text-gray-800 mb-6 uppercase">Gợi ý cho bạn</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {relatedBooks.map(item => (
-                <Link key={item.id} to={`/book/${item.id}`} className="block group">
-                  <div className="relative mb-2">
-                    <img src={item.imageUrl || item.image_url || 'https://placehold.co/200'} alt={item.title} className="w-full aspect-[3/4] object-cover rounded shadow-sm group-hover:shadow-md transition-shadow" />
-                    {item.discount > 0 && (
-                      <div className="absolute top-2 right-2 bg-primary text-white text-xs font-bold px-1.5 py-0.5 rounded">
-                        -{item.discount}%
-                      </div>
-                    )}
-                  </div>
-                  <h3 className="text-sm font-medium text-gray-800 line-clamp-2 h-[40px] leading-[20px] group-hover:text-primary transition-colors">{item.title}</h3>
-                  <div className="mt-1 flex items-end gap-2">
-                    <span className="text-primary font-bold text-sm">{formatPrice(item.price)}</span>
-                    {item.oldPrice > 0 && <span className="text-xs text-gray-400 line-through mb-0.5">{formatPrice(item.oldPrice)}</span>}
-                  </div>
-                </Link>
-              ))}
-            </div>
+        {(recommendations.length > 0 || relatedBooks.length > 0) && (
+          <div className="mb-4">
+            <PersonalizedSuggestions 
+              data={recommendations.length > 0 ? recommendations : relatedBooks} 
+              maxRows={2} 
+            />
           </div>
         )}
 
