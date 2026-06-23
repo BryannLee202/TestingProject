@@ -1,35 +1,99 @@
 package com.bookstore.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.stereotype.Service;
+import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.Map;
 
 @Service
 public class EmailService {
 
-    @Autowired
-    private JavaMailSender mailSender;
+    @Value("${RESEND_API_KEY:}")
+    private String resendApiKey;
 
-    @Value("${spring.mail.username}")
+    // Fallback: nếu không có Resend thì dùng SMTP
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private org.springframework.mail.javamail.JavaMailSender mailSender;
+
+    @Value("${spring.mail.username:noreply@yiyibook.vn}")
     private String fromEmail;
 
     @Async
     public void sendOtpEmail(String toEmail, String otp) {
+        // Ưu tiên Resend API (hoạt động trên mọi cloud)
+        if (resendApiKey != null && !resendApiKey.isBlank()) {
+            sendViaResend(toEmail, otp);
+        } else if (mailSender != null) {
+            sendViaSMTP(toEmail, otp);
+        } else {
+            System.err.println("Không có cấu hình gửi email! OTP dự phòng: " + otp);
+        }
+    }
+
+    private void sendViaResend(String toEmail, String otp) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
+            RestTemplate restTemplate = new RestTemplate();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", "Bearer " + resendApiKey);
+
+            String htmlBody = "<div style='font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;border:1px solid #e5e7eb;border-radius:12px'>"
+                    + "<div style='text-align:center;margin-bottom:24px'>"
+                    + "<h2 style='color:#C92127;margin:0'>YiYi Book</h2>"
+                    + "</div>"
+                    + "<p style='color:#374151;font-size:15px'>Xin chào,</p>"
+                    + "<p style='color:#374151;font-size:15px'>Mã xác nhận OTP của bạn là:</p>"
+                    + "<div style='text-align:center;margin:24px 0'>"
+                    + "<span style='font-size:36px;font-weight:bold;letter-spacing:8px;color:#C92127;background:#fff5f5;padding:16px 32px;border-radius:8px;display:inline-block'>" + otp + "</span>"
+                    + "</div>"
+                    + "<p style='color:#6b7280;font-size:13px'>Mã có hiệu lực trong <b>5 phút</b>. Vui lòng không chia sẻ mã này cho bất kỳ ai.</p>"
+                    + "<hr style='border:none;border-top:1px solid #e5e7eb;margin:24px 0'>"
+                    + "<p style='color:#9ca3af;font-size:12px;text-align:center'>© 2025 YiYi Book - Cảm ơn bạn đã sử dụng dịch vụ!</p>"
+                    + "</div>";
+
+            Map<String, Object> payload = Map.of(
+                "from", "YiYi Book <onboarding@resend.dev>",
+                "to", new String[]{ toEmail },
+                "subject", "Mã xác nhận OTP - YiYi Book",
+                "html", htmlBody
+            );
+
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
+            ResponseEntity<String> response = restTemplate.postForEntity(
+                "https://api.resend.com/emails", request, String.class
+            );
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                System.out.println("Resend: Đã gửi OTP tới " + toEmail);
+            } else {
+                System.err.println("Resend: Lỗi gửi email - " + response.getBody());
+            }
+        } catch (Exception e) {
+            System.err.println("Resend exception: " + e.getMessage());
+            // Thử fallback SMTP nếu có
+            if (mailSender != null) {
+                System.out.println("Fallback sang SMTP...");
+                sendViaSMTP(toEmail, otp);
+            }
+        }
+    }
+
+    private void sendViaSMTP(String toEmail, String otp) {
+        try {
+            org.springframework.mail.SimpleMailMessage message = new org.springframework.mail.SimpleMailMessage();
             message.setFrom(fromEmail);
             message.setTo(toEmail);
-            message.setSubject("Mã xác nhận OTP - Grape Book");
-            message.setText("Xin chào,\n\nMã xác nhận OTP (Một lần) của bạn để đăng ký tài khoản tại Grape Book là: " + otp + "\n\nVui lòng không chia sẻ mã này cho bất kỳ ai.\n\nTrân trọng,\nĐội ngũ Grape Book");
-            
+            message.setSubject("Mã xác nhận OTP - YiYi Book");
+            message.setText("Xin chào,\n\nMã xác nhận OTP của bạn là: " + otp
+                    + "\n\nMã có hiệu lực trong 5 phút. Vui lòng không chia sẻ mã này cho bất kỳ ai.\n\nTrân trọng,\nĐội ngũ YiYi Book");
             mailSender.send(message);
-            System.out.println("Đã gửi OTP qua Email tới: " + toEmail);
+            System.out.println("SMTP: Đã gửi OTP tới " + toEmail);
         } catch (Exception e) {
-            System.err.println("Lỗi khi gửi email: " + e.getMessage());
-            throw new RuntimeException("Không thể gửi email OTP: " + e.getMessage());
+            System.err.println("SMTP lỗi: " + e.getMessage());
         }
     }
 }
