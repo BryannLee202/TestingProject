@@ -28,8 +28,9 @@ const customSelectStyles = {
   })
 };
 
-export default function AddressModal({ isOpen, onClose, addresses, onSelect, onAddAddress, onDeleteAddress, onSetDefaultAddress, API_BASE_URL }) {
+export default function AddressModal({ isOpen, onClose, addresses, onSelect, onAddAddress, onEditAddress, onDeleteAddress, onSetDefaultAddress, API_BASE_URL }) {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [newAddress, setNewAddress] = useState({
     lastName: '',
     firstName: '',
@@ -59,8 +60,51 @@ export default function AddressModal({ isOpen, onClose, addresses, onSelect, onA
   };
 
   useEffect(() => {
-    if (!isOpen) setShowAddForm(false);
+    if (!isOpen) {
+      setShowAddForm(false);
+      setEditingId(null);
+    }
   }, [isOpen]);
+
+  const handleEditClick = (addr) => {
+    const parts = addr.recipientName.trim().split(' ');
+    const firstName = parts.length > 0 ? parts.pop() : '';
+    const lastName = parts.join(' ');
+
+    setNewAddress({
+      lastName,
+      firstName,
+      phone: addr.phone,
+      country: 'Việt Nam',
+      street: addr.street,
+      ward: addr.ward,
+      city: addr.city,
+      isDefault: addr.isDefault
+    });
+    setEditingId(addr.id);
+    setShowAddForm(true);
+
+    const selectedProv = provincesList.find(p => p.name === addr.city || p.name_with_type === addr.city);
+    if (selectedProv && selectedProv['xa-phuong']) {
+      const wds = Object.values(selectedProv['xa-phuong']).sort((a,b) => a.name.localeCompare(b.name));
+      setWards(wds);
+    }
+  };
+
+  const resetForm = () => {
+    setNewAddress({
+      lastName: '',
+      firstName: '',
+      phone: '',
+      country: 'Việt Nam',
+      street: '',
+      ward: '',
+      city: '',
+      isDefault: false
+    });
+    setWards([]);
+    setEditingId(null);
+  };
 
   if (!isOpen) return null;
 
@@ -76,10 +120,23 @@ export default function AddressModal({ isOpen, onClose, addresses, onSelect, onA
         street: newAddress.street,
         isDefault: newAddress.isDefault
       };
-      const res = await axios.post(`${API_BASE_URL}/addresses`, addressToSave);
-      onAddAddress(res.data);
+      
+      const config = {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      };
+
+      if (editingId) {
+        const res = await axios.put(`${API_BASE_URL}/addresses/${editingId}`, addressToSave, config);
+        onEditAddress && onEditAddress(res.data);
+        showNotification('Thành công', 'Đã cập nhật địa chỉ', 'success');
+      } else {
+        const res = await axios.post(`${API_BASE_URL}/addresses`, addressToSave, config);
+        onAddAddress(res.data);
+        showNotification('Thành công', 'Đã thêm địa chỉ mới', 'success');
+      }
+      
       setShowAddForm(false);
-      showNotification('Thành công', 'Đã thêm địa chỉ mới', 'success');
+      resetForm();
     } catch (error) {
       console.error(error);
       showNotification('Lỗi', 'Không thể lưu địa chỉ', 'error');
@@ -101,10 +158,17 @@ export default function AddressModal({ isOpen, onClose, addresses, onSelect, onA
         {/* Header */}
         <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
           <h2 className="text-xl text-gray-800">
-            {showAddForm ? 'Thêm địa chỉ mới' : <span className="flex items-center gap-2 font-bold"><FaMapMarkerAlt className="text-primary" /> Địa chỉ giao hàng của tôi</span>}
+            {showAddForm ? (editingId ? 'Sửa địa chỉ' : 'Thêm địa chỉ mới') : <span className="flex items-center gap-2 font-bold"><FaMapMarkerAlt className="text-primary" /> Địa chỉ giao hàng của tôi</span>}
           </h2>
           <button 
-            onClick={onClose}
+            onClick={() => {
+              if (showAddForm) {
+                setShowAddForm(false);
+                resetForm();
+              } else {
+                onClose();
+              }
+            }}
             className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-colors"
           >
             <FaTimes />
@@ -204,6 +268,9 @@ export default function AddressModal({ isOpen, onClose, addresses, onSelect, onA
                         <p className="text-gray-600">{addr.ward}, {addr.city}</p>
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
+                        <button onClick={() => handleEditClick(addr)} className="text-sm font-medium text-blue-500 hover:text-blue-600 transition-colors">
+                          Sửa
+                        </button>
                         {!addr.isDefault && (
                           <button onClick={() => onSetDefaultAddress(addr.id)} className="text-sm font-medium text-gray-500 hover:text-primary transition-colors">
                             Đặt mặc định
@@ -219,7 +286,10 @@ export default function AddressModal({ isOpen, onClose, addresses, onSelect, onA
               )}
               
               <button 
-                onClick={() => setShowAddForm(true)}
+                onClick={() => {
+                  resetForm();
+                  setShowAddForm(true);
+                }}
                 className="w-full py-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-2 font-medium"
               >
                 <FaPlus /> Thêm địa chỉ mới
@@ -232,7 +302,10 @@ export default function AddressModal({ isOpen, onClose, addresses, onSelect, onA
         <div className="px-6 py-5 border-t border-gray-100 flex justify-between items-center bg-white">
           {showAddForm ? (
             <>
-              <button onClick={() => setShowAddForm(false)} className="text-blue-500 hover:text-blue-700 transition-colors">
+              <button onClick={() => {
+                setShowAddForm(false);
+                resetForm();
+              }} className="text-blue-500 hover:text-blue-700 transition-colors">
                 « Quay lại
               </button>
               <button form="add-address-form" type="submit" disabled={saving} className={`px-6 py-2.5 bg-[#C92127] text-white font-bold rounded hover:bg-red-800 transition-colors ${saving ? 'opacity-70' : ''}`}>

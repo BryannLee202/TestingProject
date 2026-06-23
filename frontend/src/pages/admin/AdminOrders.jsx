@@ -183,6 +183,57 @@ export default function AdminOrders() {
     });
   };
 
+  const handleApproveReturn = async (orderId) => {
+    try {
+      Swal.fire({
+        title: 'Đang xử lý...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      });
+      await axios.put(`${API_BASE_URL}/orders/${orderId}/return/approve`, {}, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      Swal.fire('Thành công', 'Đã chấp nhận yêu cầu trả hàng và chuyển trạng thái thành Đã hoàn tiền.', 'success');
+      setIsModalOpen(false);
+      fetchOrders();
+    } catch (error) {
+      console.error(error);
+      Swal.fire('Lỗi', 'Có lỗi xảy ra khi xử lý yêu cầu.', 'error');
+    }
+  };
+
+  const handleRejectReturn = async (orderId) => {
+    try {
+      const result = await Swal.fire({
+        title: 'Xác nhận từ chối?',
+        text: "Bạn có chắc chắn muốn từ chối yêu cầu trả hàng này? Đơn hàng sẽ quay lại trạng thái Đã giao.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Đồng ý từ chối',
+        cancelButtonText: 'Hủy'
+      });
+      
+      if (result.isConfirmed) {
+        Swal.fire({
+          title: 'Đang xử lý...',
+          allowOutsideClick: false,
+          didOpen: () => Swal.showLoading()
+        });
+        await axios.put(`${API_BASE_URL}/orders/${orderId}/return/reject`, {}, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        Swal.fire('Thành công', 'Đã từ chối yêu cầu trả hàng.', 'success');
+        setIsModalOpen(false);
+        fetchOrders();
+      }
+    } catch (error) {
+      console.error(error);
+      Swal.fire('Lỗi', 'Có lỗi xảy ra khi xử lý yêu cầu.', 'error');
+    }
+  };
+
   const formatPrice = (price) => {
     return (price || 0).toLocaleString('vi-VN') + ' đ';
   };
@@ -197,6 +248,10 @@ export default function AdminOrders() {
         return <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-850">Đang giao</span>;
       case 'COMPLETED':
         return <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-850">Đã giao</span>;
+      case 'RETURNED':
+        return <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800 border border-orange-200">Khách yêu cầu trả hàng</span>;
+      case 'REFUNDED':
+        return <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-teal-100 text-teal-800 border border-teal-200">Đã hoàn tiền</span>;
       case 'CANCELLED':
         return <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-850">Đã hủy</span>;
       default:
@@ -264,6 +319,8 @@ export default function AdminOrders() {
             <option value="PROCESSING">Đang xử lý</option>
             <option value="SHIPPING">Đang giao hàng</option>
             <option value="COMPLETED">Đã giao hàng</option>
+            <option value="RETURNED">Yêu cầu trả hàng</option>
+            <option value="REFUNDED">Đã hoàn tiền</option>
             <option value="CANCELLED">Đã hủy</option>
           </select>
         </div>
@@ -458,6 +515,25 @@ export default function AdminOrders() {
                   </table>
                 </div>
               </div>
+
+              {/* Thông tin yêu cầu trả hàng */}
+              {selectedOrder.status === 'RETURNED' && (
+                <div className="border border-orange-150 bg-orange-50/30 p-5 rounded-2xl space-y-4">
+                  <div className="font-bold text-orange-800 text-sm flex items-center gap-2 border-b border-orange-100 pb-2">
+                    <FaInfoCircle className="text-orange-500" /> Yêu cầu trả hàng & Hoàn tiền
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
+                    <div><strong>Lý do:</strong> {selectedOrder.returnReason || 'Không có'}</div>
+                    <div><strong>SĐT liên hệ:</strong> {selectedOrder.returnPhone || 'Không có'}</div>
+                    <div className="md:col-span-2"><strong>STK & Ngân hàng:</strong> {selectedOrder.returnBank || 'Không có'}</div>
+                    <div className="md:col-span-2 bg-white p-3 rounded border border-orange-100 whitespace-pre-wrap"><strong>Chi tiết:</strong><br/>{selectedOrder.returnDetails || 'Không có mô tả thêm'}</div>
+                  </div>
+                  <div className="flex justify-end gap-3 pt-3 border-t border-orange-100">
+                    <button onClick={() => handleRejectReturn(selectedOrder.id)} className="px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-semibold transition-colors text-sm">Từ chối trả hàng</button>
+                    <button onClick={() => handleApproveReturn(selectedOrder.id)} className="px-4 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-semibold transition-colors text-sm">Chấp nhận hoàn tiền</button>
+                  </div>
+                </div>
+              )}
 
               {/* Cập nhật vận đơn & trạng thái vận chuyển */}
               <div className="border border-purple-150 bg-purple-50/10 p-5 rounded-2xl space-y-4">

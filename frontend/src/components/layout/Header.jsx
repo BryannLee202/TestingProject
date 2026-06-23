@@ -44,7 +44,9 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const searchRef = React.useRef(null);
+  const searchRef = useRef(null);
+  const notifyRef = useRef(null);
+  const userMenuRef = useRef(null);
   const [defaultSuggestions, setDefaultSuggestions] = useState({ categories: [], bestsellers: [], featured: [] });
   const [allCategories, setAllCategories] = useState([]);
   const [searchHistory, setSearchHistory] = useState(() => {
@@ -132,16 +134,22 @@ export default function Header() {
     return () => clearTimeout(timeoutId);
   }, [searchQuery, showSuggestions, API_BASE_URL]);
 
-  // Click outside to close suggestions
+  // Click outside to close menus and suggestions
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
         setShowSuggestions(false);
       }
+      if (notifyRef.current && !notifyRef.current.contains(event.target)) {
+        setIsNotifyOpen(false);
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setIsUserMenuOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [searchRef]);
+  }, []);
 
   useEffect(() => {
     const fetchNotificationStats = async () => {
@@ -187,13 +195,22 @@ export default function Header() {
     }
   };
 
+  const getNotificationIcon = (type) => {
+    switch(type) {
+      case 'ORDER': return <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0"><FaClipboardList size={18} /></div>;
+      case 'PROMO': return <div className="w-10 h-10 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center shrink-0"><FaTag size={18} /></div>;
+      case 'SYSTEM': return <div className="w-10 h-10 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center shrink-0"><FaInfoCircle size={18} /></div>;
+      default: return <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0"><FaRegBell size={18} /></div>;
+    }
+  };
+
   const matchedCategories = searchQuery.trim().length > 0 
     ? allCategories.filter(cat => cat.name.toLowerCase().includes(searchQuery.toLowerCase().trim()))
     : [];
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 text-2xl font-bold text-primary mr-4">
           <img src={logoImg} alt="YiYi Book" className="h-10 object-contain" />
@@ -404,7 +421,7 @@ export default function Header() {
         {/* Icons */}
         <div className="flex items-center gap-6">
           {/* Notifications */}
-          <div className="relative cursor-pointer" onClick={() => setIsNotifyOpen(!isNotifyOpen)}>
+          <div ref={notifyRef} className="relative cursor-pointer" onClick={() => setIsNotifyOpen(!isNotifyOpen)}>
             <div className="flex flex-col items-center text-gray-600 hover:text-primary transition-colors">
               <div className="relative">
                 <FaRegBell className="text-2xl" />
@@ -466,7 +483,7 @@ export default function Header() {
           </Link>
 
           {/* User */}
-          <div className="relative cursor-pointer" onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}>
+          <div ref={userMenuRef} className="relative cursor-pointer" onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}>
             <div className="flex items-center gap-2 text-gray-600 hover:text-primary transition-colors">
               <FaRegUser className="text-2xl" />
               <div className="hidden sm:flex flex-col">
@@ -500,16 +517,16 @@ export default function Header() {
                       </Link>
                     )}
                     
-                    <Link to="/orders" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors">
+                    <Link to="/profile" state={{ tab: 'orders' }} className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors" onClick={() => setIsUserMenuOpen(false)}>
                       <FaClipboardList className="text-gray-400 text-lg" /> Đơn hàng của tôi
                     </Link>
-                    <Link to="/profile" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors">
+                    <Link to="/profile" state={{ tab: 'wishlist' }} className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors" onClick={() => setIsUserMenuOpen(false)}>
                       <FaHeart className="text-gray-400 text-lg" /> Sản phẩm yêu thích
                     </Link>
-                    <Link to="/profile" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors">
+                    <Link to="/profile" state={{ tab: 'vouchers' }} className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors" onClick={() => setIsUserMenuOpen(false)}>
                       <FaTicketAlt className="text-gray-400 text-lg" /> Wallet Voucher
                     </Link>
-                    <Link to="/profile" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors">
+                    <Link to="/profile" state={{ tab: 'ypoint' }} className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors" onClick={() => setIsUserMenuOpen(false)}>
                       <FaCoins className="text-gray-400 text-lg" /> Tài khoản Y-Point
                     </Link>
                     

@@ -46,12 +46,15 @@ import MockPaymentGateway from './pages/MockPaymentGateway';
 
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
+import ScrollToTop from './components/common/ScrollToTop';
+import ScrollToTopButton from './components/common/ScrollToTopButton';
 
 function App() {
   return (
     <AuthProvider>
       <CartProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <Routes>
             {/* Client Routes */}
             <Route path="/" element={<ClientLayout />}>
@@ -101,6 +104,7 @@ function App() {
             {/* Fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+          <ScrollToTopButton />
         </BrowserRouter>
       </CartProvider>
     </AuthProvider>

@@ -49,7 +49,7 @@ export default function Footer() {
     <footer className="bg-white border-t border-gray-200 mt-10">
       {/* Top Section: Newsletter */}
       <div className="bg-gray-100 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="text-center md:text-left">
             <h3 className="text-xl font-bold text-gray-800 uppercase mb-1">Đăng ký nhận bản tin</h3>
             <p className="text-gray-600 text-sm">Đừng bỏ lỡ các chương trình khuyến mãi hấp dẫn từ YiYi Book</p>
@@ -76,7 +76,7 @@ export default function Footer() {
       </div>
 
       {/* Middle Section: Links & Info */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
           
           {/* Col 1: Company Info */}
@@ -166,7 +166,7 @@ export default function Footer() {
 
       {/* Bottom Section: Copyright */}
       <div className="bg-gray-50 border-t border-gray-200 py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left text-xs text-gray-500">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left text-xs text-gray-500">
           <p>&copy; {new Date().getFullYear()} Công Ty Cổ Phần Phát Hành Sách YiYi Book. Tất cả các quyền được bảo lưu.</p>
           <div className="flex flex-col items-center md:items-end">
             <p className="mb-1">Giấy chứng nhận ĐKKD số: 123456789 do Sở KH & ĐT TP.HCM cấp</p>

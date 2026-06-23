@@ -97,7 +97,7 @@ export default function Search() {
 
   return (
     <div className="bg-gray-100 min-h-screen pb-10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">
         {/* Breadcrumb */}
         <div className="text-sm text-gray-500 mb-4">
           <Link to="/" className="hover:text-primary">Trang chủ</Link>
@@ -201,6 +201,7 @@ export default function Search() {
               <option value={12}>12 sản phẩm</option>
               <option value={24}>24 sản phẩm</option>
               <option value={48}>48 sản phẩm</option>
+              <option value={10000}>Tất cả sản phẩm</option>
             </select>
           </div>
         )}
@@ -227,7 +228,7 @@ export default function Search() {
                         )}
                       </div>
                       
-                      <h3 className="text-sm font-medium text-gray-800 line-clamp-2 mb-1 min-h-[40px] leading-snug group-hover:text-primary transition-colors">
+                      <h3 className="text-sm font-medium text-gray-800 line-clamp-2 mb-1 h-[40px] leading-[20px] group-hover:text-primary transition-colors">
                         {book.title}
                       </h3>
                       

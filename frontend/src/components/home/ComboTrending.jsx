@@ -41,7 +41,7 @@ export default function ComboTrending({ data = [] }) {
               </div>
               
               {/* Title */}
-              <h3 className="text-sm font-medium text-gray-800 line-clamp-2 mb-1 min-h-[40px] leading-snug group-hover:text-primary transition-colors">
+              <h3 className="text-sm font-medium text-gray-800 line-clamp-2 mb-1 h-[40px] leading-[20px] group-hover:text-primary transition-colors">
                 {product.title}
               </h3>
 

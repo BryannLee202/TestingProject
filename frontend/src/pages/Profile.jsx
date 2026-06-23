@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { showNotification } from '../utils/alert';
@@ -11,6 +11,7 @@ import {
 } from 'react-icons/fa';
 import Select from 'react-select';
 import treeData from '../data/provinces.json';
+import Orders from './Orders';
 
 const provincesList = Object.values(treeData).sort((a,b) => a.name.localeCompare(b.name));
 
@@ -34,7 +35,24 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api'
 
 export default function Profile() {
   const { user, updateProfile } = useAuth();
-  const [activeTab, setActiveTab] = useState('profile');
+  const location = useLocation();
+
+  // Persist active tab via localStorage so F5 preserves the current tab
+  const [activeTab, setActiveTabState] = useState(() => {
+    return localStorage.getItem('profileTab') || 'profile';
+  });
+
+  const setActiveTab = (tab) => {
+    setActiveTabState(tab);
+    localStorage.setItem('profileTab', tab);
+  };
+
+  // If navigated here with location.state.tab (e.g. from Header menu), sync it
+  useEffect(() => {
+    if (location.state?.tab) {
+      setActiveTab(location.state.tab);
+    }
+  }, [location.state?.tab]);
 
   // ---- PROFILE STATE ----
   const [firstName, setFirstName] = useState('');
@@ -184,7 +202,10 @@ export default function Profile() {
   const fetchWishlist = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get(`${API_BASE_URL}/wishlists`, { headers: { Authorization: `Bearer ${token}` }});
+        const res = await axios.get(`${API_BASE_URL}/wishlists`, { 
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: new Date().getTime() }
+        });
       setWishlist(res.data);
     } catch (error) { console.error(error); }
   };
@@ -380,7 +401,7 @@ export default function Profile() {
 
   return (
     <div className="bg-gray-100 min-h-screen pt-6 pb-12">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-6">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-6">
         
         {/* Sidebar */}
         <div className="w-full md:w-64 shrink-0">
@@ -667,7 +688,7 @@ export default function Profile() {
             
             {/* ĐƠN HÀNG CỦA TÔI */}
             {activeTab === 'orders' && (
-              <MyOrdersTab />
+              <Orders embedded={true} />
             )}
 
             {/* VÍ VOUCHER */}
@@ -749,10 +770,10 @@ export default function Profile() {
                         >
                           <FaTimes className="text-xs" />
                         </button>
-                        <Link to={`/book/${item.book.id}`}>
-                          <img src={item.book.imageUrl || 'https://via.placeholder.com/150'} alt={item.book.title} className="w-full h-36 object-contain mb-2" />
-                          <h3 className="text-xs font-semibold text-gray-800 line-clamp-2 mb-1">{item.book.title}</h3>
-                          <p className="text-[#C92127] font-bold text-sm">{item.book.price?.toLocaleString()} đ</p>
+                        <Link to={`/book/${item.book?.id}`}>
+                          <img src={item.book?.imageUrl || 'https://via.placeholder.com/150'} alt={item.book?.title || 'Product'} className="w-full h-36 object-contain mb-2" />
+                          <h3 className="text-xs font-semibold text-gray-800 line-clamp-2 mb-1">{item.book?.title || 'Sản phẩm'}</h3>
+                          <p className="text-[#C92127] font-bold text-sm">{(item.book?.price || 0).toLocaleString()} đ</p>
                         </Link>
                       </div>
                     ))}
@@ -1277,162 +1298,7 @@ function MemberRulesModal({ onClose }) {
 }
 
 // Subcomponent for My Orders
-function MyOrdersTab() {
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        setLoading(true);
-        const token = localStorage.getItem('token');
-        const res = await axios.get(`${API_BASE_URL}/orders`, { headers: { Authorization: `Bearer ${token}` }});
-        setOrders(res.data);
-      } catch (error) {
-        console.error('Error fetching orders:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchOrders();
-  }, []);
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'PENDING': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'PROCESSING': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'SHIPPING': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'COMPLETED': return 'bg-green-100 text-green-800 border-green-200';
-      case 'CANCELLED': return 'bg-red-100 text-red-800 border-red-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'PENDING': return 'Chờ duyệt';
-      case 'PROCESSING': return 'Đang xử lý';
-      case 'SHIPPING': return 'Đang giao hàng';
-      case 'COMPLETED': return 'Đã hoàn thành';
-      case 'CANCELLED': return 'Đã hủy';
-      default: return status;
-    }
-  };
-
-  const getShippingStatusText = (status) => {
-    switch (status) {
-      case 'PENDING': return 'Chờ chuẩn bị';
-      case 'PROCESSING': return 'Đang đóng gói';
-      case 'SHIPPING': return 'Đang vận chuyển';
-      case 'DELIVERED': return 'Đã giao hàng';
-      case 'CANCELLED': return 'Đã hủy giao';
-      default: return status;
-    }
-  };
-
-  if (loading) {
-    return <div className="flex justify-center items-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div></div>;
-  }
-
-  return (
-    <div>
-      <h2 className="text-xl font-normal text-gray-800 mb-8 uppercase tracking-wide">Đơn Hàng Của Tôi</h2>
-
-      {orders.length === 0 ? (
-        <div className="bg-gray-50 rounded-2xl p-10 flex flex-col items-center justify-center min-h-[350px] border border-gray-100 text-center">
-          <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-6 text-gray-300 shadow-sm">
-            <FaBoxOpen className="text-4xl" />
-          </div>
-          <h2 className="text-lg font-bold text-gray-700 mb-2">Bạn chưa có đơn đặt hàng nào</h2>
-          <p className="text-gray-400 mb-6 text-sm max-w-sm">Mua sắm ngay hôm nay để nhận được các ưu đãi hấp dẫn nhất!</p>
-          <Link to="/" className="bg-[#C92127] text-white font-bold py-2.5 px-6 rounded-lg hover:bg-red-800 transition-colors">
-            MUA SẮM NGAY
-          </Link>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {orders.map((order) => (
-            <div key={order.id} className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-              
-              {/* Order Header */}
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-100 pb-4 mb-4">
-                <div className="space-y-1">
-                  <div className="text-xs text-gray-500">Mã đơn hàng:</div>
-                  <div className="font-bold text-gray-800 text-base">#GB-{order.id}</div>
-                </div>
-                <div className="flex flex-wrap gap-2.5">
-                  <span className={`px-2.5 py-1 rounded text-xs font-bold border ${getStatusColor(order.status)}`}>
-                    Đơn hàng: {getStatusText(order.status)}
-                  </span>
-                  <span className={`px-2.5 py-1 rounded text-xs font-bold border ${getStatusColor(order.shippingStatus)}`}>
-                    Vận chuyển: {getShippingStatusText(order.shippingStatus)}
-                  </span>
-                </div>
-              </div>
-
-              {/* Order Details Brief */}
-              <div className="grid grid-cols-2 gap-4 text-sm mb-6">
-                <div className="flex items-center gap-2 text-gray-600">
-                  <FaCalendarAlt className="text-gray-400 shrink-0" />
-                  <div>
-                    <span className="block text-[10px] text-gray-400 uppercase">Ngày đặt</span>
-                    <span className="font-semibold text-gray-800">
-                      {new Date(order.createdAt).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 text-gray-600">
-                  <FaCreditCard className="text-gray-400 shrink-0" />
-                  <div>
-                    <span className="block text-[10px] text-gray-400 uppercase">Thanh toán</span>
-                    <span className="font-semibold text-gray-800">
-                      {order.paymentMethod === 'COD' ? 'Tiền mặt (COD)' :
-                       order.paymentMethod === 'BANK_TRANSFER' ? 'Chuyển khoản' :
-                       order.paymentMethod === 'MOMO' ? 'Ví MoMo' :
-                       order.paymentMethod === 'ZALOPAY' ? 'Ví ZaloPay' : order.paymentMethod || 'Khác'}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 text-gray-600">
-                  <FaTruck className="text-gray-400 shrink-0" />
-                  <div>
-                    <span className="block text-[10px] text-gray-400 uppercase">Đối tác</span>
-                    <span className="font-semibold text-gray-800">
-                      {order.shippingPartner || 'Chờ xác nhận'}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 text-gray-600">
-                  <FaMoneyBillWave className="text-gray-400 shrink-0" />
-                  <div>
-                    <span className="block text-[10px] text-gray-400 uppercase">Tổng thanh toán</span>
-                    <span className="font-bold text-[#C92127] text-sm">
-                      {order.totalAmount.toLocaleString('vi-VN')} đ
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action */}
-              <div className="flex justify-between items-center border-t border-gray-100 pt-4">
-                <div className="text-xs text-gray-500">
-                  Số lượng sách: {order.items?.reduce((acc, curr) => acc + curr.quantity, 0) || 0} quyển
-                </div>
-                <Link 
-                  to={`/orders/${order.id}`}
-                  className="inline-flex items-center gap-1.5 text-sm font-bold text-[#C92127] hover:text-red-800 border border-red-200 hover:border-red-500 py-1.5 px-4 rounded transition-all"
-                >
-                  <FaEye /> Xem chi tiết
-                </Link>
-              </div>
-
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 // Subcomponent for My Vouchers
 function MyVouchersTab() {

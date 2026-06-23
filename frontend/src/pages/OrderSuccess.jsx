@@ -95,6 +95,17 @@ const OrderSuccess = () => {
               <span className="text-gray-500">Tổng thanh toán:</span>
               <span className="font-bold text-red-600 text-lg">{(order.totalAmount + order.shippingFee - order.discountAmount).toLocaleString('vi-VN')} đ</span>
             </div>
+            {order.user && (
+              <div className="flex justify-between items-center bg-orange-50/50 p-2 rounded-lg border border-orange-100/50 mt-2">
+                <span className="text-orange-600 text-sm font-medium flex items-center gap-1">
+                  <div className="w-4 h-4 bg-yellow-400 text-white rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm">Y</div>
+                  Điểm tích luỹ nhận được:
+                </span>
+                <span className="font-bold text-orange-600">
+                  +{Math.floor((order.totalAmount + order.shippingFee - order.discountAmount) * ((order.user.accumulatedPoints || 0) >= 100000 ? 0.02 : (order.user.accumulatedPoints || 0) >= 30000 ? 0.01 : 0.005)).toLocaleString('vi-VN')}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 

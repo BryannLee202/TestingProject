@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaStar, FaShoppingCart } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
@@ -6,6 +6,13 @@ import { useCart } from '../../context/CartContext';
 export default function ProductSection({ title, tabs = [], products = [], activeTab, onTabChange, loading, viewMoreLink = '/search' }) {
   const { addToCart } = useCart();
   const navigate = useNavigate();
+  const [visibleCount, setVisibleCount] = useState(10);
+
+  useEffect(() => {
+    setVisibleCount(10);
+  }, [products]);
+
+  const displayedProducts = products.slice(0, visibleCount);
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5">
@@ -37,7 +44,7 @@ export default function ProductSection({ title, tabs = [], products = [], active
       {/* Grid or Skeleton */}
       {loading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 animate-pulse">
-          {[...Array(5)].map((_, i) => (
+          {[...Array(10)].map((_, i) => (
             <div key={i} className="flex flex-col bg-white p-3 rounded-lg border border-gray-100 min-h-[300px]">
               <div className="bg-gray-200 pt-[100%] rounded-md mb-3"></div>
               <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
@@ -48,7 +55,7 @@ export default function ProductSection({ title, tabs = [], products = [], active
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {products.map((product) => (
+          {displayedProducts.map((product) => (
             <Link 
               key={product.id} 
               to={`/book/${product.id}`}
@@ -64,7 +71,7 @@ export default function ProductSection({ title, tabs = [], products = [], active
               </div>
               
               {/* Title */}
-              <h3 className="text-sm font-medium text-gray-800 line-clamp-2 mb-1 min-h-[40px] leading-snug group-hover:text-primary transition-colors">
+              <h3 className="text-sm font-medium text-gray-800 line-clamp-2 mb-1 h-[40px] leading-[20px] group-hover:text-primary transition-colors">
                 {product.title}
               </h3>
 
@@ -118,14 +125,22 @@ export default function ProductSection({ title, tabs = [], products = [], active
       )}
       
       {/* View more button */}
-      <div className="mt-6 text-center">
-        <button 
-          onClick={() => navigate(viewMoreLink)}
-          className="px-8 py-2 border border-primary text-primary font-medium rounded-md hover:bg-primary hover:text-white transition-colors"
-        >
-          Xem Thêm
-        </button>
-      </div>
+      {!loading && products.length > 0 && (
+        <div className="mt-6 text-center">
+          <button 
+            onClick={() => {
+              if (visibleCount < products.length) {
+                setVisibleCount(prev => prev + 10);
+              } else {
+                navigate(viewMoreLink);
+              }
+            }}
+            className="px-8 py-2 border border-primary text-primary font-medium rounded-md hover:bg-primary hover:text-white transition-colors"
+          >
+            {visibleCount < products.length ? "Xem Thêm" : "Xem Tất Cả"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -178,7 +178,13 @@ export default function AdminBanners() {
                     ? 'bg-blue-50 text-blue-650 border-blue-200' 
                     : 'bg-orange-50 text-orange-650 border-orange-200'
                 }`}>
-                  {banner.position === 'MAIN' ? 'Slide chính (840x320)' : 'Slide phụ (392x156)'}
+                  {banner.position === 'MAIN' 
+                    ? 'Slide chính (840x320)' 
+                    : banner.position === 'SIDE_TOP' 
+                      ? 'Slide bên phải - Trên' 
+                      : banner.position === 'SIDE_BOTTOM' 
+                        ? 'Slide bên phải - Dưới' 
+                        : 'Slide bên phải - Tự chia'}
                 </span>
               </div>
 
@@ -261,7 +267,9 @@ export default function AdminBanners() {
                     className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-primary text-sm bg-white"
                   >
                     <option value="MAIN">Slide lớn chính giữa (840x320)</option>
-                    <option value="SIDE">Banner lề bên phải (392x156)</option>
+                    <option value="SIDE_TOP">Slide bên phải - Phía trên (Chạy tự động)</option>
+                    <option value="SIDE_BOTTOM">Slide bên phải - Phía dưới (Chạy tự động)</option>
+                    <option value="SIDE">Slide bên phải - Tự chia ô chẵn/lẻ</option>
                   </select>
                 </div>
               </div>

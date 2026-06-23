@@ -6,7 +6,14 @@ const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    try {
+      const userData = localStorage.getItem('user');
+      return userData ? JSON.parse(userData) : null;
+    } catch {
+      return null;
+    }
+  });
   const [loading, setLoading] = useState(true);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
@@ -18,11 +25,37 @@ export const AuthProvider = ({ children }) => {
 
     if (token && userData) {
       setUser(JSON.parse(userData));
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       refreshUser(token);
     } else {
       setLoading(false);
     }
+
+    // Set up axios interceptor to always attach token if available
+    const reqInterceptor = axios.interceptors.request.use(config => {
+      const currentToken = localStorage.getItem('token');
+      if (currentToken) {
+        config.headers.Authorization = `Bearer ${currentToken}`;
+      }
+      return config;
+    }, error => Promise.reject(error));
+
+    // Handle 401/403 responses globally to log out if token is expired
+    const resInterceptor = axios.interceptors.response.use(response => response, error => {
+      if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+        // Only auto-logout if we're not already on the login page or trying to login
+        if (localStorage.getItem('token')) {
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+            setUser(null);
+        }
+      }
+      return Promise.reject(error);
+    });
+
+    return () => {
+      axios.interceptors.request.eject(reqInterceptor);
+      axios.interceptors.response.eject(resInterceptor);
+    };
   }, []);
 
   const refreshUser = async (tokenOverride) => {
@@ -43,7 +76,6 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
     localStorage.setItem('token', token);
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     refreshUser(token);
   };
 
@@ -51,7 +83,6 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     localStorage.removeItem('user');
     localStorage.removeItem('token');
-    delete axios.defaults.headers.common['Authorization'];
   };
 
   const updateProfile = (newData) => {

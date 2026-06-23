@@ -73,6 +73,8 @@ export const CartProvider = ({ children }) => {
         });
       } catch (error) {
         console.error('Error adding to DB cart', error);
+        showNotification('Lỗi', error.response?.data?.message || 'Không thể thêm vào giỏ hàng', 'error');
+        return; // Return early to not show success notification
       }
     } else {
       setCart((prevCart) => {

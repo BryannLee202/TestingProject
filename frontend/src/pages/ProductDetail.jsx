@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { FaStar, FaShoppingCart, FaMinus, FaPlus, FaChevronRight, FaRegThumbsUp, FaThumbsUp, FaExclamationCircle, FaHeart, FaRegHeart, FaComment, FaRegComment, FaImage, FaTimes } from 'react-icons/fa';
 import { useCart } from '../context/CartContext';
@@ -13,6 +13,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api'
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [expandedDesc, setExpandedDesc] = useState(false);
   const [book, setBook] = useState(null);
   const [relatedBooks, setRelatedBooks] = useState([]);
@@ -33,7 +34,13 @@ export default function ProductDetail() {
   const [deliveryAddress, setDeliveryAddress] = useState('Hà Nội');
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [addresses, setAddresses] = useState([]);
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(() => {
+    // Read cached wishlist state for this book from localStorage
+    try {
+      const cached = JSON.parse(localStorage.getItem('wishlistCache') || '{}');
+      return !!cached[id];
+    } catch { return false; }
+  });
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [reviewLikes, setReviewLikes] = useState({});
   const [openCommentId, setOpenCommentId] = useState(null);
@@ -105,17 +112,38 @@ export default function ProductDetail() {
     fetchBookDetail();
     fetchReviews();
     fetchCoupons();
-    window.scrollTo(0, 0);
-  }, [id]);
+    
+    // Handle scrolling to hash after data loads
+    setTimeout(() => {
+      if (location.hash) {
+        const element = document.querySelector(location.hash);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      } else {
+        window.scrollTo(0, 0);
+      }
+    }, 100);
+  }, [id, location.hash]);
 
   useEffect(() => {
     if (user) {
       const checkWishlist = async () => {
         try {
           const token = localStorage.getItem('token');
-          const res = await axios.get(`${API_BASE_URL}/wishlists`, { headers: { Authorization: `Bearer ${token}` }});
+          const res = await axios.get(`${API_BASE_URL}/wishlists`, { 
+            headers: { Authorization: `Bearer ${token}` },
+            params: { t: new Date().getTime() }
+          });
           const inList = (res.data || []).some(w => String(w.book?.id) === String(id));
           setIsWishlisted(inList);
+          // Update cache
+          try {
+            const cached = JSON.parse(localStorage.getItem('wishlistCache') || '{}');
+            if (inList) cached[id] = true;
+            else delete cached[id];
+            localStorage.setItem('wishlistCache', JSON.stringify(cached));
+          } catch {}
         } catch (e) { console.error(e); }
       };
       const checkEligibility = async () => {
@@ -251,12 +279,57 @@ export default function ProductDetail() {
       Swal.fire('Vui lòng đăng nhập', 'Bạn cần đăng nhập để lưu sản phẩm yêu thích.', 'warning');
       return;
     }
+
+    // If already wishlisted, confirm removal
+    if (isWishlisted) {
+      const result = await Swal.fire({
+        title: 'Xóa khỏi yêu thích?',
+        text: 'Bạn có muốn xóa sản phẩm này khỏi danh sách yêu thích không?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#C92127',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Đồng ý xóa',
+        cancelButtonText: 'Không'
+      });
+      if (!result.isConfirmed) return;
+    } else {
+      // Confirm adding
+      const result = await Swal.fire({
+        title: 'Thêm vào yêu thích?',
+        text: 'Bạn có muốn thêm sản phẩm này vào danh sách yêu thích không?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#C92127',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Đồng ý',
+        cancelButtonText: 'Không'
+      });
+      if (!result.isConfirmed) return;
+    }
+
     setWishlistLoading(true);
     try {
       const token = localStorage.getItem('token');
       const res = await axios.post(`${API_BASE_URL}/wishlists/book/${id}`, {}, { headers: { Authorization: `Bearer ${token}` }});
-      setIsWishlisted(res.data?.isLiked ?? !isWishlisted);
-    } catch (e) { console.error(e); }
+      const liked = res.data?.isLiked;
+      setIsWishlisted(liked);
+      // Update localStorage cache
+      try {
+        const cached = JSON.parse(localStorage.getItem('wishlistCache') || '{}');
+        if (liked) cached[id] = true;
+        else delete cached[id];
+        localStorage.setItem('wishlistCache', JSON.stringify(cached));
+      } catch {}
+      if (liked) {
+        showNotification('Thành công', 'Đã thêm vào danh sách yêu thích!', 'success');
+      } else {
+        showNotification('Thành công', 'Đã xóa khỏi danh sách yêu thích!', 'success');
+      }
+    } catch (e) {
+      console.error(e);
+      showNotification('Lỗi', 'Không thể thực hiện thao tác', 'error');
+    }
     finally { setWishlistLoading(false); }
   };
 
@@ -275,6 +348,34 @@ export default function ProductDetail() {
       console.error(e);
       const msg = e.response?.data?.message || 'Không thể thực hiện thao tác này.';
       Swal.fire('Lỗi', msg, 'error');
+    }
+  };
+
+  const handleReportReview = async (reviewId) => {
+    if (!user) {
+      Swal.fire('Vui lòng đăng nhập', 'Bạn cần đăng nhập để báo cáo đánh giá này.', 'warning');
+      return;
+    }
+    const result = await Swal.fire({
+      title: 'Báo cáo nhận xét?',
+      text: 'Bạn có chắc chắn nhận xét này chứa nội dung không phù hợp hoặc vi phạm?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#C92127',
+      cancelButtonText: 'Hủy',
+      confirmButtonText: 'Gửi Báo Cáo'
+    });
+    if (!result.isConfirmed) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_BASE_URL}/reviews/${reviewId}/report`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      Swal.fire('Thành công', 'Cảm ơn bạn! Báo cáo của bạn đã được gửi cho Quản trị viên xử lý.', 'success');
+    } catch (e) {
+      console.error(e);
+      Swal.fire('Lỗi', 'Không thể gửi báo cáo lúc này.', 'error');
     }
   };
 
@@ -330,7 +431,7 @@ export default function ProductDetail() {
 
   return (
     <div className="bg-[#f0f0f0] min-h-screen pb-10 font-sans">
-      <div className="max-w-[1200px] mx-auto px-4 pt-4">
+      <div className="max-w-[1440px] mx-auto px-4 pt-4">
         
         {/* Breadcrumb */}
         <div className="text-sm text-gray-500 mb-4 uppercase flex items-center gap-2">
@@ -537,7 +638,7 @@ export default function ProductDetail() {
         </div>
 
         {/* Reviews Section */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-4">
+        <div id="reviews" className="bg-white rounded-lg shadow-sm p-6 mb-4 scroll-mt-24">
           <h2 className="text-lg font-bold text-gray-800 mb-6 uppercase">Đánh giá sản phẩm</h2>
           
           <div className="flex flex-col md:flex-row gap-8 mb-8 border-b border-gray-100 pb-8">
@@ -653,6 +754,16 @@ export default function ProductDetail() {
                         >
                           <FaRegComment />
                           <span>Phản hồi{(reviewComments[rev.id]?.length || rev.comments?.length) ? ` (${reviewComments[rev.id]?.length ?? rev.comments?.length})` : ''}</span>
+                        </button>
+                        <button
+                          onClick={() => handleReportReview(rev.id)}
+                          className="flex items-center gap-1.5 hover:text-red-600 transition-colors ml-auto"
+                          title="Báo cáo vi phạm"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3.5 h-3.5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 3v1.5M3 21v-6m0 0 2.77-.693a15.26 15.26 0 0 1 9.14 0l3.172.793c.39.098.808-.027 1.096-.33.288-.302.422-.723.364-1.14l-1.02-7.14c-.04-.28-.158-.544-.336-.762a1.8 1.8 0 0 0-1.06-.66L14.46 4.192a15.26 15.26 0 0 0-9.14 0L3 4.5M3 15V4.5" />
+                          </svg>
+                          <span>Báo cáo</span>
                         </button>
                       </div>
 
@@ -813,7 +924,7 @@ export default function ProductDetail() {
                       </div>
                     )}
                   </div>
-                  <h3 className="text-sm font-medium text-gray-800 line-clamp-2 min-h-[40px] group-hover:text-primary transition-colors">{item.title}</h3>
+                  <h3 className="text-sm font-medium text-gray-800 line-clamp-2 h-[40px] leading-[20px] group-hover:text-primary transition-colors">{item.title}</h3>
                   <div className="mt-1 flex items-end gap-2">
                     <span className="text-primary font-bold text-sm">{formatPrice(item.price)}</span>
                     {item.oldPrice > 0 && <span className="text-xs text-gray-400 line-through mb-0.5">{formatPrice(item.oldPrice)}</span>}

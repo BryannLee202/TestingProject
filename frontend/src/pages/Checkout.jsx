@@ -157,7 +157,7 @@ export default function Checkout() {
       let isHaNoi = city.includes('Hà Nội');
       let isDaNang = city.includes('Đà Nẵng');
       let isHaNoiOrDaNang = isHaNoi || isDaNang;
-      let isInnerCity = isHcm || isHaNoi; // Allow FAST for HN and HCM
+      let isInnerCity = isHcm; // Allow FAST for HCM only
       
       if (!isInnerCity && shippingMethod === 'FAST') {
         setShippingMethod('EXPRESS');
@@ -169,7 +169,11 @@ export default function Checkout() {
       } else if (shippingMethod === 'EXPRESS') {
         baseFee = isHcm ? 25000 : (isHaNoiOrDaNang ? 45000 : 50000);
       } else if (shippingMethod === 'FAST') {
-        baseFee = isHcm ? 40000 : 50000; 
+        if (isHcm) baseFee = 40000;
+        else {
+          baseFee = (isHaNoi || isDaNang) ? 30000 : 35000;
+          setShippingMethod('STANDARD');
+        }
       }
       setShippingFee(baseFee);
     } else {
@@ -228,10 +232,10 @@ export default function Checkout() {
           return;
         }
         setAppliedShippingCoupon(res.data.coupon);
-        setShippingDiscountAmount(Math.min(res.data.discountAmount, shippingFee));
+        setShippingDiscountAmount(res.data.discountAmount);
         setShippingCouponCode(res.data.coupon.code);
         setShowCouponModal(false);
-        showNotification('Áp dụng thành công!', `Bạn được giảm phí vận chuyển ${Math.min(res.data.discountAmount, shippingFee).toLocaleString('vi-VN')} đ`, 'success');
+        showNotification('Áp dụng thành công!', `Bạn đã áp dụng mã miễn phí vận chuyển`, 'success');
       } else {
         setShippingCouponError(res.data.message || 'Mã vận chuyển không hợp lệ.');
         setAppliedShippingCoupon(null);
@@ -430,7 +434,7 @@ export default function Checkout() {
 
   return (
     <div className="bg-gray-50 min-h-screen py-8">
-      <div className="max-w-[1200px] mx-auto px-4">
+      <div className="max-w-[1440px] mx-auto px-4">
         <div className="mb-6">
           <h1 className="text-2xl font-extrabold text-gray-800 tracking-tight uppercase">Thanh toán an toàn</h1>
         </div>
@@ -546,7 +550,7 @@ export default function Checkout() {
                         <span className="text-gray-500 text-xs">Từ 1 - 2 ngày làm việc</span>
                       </div>
                     </label>
-                    {(city && (city.includes('Hồ Chí Minh') || city.includes('Hà Nội'))) && (
+                    {(city && city.includes('Hồ Chí Minh')) && (
                       <label className={`flex flex-col justify-between cursor-pointer border-2 rounded-xl p-4 transition-all ${shippingMethod === 'FAST' ? 'border-red-500 bg-red-50/30 shadow-sm' : 'border-gray-100 hover:border-gray-300 hover:bg-gray-50'} md:col-span-2`}>
                         <div className="flex items-center gap-3 mb-2">
                           <input type="radio" name="shippingMethod" value="FAST" checked={shippingMethod === 'FAST'} onChange={(e) => setShippingMethod(e.target.value)} className="accent-red-600 w-5 h-5" />
@@ -555,7 +559,7 @@ export default function Checkout() {
                         <div className="ml-8 flex justify-between items-center">
                           <div>
                              <strong className="text-red-600 block text-sm mb-1">{city.includes('Hồ Chí Minh') ? '40.000 đ' : '50.000 đ'}</strong>
-                             <span className="text-gray-500 text-xs">Nhận hàng ngay trong ngày (áp dụng cho khu vực nội thành TP.HCM và Hà Nội)</span>
+                             <span className="text-gray-500 text-xs">Nhận hàng ngay trong ngày (áp dụng cho khu vực nội thành TP.HCM)</span>
                           </div>
                           <FaShippingFast className="text-red-500 text-4xl opacity-80" />
                         </div>
@@ -784,7 +788,14 @@ export default function Checkout() {
                       <span className="text-gray-800 font-bold text-lg">Tổng thanh toán</span>
                       <span className="text-3xl font-extrabold text-red-600 tracking-tight">{totalAmount.toLocaleString('vi-VN')} đ</span>
                     </div>
-                    <p className="text-right text-[11px] text-gray-500">(Đã bao gồm VAT nếu có)</p>
+                    <p className="text-right text-[11px] text-gray-500 mb-2">(Đã bao gồm VAT nếu có)</p>
+                    
+                    {user && (
+                      <div className="flex justify-end items-center gap-1.5 text-xs text-orange-600 font-medium bg-orange-50/50 p-2 rounded-lg border border-orange-100/50">
+                        <div className="w-4 h-4 bg-yellow-400 text-white rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm">Y</div>
+                        <span>Nhận <strong className="text-sm">+{Math.floor(totalAmount * (userAcc >= 100000 ? 0.02 : userAcc >= 30000 ? 0.01 : 0.005)).toLocaleString('vi-VN')}</strong> Y-Point từ đơn hàng này</span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="p-6 pt-2 bg-gray-50/50">
@@ -829,6 +840,16 @@ export default function Checkout() {
             setCity(newAddr.city);
             setWard(newAddr.ward);
             setAddress(newAddr.street);
+          }
+        }}
+        onEditAddress={(updatedAddr) => {
+          setAddresses(addresses.map(a => a.id === updatedAddr.id ? updatedAddr : a));
+          if (updatedAddr.isDefault) {
+            setName(updatedAddr.recipientName);
+            setPhone(updatedAddr.phone);
+            setCity(updatedAddr.city);
+            setWard(updatedAddr.ward);
+            setAddress(updatedAddr.street);
           }
         }}
         onDeleteAddress={async (id) => {

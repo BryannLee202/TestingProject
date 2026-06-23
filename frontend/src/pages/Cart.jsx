@@ -155,7 +155,7 @@ export default function Cart() {
   if (cart.length === 0) {
     return (
       <div className="min-h-screen bg-gray-100 pb-10 pt-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-xl shadow-sm p-10 flex flex-col items-center justify-center min-h-[400px]">
             <div className="w-32 h-32 bg-gray-50 rounded-full flex items-center justify-center mb-6 text-gray-300">
               <FaShoppingCart className="text-6xl" />
@@ -176,7 +176,7 @@ export default function Cart() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-10 pt-6 font-sans">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         
         <h1 className="text-2xl font-bold text-gray-800 mb-6 uppercase">GIỎ HÀNG <span className="text-lg font-normal normal-case text-gray-500">({cart.length} sản phẩm)</span></h1>
 
@@ -410,6 +410,13 @@ export default function Cart() {
                     <span className="font-bold text-[22px] text-[#C92127] leading-none">{finalTotal.toLocaleString('vi-VN')} đ</span>
                   </div>
                 </div>
+
+                {user && (
+                  <div className="flex justify-end items-center gap-1.5 mb-4 text-xs text-orange-600 font-medium bg-orange-50/50 p-2 rounded-lg border border-orange-100/50">
+                    <div className="w-4 h-4 bg-yellow-400 text-white rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm">Y</div>
+                    <span>Nhận <strong className="text-sm">+{Math.floor(finalTotal * (userAcc >= 100000 ? 0.02 : userAcc >= 30000 ? 0.01 : 0.005)).toLocaleString('vi-VN')}</strong> Y-Point từ đơn hàng này</span>
+                  </div>
+                )}
 
                 <button 
                   onClick={handleCheckout}

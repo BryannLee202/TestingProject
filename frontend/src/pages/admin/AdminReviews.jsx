@@ -57,6 +57,21 @@ export default function AdminReviews() {
     }
   };
 
+  const handleDismissReport = async (id) => {
+    try {
+      await axios.post(`${API_BASE_URL}/admin/reviews/${id}/dismiss-report`, {}, {
+        headers: { Authorization: `Bearer ${getToken()}` }
+      });
+      setReviews(prev => prev.map(r => r.id === id ? { ...r, isReported: false } : r));
+      Swal.fire('Thành công!', 'Đã gỡ cờ báo cáo.', 'success');
+    } catch (e) {
+      console.error(e);
+      Swal.fire('Lỗi', 'Không thể thao tác.', 'error');
+    }
+  };
+
+  const [filterReported, setFilterReported] = useState('ALL');
+
   // Lọc đánh giá
   const filtered = reviews.filter(r => {
     const term = searchTerm.toLowerCase();
@@ -65,7 +80,9 @@ export default function AdminReviews() {
       r.book?.title?.toLowerCase().includes(term);
     
     const matchRating = filterRating === 'ALL' || r.rating.toString() === filterRating;
-    return matchSearch && matchRating;
+    const matchReported = filterReported === 'ALL' || (filterReported === 'REPORTED' && r.isReported) || (filterReported === 'NORMAL' && !r.isReported);
+    
+    return matchSearch && matchRating && matchReported;
   });
 
   return (
@@ -105,6 +122,15 @@ export default function AdminReviews() {
             <option value="2">2 Sao</option>
             <option value="1">1 Sao</option>
           </select>
+          <select
+            value={filterReported}
+            onChange={e => setFilterReported(e.target.value)}
+            className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#C92127]"
+          >
+            <option value="ALL">Trạng thái (Tất cả)</option>
+            <option value="REPORTED">Bị báo cáo</option>
+            <option value="NORMAL">Bình thường</option>
+          </select>
         </div>
       </div>
 
@@ -117,15 +143,16 @@ export default function AdminReviews() {
               <th className="text-left px-4 py-3 font-semibold text-gray-600">Người dùng</th>
               <th className="text-left px-4 py-3 font-semibold text-gray-600">Đánh giá</th>
               <th className="text-left px-4 py-3 font-semibold text-gray-600">Ảnh đính kèm</th>
+              <th className="text-left px-4 py-3 font-semibold text-gray-600">Trạng thái</th>
               <th className="text-left px-4 py-3 font-semibold text-gray-600">Thời gian</th>
-              <th className="text-center px-4 py-3 font-semibold text-gray-600">Xóa</th>
+              <th className="text-center px-4 py-3 font-semibold text-gray-600">Thao tác</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
             {loading ? (
-              <tr><td colSpan={6} className="text-center py-12 text-gray-400">Đang tải...</td></tr>
+              <tr><td colSpan={7} className="text-center py-12 text-gray-400">Đang tải...</td></tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan={6} className="text-center py-12 text-gray-400">Không có đánh giá nào.</td></tr>
+              <tr><td colSpan={7} className="text-center py-12 text-gray-400">Không có đánh giá nào.</td></tr>
             ) : (
               filtered.map(r => (
                 <tr key={r.id} className="hover:bg-gray-50/50 transition-colors">
@@ -166,17 +193,39 @@ export default function AdminReviews() {
                       <span className="text-[10px] text-gray-400">Không có ảnh</span>
                     )}
                   </td>
+                  <td className="px-4 py-3">
+                    {r.isReported ? (
+                      <span className="inline-flex items-center gap-1 bg-red-50 text-red-600 px-2 py-1 rounded text-[10px] font-medium border border-red-100">
+                        Bị báo cáo
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 bg-green-50 text-green-600 px-2 py-1 rounded text-[10px] font-medium border border-green-100">
+                        Bình thường
+                      </span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-[11px] text-gray-400">
                     {new Date(r.createdAt).toLocaleString('vi-VN')}
                   </td>
-                  <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => handleDelete(r.id)}
-                      className="text-red-400 hover:text-red-600 transition-colors"
-                      title="Xóa đánh giá"
-                    >
-                      <FaTrash className="text-sm" />
-                    </button>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-center gap-3">
+                      {r.isReported && (
+                        <button
+                          onClick={() => handleDismissReport(r.id)}
+                          className="text-gray-400 hover:text-green-600 transition-colors text-xs"
+                          title="Bỏ qua báo cáo (Đánh dấu hợp lệ)"
+                        >
+                          Bỏ qua
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDelete(r.id)}
+                        className="text-red-400 hover:text-red-600 transition-colors"
+                        title="Xóa đánh giá"
+                      >
+                        <FaTrash className="text-sm" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))

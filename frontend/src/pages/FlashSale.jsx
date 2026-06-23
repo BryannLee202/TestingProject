@@ -59,7 +59,7 @@ export default function FlashSale() {
 
   return (
     <div className="bg-gray-100 min-h-screen pb-12 pt-6">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Breadcrumb */}
         <div className="text-sm text-gray-500 mb-6 flex items-center gap-2">
@@ -193,7 +193,7 @@ export default function FlashSale() {
                         </div>
                         
                         {/* Title */}
-                        <h3 className="text-xs sm:text-sm font-semibold text-gray-800 line-clamp-2 mb-1 min-h-[40px] leading-snug group-hover:text-primary transition-colors">
+                        <h3 className="text-xs sm:text-sm font-semibold text-gray-800 line-clamp-2 mb-1 h-[40px] leading-[20px] group-hover:text-primary transition-colors">
                           {product.title}
                         </h3>
                         
