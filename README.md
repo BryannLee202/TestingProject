@@ -92,9 +92,13 @@ Hệ thống áp dụng mô hình kiến trúc Client-Server tiêu chuẩn công
 
 ---
 
-## 🗺️ IV. Sơ Đồ Thiết Kế Workflow Hệ Thống
+## 🗺️ IV. Thiết Kế Sơ Đồ Quy Trình & Workflow Nghiệp Vụ
 
-### 1. Luồng Xác Thực và Phân Quyền (Security JWT Workflow)
+Để dễ dàng nắm bắt quy trình vận hành hệ thống và thiết lập slide báo cáo, toàn bộ luồng nghiệp vụ chính được chia nhỏ thành từng phần riêng biệt kèm giải thích chi tiết dưới đây.
+
+---
+
+### 1. Luồng Xác Thực Tài Khoản & Phân Quyền (Security JWT Workflow)
 
 ```mermaid
 sequenceDiagram
@@ -133,6 +137,13 @@ sequenceDiagram
   end
 ```
 
+**🔍 Giải thích chi tiết các bước vận hành:**
+*   **Bước 1 - 2:** Người dùng điền thông tin đăng nhập trên giao diện. Frontend gửi một request chứa Username và Password về phía Backend.
+*   **Bước 3 - 5:** Spring Security tiếp nhận yêu cầu, truy vấn thông tin User trong database, so khớp mật khẩu đã được mã hóa bằng thuật toán BCrypt.
+*   **Bước 6:** Nếu khớp, hệ thống tạo ra một mã JWT Token (chứa thông tin danh tính và phân quyền) rồi trả về cho Frontend kèm thông tin cá nhân cơ bản.
+*   **Bước 7 - 8:** Frontend lưu trữ mã JWT này vào `localStorage` của trình duyệt.
+*   **Bước 9 - 13 (Khi gọi API cần quyền truy cập):** Mỗi request tiếp theo từ Frontend sẽ tự động đính kèm Token trong Header dưới dạng `Authorization: Bearer <Token>`. Bộ lọc bảo mật `JwtRequestFilter` của Spring Security sẽ chặn lại, giải mã kiểm tra tính hợp lệ của Token trước khi quyết định cấp quyền truy cập dữ liệu cho người dùng.
+
 ---
 
 ### 2. Luồng Đặt Hàng & Thanh Toán Chi Tiết (Checkout Flow Diagram)
@@ -170,6 +181,17 @@ flowchart TD
   K3 --> L3[Giao hàng thành công: cập nhật trạng thái đơn thành COMPLETED]
   L3 --> M3[Cộng điểm tích lũy Y-Point cho User] --> N3([Kết thúc đơn hàng])
 ```
+
+**🔍 Giải thích chi tiết các bước vận hành:**
+*   **Bước 1 - 3 (Khởi tạo đặt hàng):** Người dùng xác nhận thông tin thanh toán trong giỏ hàng. Hệ thống kiểm tra tài khoản, bắt buộc đăng nhập nếu là khách vãng lai.
+*   **Bước 4 - 6 (Cấu hình đơn hàng):** Người dùng nhập địa chỉ giao hàng, lựa chọn Coupon giảm giá, quy đổi điểm tích lũy Y-Point và chọn phương thức thanh toán.
+*   **Nhánh 1: Nếu phương thức thanh toán là COD (Tiền mặt):**
+    *   Đơn hàng ngay lập tức được khởi tạo ở trạng thái `PENDING` (Chờ xử lý giao hàng), hệ thống tự động trừ kho sản phẩm tương ứng, giải phóng giỏ hàng và đưa đơn hàng thẳng vào danh sách "Chờ giao hàng" trên màn hình quản lý của cả khách hàng và Admin.
+    *   Khi shipper giao hàng thành công, trạng thái sẽ đổi sang `COMPLETED`, cập nhật mốc đã thanh toán tại thời điểm nhận hàng (đã được dời về bước 4 trên Stepper đơn hàng).
+*   **Nhánh 2: Nếu phương thức thanh toán là Online (VNPAY/Ví/VietQR):**
+    *   Đơn hàng khởi tạo ở trạng thái tạm thời là `PENDING_PAYMENT` (Chờ thanh toán) và chuyển hướng người dùng đến cổng thanh toán trực tuyến.
+    *   Nếu thanh toán thành công, trạng thái đơn chuyển sang `PENDING` (Chờ giao hàng) để Admin duyệt đóng gói và đánh dấu mốc đã thanh toán tức thì ở bước thứ 2 trên Stepper đơn hàng.
+    *   Nếu thất bại, đơn hàng được giữ lại ở trạng thái chờ thanh toán để người dùng có thể thực hiện thanh toán lại.
 
 ---
 
@@ -213,6 +235,12 @@ sequenceDiagram
   BE-->>FE: Trả về HTTP 200 OK
   FE-->>Admin: Xóa dòng tương ứng trên giao diện quản trị
 ```
+
+**🔍 Giải thích chi tiết các bước vận hành:**
+*   **Bước 1 - 6 (Đánh giá sách):** Khách hàng sau khi nhận sách có thể viết đánh giá kèm số sao và đăng tải hình ảnh. Đơn hàng được lưu vào database và lập tức cập nhật lên trang chi tiết sản phẩm.
+*   **Bước 7 - 10 (Thả tim tương tác):** Người dùng khác khi duyệt qua có thể thực hiện tương tác "Thả Tim" yêu thích đánh giá. Hệ thống ghi nhận tăng lượt thích trực tiếp trong cơ sở dữ liệu.
+*   **Bước 11 - 14 (Phản hồi đa cấp):** Khách hàng hoặc Admin có thể nhập nội dung phản hồi trực tiếp dưới các đánh giá gốc. Hệ thống tự động thiết lập liên kết khóa ngoại đa tầng trong bảng `REPLIES` và hiển thị dạng cây thụt lề cấp dưới.
+*   **Bước 15 - 18 (Kiểm duyệt phản hồi):** Admin có toàn quyền giám sát. Nếu phát hiện đánh giá hoặc phản hồi vi phạm chính sách nội dung, Admin thực hiện xóa bỏ và hệ thống sẽ tự động dọn dẹp các phản hồi liên quan trong database.
 
 ---
 
