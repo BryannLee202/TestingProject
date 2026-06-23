@@ -25,6 +25,7 @@ public class BookService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sách với ID: " + id));
     }
 
+    @org.springframework.cache.annotation.CacheEvict(value = {"books_bestsellers", "books_latest", "books_discounted", "books_featured", "books_combos"}, allEntries = true)
     public Book createBook(Book book) {
         if (bookRepository.findFirstByTitle(book.getTitle().trim()).isPresent()) {
             throw new RuntimeException("Sách với tiêu đề '" + book.getTitle() + "' đã tồn tại trong hệ thống.");
@@ -36,10 +37,12 @@ public class BookService {
         return bookRepository.findByCategoryId(categoryId);
     }
 
+    @org.springframework.cache.annotation.Cacheable("books_bestsellers")
     public List<Book> getBestsellers() {
         return bookRepository.findTop200ByOrderBySalesCountDesc();
     }
 
+    @org.springframework.cache.annotation.Cacheable("books_combos")
     public List<Book> getCombos() {
         return bookRepository.findByIsComboTrue();
     }
@@ -55,24 +58,29 @@ public class BookService {
         return getBestsellers();
     }
 
+    @org.springframework.cache.annotation.Cacheable("books_latest")
     public List<Book> getLatestBooks() {
         return bookRepository.findTop200ByOrderByIdDesc();
     }
 
+    @org.springframework.cache.annotation.Cacheable("books_discounted")
     public List<Book> getDiscountedBooks() {
         return bookRepository.findByDiscountGreaterThanOrderByDiscountDesc(0);
     }
 
+    @org.springframework.cache.annotation.Cacheable("books_featured")
     public List<Book> getFeaturedBooks() {
         return bookRepository.findByIsFeaturedTrue();
     }
 
+    @org.springframework.cache.annotation.CacheEvict(value = {"books_bestsellers", "books_latest", "books_discounted", "books_featured", "books_combos"}, allEntries = true)
     public Book toggleFeaturedStatus(Long id, boolean isFeatured) {
         Book book = getBookById(id);
         book.setIsFeatured(isFeatured);
         return bookRepository.save(book);
     }
 
+    @org.springframework.cache.annotation.CacheEvict(value = {"books_bestsellers", "books_latest", "books_discounted", "books_featured", "books_combos"}, allEntries = true)
     public Book updateBook(Long id, Book updatedBook) {
         Book book = getBookById(id);
         book.setTitle(updatedBook.getTitle());
@@ -93,6 +101,7 @@ public class BookService {
         return bookRepository.save(book);
     }
 
+    @org.springframework.cache.annotation.CacheEvict(value = {"books_bestsellers", "books_latest", "books_discounted", "books_featured", "books_combos"}, allEntries = true)
     public void deleteBook(Long id) {
         bookRepository.deleteById(id);
     }

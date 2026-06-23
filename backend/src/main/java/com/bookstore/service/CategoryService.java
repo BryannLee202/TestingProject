@@ -13,6 +13,7 @@ public class CategoryService {
 
     private final CategoryRepository categoryRepository;
 
+    @org.springframework.cache.annotation.Cacheable("categories")
     public List<Category> getAllCategories() {
         return categoryRepository.findAll();
     }
@@ -22,10 +23,12 @@ public class CategoryService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục với ID: " + id));
     }
 
+    @org.springframework.cache.annotation.CacheEvict(value = "categories", allEntries = true)
     public Category createCategory(Category category) {
         return categoryRepository.save(category);
     }
 
+    @org.springframework.cache.annotation.CacheEvict(value = "categories", allEntries = true)
     public Category updateCategory(Long id, Category updatedCategory) {
         Category category = getCategoryById(id);
         category.setName(updatedCategory.getName());
@@ -35,6 +38,7 @@ public class CategoryService {
         return categoryRepository.save(category);
     }
 
+    @org.springframework.cache.annotation.CacheEvict(value = "categories", allEntries = true)
     public void deleteCategory(Long id) {
         categoryRepository.deleteById(id);
     }
