@@ -17,30 +17,29 @@ export default function Orders({ embedded = false }) {
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${API_BASE_URL}/orders`);
+      setOrders(res.data);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi tải đơn hàng',
+        text: 'Không thể kết nối đến máy chủ. Vui lòng thử lại sau.',
+        confirmButtonColor: '#EF4444'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!user) {
       navigate('/login');
       return;
     }
-
-    const fetchOrders = async () => {
-      try {
-        setLoading(true);
-        const res = await axios.get(`${API_BASE_URL}/orders`);
-        setOrders(res.data);
-      } catch (error) {
-        console.error('Error fetching orders:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Lỗi tải đơn hàng',
-          text: 'Không thể kết nối đến máy chủ. Vui lòng thử lại sau.',
-          confirmButtonColor: '#EF4444'
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchOrders();
   }, [user, navigate]);
 
@@ -85,7 +84,7 @@ export default function Orders({ embedded = false }) {
     }
 
     return tabMatch && searchMatch;
-  });
+  }).sort((a, b) => b.id - a.id);
 
   const handleCancel = async (orderId) => {
     try {
@@ -537,6 +536,9 @@ export default function Orders({ embedded = false }) {
                   <div className="flex gap-2">
                     {order.status === 'COMPLETED' ? (
                       <>
+                        <button disabled className="border px-8 py-2 text-sm rounded transition-colors bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed">
+                          Đã Nhận Được Hàng
+                        </button>
                         <button onClick={() => navigate(`/books/${order.items[0]?.book?.id}#reviews`)} className="bg-primary text-white border border-primary px-8 py-2 text-sm rounded hover:bg-primary-light transition-colors">
                           Đánh Giá
                         </button>
