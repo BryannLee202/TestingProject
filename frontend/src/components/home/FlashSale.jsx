@@ -171,7 +171,7 @@ export default function FlashSale() {
                   <div className="relative w-full h-[18px] bg-[#ffe0e0] rounded-full overflow-hidden flex items-center mt-2 border border-[#ffb3b3]">
                     <div 
                       className="absolute top-0 left-0 h-full bg-gradient-to-r from-[#ff6b6b] to-[#C92127] transition-all duration-1000 ease-out" 
-                      style={{ width: `${Math.max(8, product.soldPercent)}%` }}
+                      style={{ width: `${product.soldPercent === 0 ? 0 : Math.max(8, product.soldPercent)}%` }}
                     ></div>
 
                     {/* Fire icon and text over the progress bar */}
