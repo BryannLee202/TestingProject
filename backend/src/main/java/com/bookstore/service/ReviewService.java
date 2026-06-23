@@ -237,4 +237,32 @@ public class ReviewService {
         review.setIsReported(false);
         return reviewRepository.save(review);
     }
+
+    @org.springframework.scheduling.annotation.Scheduled(cron = "0 0 * * * *") // Run every hour
+    @Transactional
+    public void autoReviewUnreviewedOrders() {
+        LocalDateTime threshold = LocalDateTime.now().minusDays(7);
+        List<Order> eligibleOrders = orderRepository.findByStatusAndCreatedAtBefore("COMPLETED", threshold);
+        
+        for (Order order : eligibleOrders) {
+            for (OrderItem item : order.getItems()) {
+                long purchases = orderRepository.countUserDeliveredPurchases(order.getUser(), item.getBook(), ShippingStatus.DELIVERED);
+                long reviews = reviewRepository.countByUserIdAndBookId(order.getUser().getId(), item.getBook().getId());
+                
+                if (reviews < purchases) {
+                    try {
+                        createReview(
+                            order.getUser().getUsername(), 
+                            item.getBook().getId(), 
+                            5, 
+                            "Sản phẩm chất lượng, giao hàng nhanh chóng, đóng gói cẩn thận. Rất đáng tiền!", 
+                            null
+                        );
+                    } catch (Exception e) {
+                        System.err.println("Auto review failed for order " + order.getId() + ", book " + item.getBook().getId() + ": " + e.getMessage());
+                    }
+                }
+            }
+        }
+    }
 }

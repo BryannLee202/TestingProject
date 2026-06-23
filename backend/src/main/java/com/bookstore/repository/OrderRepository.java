@@ -12,6 +12,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByUserId(Long userId);
     List<Order> findByUserOrderByCreatedAtDesc(User user);
     List<Order> findAllByOrderByCreatedAtDesc();
+    List<Order> findByStatusAndCreatedAtBefore(String status, java.time.LocalDateTime date);
 
     @org.springframework.data.jpa.repository.Query("SELECT COUNT(o) FROM Order o WHERE o.user = :user AND o.status != 'CANCELLED' AND (o.discountCouponCode = :code OR o.shippingCouponCode = :code)")
     long countUsageByUser(
