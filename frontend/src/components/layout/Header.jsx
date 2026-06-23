@@ -233,67 +233,38 @@ export default function Header() {
 
             {/* Mega Menu Dropdown */}
             {isDesktopCategoryOpen && (
-               <div className="absolute top-full left-0 mt-2 w-[850px] bg-white rounded-lg shadow-2xl border border-gray-100 flex overflow-hidden z-[60] min-h-[450px]">
-                 {/* Left Sidebar */}
-                 <div className="w-64 bg-gray-50 flex flex-col py-2 shrink-0 border-r border-gray-100">
-                   <div className="px-5 py-3 font-bold text-gray-800 text-lg border-b border-gray-200 bg-white">Danh mục sản phẩm</div>
-                   <div className="flex-1 overflow-y-auto">
-                     <div className="px-5 py-3 bg-white font-bold text-primary cursor-pointer border-l-4 border-primary">Sách Trong Nước</div>
-                     <div className="px-5 py-3 font-bold text-gray-700 cursor-pointer hover:bg-gray-100 border-l-4 border-transparent hover:text-primary transition-colors">FOREIGN BOOKS</div>
-                     <div className="px-5 py-3 font-bold text-gray-700 cursor-pointer hover:bg-gray-100 border-l-4 border-transparent hover:text-primary transition-colors">VPP - Dụng Cụ Học Sinh</div>
-                     <div className="px-5 py-3 font-bold text-gray-700 cursor-pointer hover:bg-gray-100 border-l-4 border-transparent hover:text-primary transition-colors">Đồ Chơi</div>
-                     <div className="px-5 py-3 font-bold text-gray-700 cursor-pointer hover:bg-gray-100 border-l-4 border-transparent hover:text-primary transition-colors">Làm Đẹp - Sức Khỏe</div>
-                     <div className="px-5 py-3 font-bold text-gray-700 cursor-pointer hover:bg-gray-100 border-l-4 border-transparent hover:text-primary transition-colors">Sách Giáo Khoa 2026</div>
-                     <div className="px-5 py-3 font-bold text-gray-700 cursor-pointer hover:bg-gray-100 border-l-4 border-transparent hover:text-primary transition-colors">Bách Hóa Online</div>
+               <div className="absolute top-full left-0 pt-3 w-[800px] z-[60]">
+                 <div className="bg-white rounded-xl shadow-2xl border border-gray-100 flex overflow-hidden min-h-[350px]">
+                   {/* Left Sidebar */}
+                   <div className="w-56 bg-gray-50 flex flex-col py-2 shrink-0 border-r border-gray-100">
+                     <div className="px-5 py-3 font-bold text-gray-800 text-lg border-b border-gray-200 bg-white">Khám Phá</div>
+                     <div className="flex-1 overflow-y-auto">
+                       <div className="px-5 py-3 bg-white font-bold text-primary cursor-pointer border-l-4 border-primary">Tất Cả Danh Mục</div>
+                       <Link to="/search?q=hot" onClick={() => setIsDesktopCategoryOpen(false)} className="block px-5 py-3 font-bold text-gray-700 hover:bg-gray-100 border-l-4 border-transparent hover:text-primary transition-colors">Sách Bán Chạy</Link>
+                       <Link to="/search?q=new" onClick={() => setIsDesktopCategoryOpen(false)} className="block px-5 py-3 font-bold text-gray-700 hover:bg-gray-100 border-l-4 border-transparent hover:text-primary transition-colors">Sách Mới</Link>
+                       <Link to="/search?q=sale" onClick={() => setIsDesktopCategoryOpen(false)} className="block px-5 py-3 font-bold text-red-500 hover:bg-gray-100 border-l-4 border-transparent hover:text-red-600 transition-colors">Flash Sale</Link>
+                     </div>
                    </div>
-                 </div>
-                 {/* Right Content */}
-                 <div className="flex-1 p-6 bg-white overflow-y-auto">
-                   <h3 className="text-lg font-bold text-gray-800 mb-5 flex items-center gap-2 border-b border-gray-100 pb-2">
-                      <FaThLarge className="text-primary" /> Sách Trong Nước
-                   </h3>
-                   <div className="grid grid-cols-3 gap-x-6 gap-y-8">
-                     <div className="flex flex-col gap-2.5">
-                       <span className="font-bold text-gray-800 text-[13px] mb-1 uppercase tracking-wide">VĂN HỌC</span>
-                       {allCategories.filter(c => c.name.toLowerCase().includes('văn') || c.name.toLowerCase().includes('tiểu thuyết')).map(c => (
-                         <Link key={`mega-${c.id}`} to={`/category/${c.id}`} onClick={() => setIsDesktopCategoryOpen(false)} className="text-[13px] text-gray-600 hover:text-primary transition-colors">{c.name}</Link>
-                       ))}
-                       {allCategories.filter(c => c.name.toLowerCase().includes('văn') || c.name.toLowerCase().includes('tiểu thuyết')).length === 0 && (
-                         <span className="text-[13px] text-gray-400">Tiểu Thuyết</span>
-                       )}
-                     </div>
-                     <div className="flex flex-col gap-2.5">
-                       <span className="font-bold text-gray-800 text-[13px] mb-1 uppercase tracking-wide">KINH TẾ</span>
-                       {allCategories.filter(c => c.name.toLowerCase().includes('kinh')).map(c => (
-                         <Link key={`mega-${c.id}`} to={`/category/${c.id}`} onClick={() => setIsDesktopCategoryOpen(false)} className="text-[13px] text-gray-600 hover:text-primary transition-colors">{c.name}</Link>
-                       ))}
-                     </div>
-                     <div className="flex flex-col gap-2.5">
-                       <span className="font-bold text-gray-800 text-[13px] mb-1 uppercase tracking-wide">TÂM LÝ - KỸ NĂNG</span>
-                       {allCategories.filter(c => c.name.toLowerCase().includes('tâm') || c.name.toLowerCase().includes('kỹ') || c.name.toLowerCase().includes('kĩ')).map(c => (
-                         <Link key={`mega-${c.id}`} to={`/category/${c.id}`} onClick={() => setIsDesktopCategoryOpen(false)} className="text-[13px] text-gray-600 hover:text-primary transition-colors">{c.name}</Link>
-                       ))}
-                     </div>
-                     <div className="flex flex-col gap-2.5">
-                       <span className="font-bold text-gray-800 text-[13px] mb-1 uppercase tracking-wide">THIẾU NHI</span>
-                       {allCategories.filter(c => c.name.toLowerCase().includes('thiếu nhi')).map(c => (
-                         <Link key={`mega-${c.id}`} to={`/category/${c.id}`} onClick={() => setIsDesktopCategoryOpen(false)} className="text-[13px] text-gray-600 hover:text-primary transition-colors">{c.name}</Link>
-                       ))}
-                     </div>
-                     <div className="flex flex-col gap-2.5">
-                       <span className="font-bold text-gray-800 text-[13px] mb-1 uppercase tracking-wide">GIÁO KHOA - THAM KHẢO</span>
-                       {allCategories.filter(c => c.name.toLowerCase().includes('giáo khoa') || c.name.toLowerCase().includes('tham khảo')).map(c => (
-                         <Link key={`mega-${c.id}`} to={`/category/${c.id}`} onClick={() => setIsDesktopCategoryOpen(false)} className="text-[13px] text-gray-600 hover:text-primary transition-colors">{c.name}</Link>
-                       ))}
-                       {allCategories.filter(c => c.name.toLowerCase().includes('giáo khoa') || c.name.toLowerCase().includes('tham khảo')).length === 0 && (
-                         <span className="text-[13px] text-gray-400">Sách Giáo Khoa</span>
-                       )}
-                     </div>
-                     <div className="flex flex-col gap-2.5">
-                       <span className="font-bold text-gray-800 text-[13px] mb-1 uppercase tracking-wide">DANH MỤC KHÁC</span>
-                       {allCategories.filter(c => !c.name.toLowerCase().match(/(văn|tiểu thuyết|kinh|tâm|kỹ|kĩ|thiếu nhi|giáo khoa|tham khảo)/)).map(c => (
-                         <Link key={`mega-${c.id}`} to={`/category/${c.id}`} onClick={() => setIsDesktopCategoryOpen(false)} className="text-[13px] text-gray-600 hover:text-primary transition-colors">{c.name}</Link>
-                       ))}
+                   {/* Right Content */}
+                   <div className="flex-1 p-6 bg-white overflow-y-auto max-h-[60vh]">
+                     <h3 className="text-lg font-bold text-gray-800 mb-5 flex items-center gap-2 border-b border-gray-100 pb-2">
+                        <FaThLarge className="text-primary" /> Tất Cả Danh Mục Sản Phẩm
+                     </h3>
+                     <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                        {allCategories.map(c => (
+                           <Link 
+                             key={`mega-${c.id}`} 
+                             to={`/category/${c.id}`} 
+                             onClick={() => setIsDesktopCategoryOpen(false)} 
+                             className="px-4 py-2.5 bg-gray-50 rounded-lg text-[13px] font-medium text-gray-700 hover:bg-primary hover:text-white transition-all flex items-center justify-between group shadow-sm hover:shadow"
+                           >
+                              <span className="line-clamp-2 leading-tight">{c.name}</span>
+                              <FaChevronRight className="text-gray-300 group-hover:text-white text-[10px] shrink-0 ml-2" />
+                           </Link>
+                        ))}
+                        {allCategories.length === 0 && (
+                           <div className="col-span-full text-center text-gray-500 py-10">Đang tải danh mục...</div>
+                        )}
                      </div>
                    </div>
                  </div>
