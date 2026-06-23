@@ -80,14 +80,14 @@ export default function Home() {
       setBookLoading(true);
       try {
         let endpoint = '/books/latest';
-        if (activeBookTab === 'Bán Chạy') {
+        if (activeBookTab === t('home.bestseller') || activeBookTab === 'Bán Chạy') {
           endpoint = '/books/bestsellers';
-        } else if (activeBookTab === 'Giảm Giá') {
+        } else if (activeBookTab === t('home.discounted') || activeBookTab === 'Giảm Giá') {
           endpoint = '/books/discounted';
         }
         const res = await axios.get(`${API_BASE_URL}${endpoint}`);
         let finalData = res.data;
-        if (activeBookTab === 'Tất cả') {
+        if (activeBookTab === t('home.all') || activeBookTab === 'Tất cả') {
           // Shuffle only for the 'Tất cả' tab to keep other lists correctly ordered
           finalData = [...res.data].sort(() => 0.5 - Math.random());
         }
@@ -107,14 +107,14 @@ export default function Home() {
       setOtherLoading(true);
       try {
         let endpoint = '/books/latest';
-        if (activeOtherTab === 'Bán Chạy') {
+        if (activeOtherTab === t('home.bestseller') || activeOtherTab === 'Bán Chạy') {
           endpoint = '/books/bestsellers';
-        } else if (activeOtherTab === 'Giảm Giá') {
+        } else if (activeOtherTab === t('home.discounted') || activeOtherTab === 'Giảm Giá') {
           endpoint = '/books/discounted';
         }
         const res = await axios.get(`${API_BASE_URL}${endpoint}`);
         let finalData = res.data;
-        if (activeOtherTab === 'Tất cả') {
+        if (activeOtherTab === t('home.all') || activeOtherTab === 'Tất cả') {
           // Shuffle only for the 'Tất cả' tab to keep other lists correctly ordered
           finalData = [...res.data].sort(() => 0.5 - Math.random());
         }
