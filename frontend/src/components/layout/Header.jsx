@@ -239,10 +239,10 @@ export default function Header() {
                    <div className="w-56 bg-gray-50 flex flex-col py-2 shrink-0 border-r border-gray-100">
                      <div className="px-5 py-3 font-bold text-gray-800 text-lg border-b border-gray-200 bg-white">Khám Phá</div>
                      <div className="flex-1 overflow-y-auto">
-                       <div className="px-5 py-3 bg-white font-bold text-primary cursor-pointer border-l-4 border-primary">Tất Cả Danh Mục</div>
-                       <Link to="/search?q=hot" onClick={() => setIsDesktopCategoryOpen(false)} className="block px-5 py-3 font-bold text-gray-700 hover:bg-gray-100 border-l-4 border-transparent hover:text-primary transition-colors">Sách Bán Chạy</Link>
-                       <Link to="/search?q=new" onClick={() => setIsDesktopCategoryOpen(false)} className="block px-5 py-3 font-bold text-gray-700 hover:bg-gray-100 border-l-4 border-transparent hover:text-primary transition-colors">Sách Mới</Link>
-                       <Link to="/search?q=sale" onClick={() => setIsDesktopCategoryOpen(false)} className="block px-5 py-3 font-bold text-red-500 hover:bg-gray-100 border-l-4 border-transparent hover:text-red-600 transition-colors">Flash Sale</Link>
+                       <div className="px-5 py-4 bg-white font-bold text-gray-800 text-[15px] cursor-pointer border-l-4 border-primary">Tất Cả Danh Mục</div>
+                       <Link to="/search?q=hot" onClick={() => setIsDesktopCategoryOpen(false)} className="block px-5 py-4 font-bold text-red-600 text-[15px] hover:bg-gray-100 border-l-4 border-transparent transition-colors">Sách Bán Chạy</Link>
+                       <Link to="/search?q=new" onClick={() => setIsDesktopCategoryOpen(false)} className="block px-5 py-4 font-bold text-slate-700 text-[15px] hover:bg-gray-100 border-l-4 border-transparent transition-colors">Sách Mới</Link>
+                       <Link to="/search?q=sale" onClick={() => setIsDesktopCategoryOpen(false)} className="block px-5 py-4 font-bold text-red-600 text-[15px] hover:bg-gray-100 border-l-4 border-transparent transition-colors">Flash Sale</Link>
                      </div>
                    </div>
                    {/* Right Content */}
