@@ -1,11 +1,7 @@
 import React from 'react';
 import { FaRobot, FaStar } from 'react-icons/fa';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay } from 'swiper/modules';
 import { Link } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
-import SwiperNavButtons from '../common/SwiperNavButtons';
-import 'swiper/css';
 
 export default function PersonalizedSuggestions({ data = [] }) {
   const { addToCart } = useCart();
@@ -21,24 +17,10 @@ export default function PersonalizedSuggestions({ data = [] }) {
         </h2>
       </div>
 
-      {/* Product Slider */}
-      <div className="relative">
-        <Swiper
-          modules={[Autoplay]}
-          spaceBetween={16}
-          slidesPerView={2.2}
-          loop={data && data.length > 6}
-          autoplay={{ delay: 4000, disableOnInteraction: false }}
-          breakpoints={{
-            640: { slidesPerView: 3.2 },
-            768: { slidesPerView: 4.2 },
-            1024: { slidesPerView: 5 },
-            1280: { slidesPerView: 6 },
-          }}
-          className="w-full pb-2"
-        >
+      {/* Product Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 w-full">
           {data.map((product, index) => (
-            <SwiperSlide key={product.id || index}>
+            <div key={product.id || index}>
               <Link 
                 to={`/book/${product.id}`}
                 className="flex flex-col h-full bg-white p-3 rounded-lg border border-transparent hover:border-indigo-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group relative"
@@ -99,10 +81,8 @@ export default function PersonalizedSuggestions({ data = [] }) {
                   Thêm giỏ hàng
                 </button>
               </Link>
-            </SwiperSlide>
+            </div>
           ))}
-          <SwiperNavButtons />
-        </Swiper>
       </div>
 
       {/* View All Button */}
