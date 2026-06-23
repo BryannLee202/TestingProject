@@ -124,7 +124,7 @@ sequenceDiagram
   end
 
   Note over FE,BE: Quy trình gọi các API cần quyền truy cập
-  FE->>FE: Đính kèm Header 'Authorization: Bearer <Token>'
+  FE->>FE: Đính kèm Header 'Authorization: Bearer [Token]'
   FE->>BE: GET /api/orders/my-orders
   BE->>BE: JwtRequestFilter giải mã và kiểm tra hạn dùng Token
   alt Token hợp lệ
