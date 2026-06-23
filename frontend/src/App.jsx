@@ -4,6 +4,7 @@ import ClientLayout from './layouts/ClientLayout';
 import AdminLayout from './layouts/AdminLayout';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext';
 import ScrollToTop from './components/common/ScrollToTop';
 import ScrollToTopButton from './components/common/ScrollToTopButton';
 
@@ -63,7 +64,8 @@ const PageLoader = () => (
 
 function App() {
   return (
-    <AuthProvider>
+    <LanguageProvider>
+      <AuthProvider>
       <CartProvider>
         <BrowserRouter>
           <ScrollToTop />
@@ -122,6 +124,7 @@ function App() {
         </BrowserRouter>
       </CartProvider>
     </AuthProvider>
+    </LanguageProvider>
   );
 }
 

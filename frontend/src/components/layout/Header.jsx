@@ -30,6 +30,7 @@ import {
 } from 'react-icons/fa';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function Header() {
   const [isNotifyOpen, setIsNotifyOpen] = useState(false);
@@ -43,6 +44,7 @@ export default function Header() {
   const { getCartCount } = useCart();
   const cartCount = getCartCount();
   const { user, logout } = useAuth();
+  const { language, changeLanguage, t } = useLanguage();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
@@ -272,8 +274,8 @@ export default function Header() {
                 setShowSuggestions(true);
               }}
               onFocus={() => setShowSuggestions(true)}
-              placeholder="Tìm kiếm sách, tác giả..." 
-              className="w-full pl-4 pr-12 py-2.5 rounded-full border border-gray-300 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-shadow"
+              placeholder={t('header.searchPlaceholder')}
+              className="w-full pl-4 pr-[80px] py-2 rounded-full border border-gray-300 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm shadow-inner"
             />
             <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-primary text-white p-2 rounded-full hover:bg-primary-light transition-colors">
               <FaSearch />
@@ -463,8 +465,24 @@ export default function Header() {
           )}
         </div>
 
-        {/* Icons */}
+        {/* Icons & Language */}
         <div className="flex items-center gap-6">
+          {/* Language Switcher */}
+          <div className="flex items-center gap-2 text-sm font-medium border border-gray-200 rounded-full p-1 bg-gray-50">
+            <button 
+              onClick={() => changeLanguage('vi')}
+              className={`px-2 py-1 rounded-full transition-colors ${language === 'vi' ? 'bg-primary text-white' : 'text-gray-500 hover:text-primary'}`}
+            >
+              VI
+            </button>
+            <button 
+              onClick={() => changeLanguage('en')}
+              className={`px-2 py-1 rounded-full transition-colors ${language === 'en' ? 'bg-primary text-white' : 'text-gray-500 hover:text-primary'}`}
+            >
+              EN
+            </button>
+          </div>
+
           {/* Notifications */}
           <div ref={notifyRef} className="relative cursor-pointer" onClick={() => setIsNotifyOpen(!isNotifyOpen)}>
             <div className="flex flex-col items-center text-gray-600 hover:text-primary transition-colors">
@@ -524,7 +542,7 @@ export default function Header() {
                 </span>
               )}
             </div>
-            <span className="text-[11px] font-medium mt-1">Giỏ hàng</span>
+            <span className="text-[11px] font-medium mt-1">{t('cart.title')}</span>
           </Link>
 
           {/* User */}
@@ -533,10 +551,10 @@ export default function Header() {
               <FaRegUser className="text-2xl" />
               <div className="hidden sm:flex flex-col">
                 <span className="text-sm font-bold leading-tight truncate max-w-[150px]">
-                  {user ? `Chào, ${user.fullName || user.name || ''}` : 'Tài khoản'}
+                  {user ? `${t('header.welcome')}, ${user.fullName || user.name || ''}` : t('header.account')}
                 </span>
                 <span className="text-[11px] font-bold">
-                  {user ? (user.role === 'ADMIN' || (user.yPoints || 0) >= 100000 ? 'Kim Cương' : (user.yPoints || 0) >= 30000 ? 'Vàng' : 'Bạc') : 'Đăng nhập / Đăng ký'}
+                  {user ? (user.role === 'ADMIN' || (user.yPoints || 0) >= 100000 ? t('header.diamond') : (user.yPoints || 0) >= 30000 ? t('header.gold') : t('header.silver')) : t('header.loginRegister')}
                 </span>
               </div>
             </div>
@@ -551,25 +569,25 @@ export default function Header() {
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center ${(user.role === 'ADMIN' || (user.yPoints || 0) >= 100000) ? 'bg-gray-800 text-yellow-500' : (user.yPoints || 0) >= 30000 ? 'bg-yellow-100 text-yellow-500' : 'bg-gray-100 text-gray-500'}`}>
                           <FaCrown size={20} />
                         </div>
-                        <span className="font-bold text-gray-700">Thành viên {user.role === 'ADMIN' || (user.yPoints || 0) >= 100000 ? 'Kim Cương' : (user.yPoints || 0) >= 30000 ? 'Vàng' : 'Bạc'}</span>
+                        <span className="font-bold text-gray-700">{t('header.member')} {user.role === 'ADMIN' || (user.yPoints || 0) >= 100000 ? t('header.diamond') : (user.yPoints || 0) >= 30000 ? t('header.gold') : t('header.silver')}</span>
                       </div>
                       <FaChevronRight className="text-gray-400" />
                     </Link>
                     
                     {user.role === 'ADMIN' && (
                       <Link to="/admin/dashboard" className="flex items-center gap-3 px-4 py-3 text-sm text-primary hover:bg-gray-50 font-bold border-b border-gray-100">
-                        <FaShieldAlt className="text-gray-400 text-lg" /> Trang quản trị
+                        <FaShieldAlt className="text-gray-400 text-lg" /> {t('header.adminDashboard')}
                       </Link>
                     )}
                     
                     <Link to="/profile" state={{ tab: 'orders' }} className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors" onClick={() => setIsUserMenuOpen(false)}>
-                      <FaClipboardList className="text-gray-400 text-lg" /> Đơn hàng của tôi
+                      <FaClipboardList className="text-gray-400 text-lg" /> {t('header.orders')}
                     </Link>
                     <Link to="/profile" state={{ tab: 'wishlist' }} className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors" onClick={() => setIsUserMenuOpen(false)}>
-                      <FaHeart className="text-gray-400 text-lg" /> Sản phẩm yêu thích
+                      <FaHeart className="text-gray-400 text-lg" /> {t('header.wishlist')}
                     </Link>
                     <Link to="/profile" state={{ tab: 'vouchers' }} className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors" onClick={() => setIsUserMenuOpen(false)}>
-                      <FaTicketAlt className="text-gray-400 text-lg" /> Wallet Voucher
+                      <FaTicketAlt className="text-gray-400 text-lg" /> {t('header.coupons')}
                     </Link>
                     <Link to="/profile" state={{ tab: 'ypoint' }} className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors" onClick={() => setIsUserMenuOpen(false)}>
                       <FaCoins className="text-gray-400 text-lg" /> Tài khoản Y-Point
@@ -577,13 +595,13 @@ export default function Header() {
                     
                     <div className="border-t border-gray-100 mt-1"></div>
                     <button onClick={logout} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-red-500 transition-colors text-left">
-                      <FaSignOutAlt className="text-gray-400 text-lg" /> Thoát tài khoản
+                      <FaSignOutAlt className="text-gray-400 text-lg" /> {t('header.logout')}
                     </button>
                   </>
                 ) : (
                   <>
-                    <Link to="/login" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary">Đăng nhập</Link>
-                    <Link to="/register" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary">Đăng ký</Link>
+                    <Link to="/login" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary">{t('header.login')}</Link>
+                    <Link to="/register" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary">{t('header.register')}</Link>
                   </>
                 )}
               </div>
@@ -609,7 +627,7 @@ export default function Header() {
               setShowSuggestions(true);
             }}
             onFocus={() => setShowSuggestions(true)}
-            placeholder="Tìm kiếm sách, tác giả..."
+            placeholder={t('header.searchPlaceholder')}
             className="w-full pl-4 pr-10 py-2 rounded-full border border-gray-300 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm"
           />
           <button type="submit" className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-primary text-white p-1.5 rounded-full hover:bg-primary-light transition-colors">

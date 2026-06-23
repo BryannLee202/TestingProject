@@ -10,6 +10,7 @@ import PartnerBrands from '../components/home/PartnerBrands';
 import ComboTrending from '../components/home/ComboTrending';
 import PersonalizedSuggestions from '../components/home/PersonalizedSuggestions';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
@@ -19,6 +20,7 @@ export default function Home() {
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   const [activeBookTab, setActiveBookTab] = useState('Tất cả');
   const [bookProducts, setBookProducts] = useState([]);
@@ -149,8 +151,8 @@ export default function Home() {
         <BestSellersByCategory />
         
         <ProductSection 
-          title="Khám Phá Sách" 
-          tabs={['Tất cả', 'Mới Nhất', 'Bán Chạy', 'Giảm Giá']} 
+          title={t('home.exploreBooks')} 
+          tabs={[t('home.all'), t('home.latest'), t('home.bestseller'), t('home.discounted')]} 
           products={bookProducts}
           activeTab={activeBookTab}
           onTabChange={setActiveBookTab}
@@ -159,8 +161,8 @@ export default function Home() {
 
         {otherProducts.length > 0 && (
           <ProductSection 
-            title="Khám Phá Sản Phẩm Khác" 
-            tabs={['Tất cả', 'Mới Nhất', 'Bán Chạy', 'Giảm Giá']} 
+            title={t('home.exploreOther')} 
+            tabs={[t('home.all'), t('home.latest'), t('home.bestseller'), t('home.discounted')]} 
             products={otherProducts}
             activeTab={activeOtherTab}
             onTabChange={setActiveOtherTab}
