@@ -91,11 +91,17 @@ export default function Orders({ embedded = false }) {
     return b.id - a.id;
   });
 
-  const handleCancel = async (orderId) => {
+  const handleCancel = async (order) => {
     try {
+      let text = "Bạn có chắc chắn muốn hủy đơn hàng này không?";
+      
+      if (order.paymentMethod !== 'COD' && order.status !== 'PENDING_PAYMENT') {
+        text = `Đơn hàng đã được thanh toán qua ${order.paymentMethod}. Hệ thống sẽ hoàn lại tiền vào tài khoản ${order.paymentMethod} của bạn. Bạn có chắc chắn muốn hủy?`;
+      }
+
       const result = await Swal.fire({
         title: 'Hủy Đơn Hàng?',
-        text: "Bạn có chắc chắn muốn hủy đơn hàng này không?",
+        text: text,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#C92127',
@@ -105,7 +111,7 @@ export default function Orders({ embedded = false }) {
       });
 
       if (result.isConfirmed) {
-        await axios.put(`${API_BASE_URL}/orders/${orderId}/cancel`, {}, {
+        await axios.put(`${API_BASE_URL}/orders/${order.id}/cancel`, {}, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         Swal.fire('Thành công', 'Hủy đơn hàng thành công', 'success');
@@ -560,7 +566,7 @@ export default function Orders({ embedded = false }) {
                         <button onClick={() => handlePayment(order)} className="bg-primary text-white border border-primary px-4 sm:px-8 py-2 text-xs sm:text-sm rounded hover:bg-primary-light transition-colors">
                           Thanh Toán Ngay
                         </button>
-                        <button onClick={() => handleCancel(order.id)} className="bg-white text-gray-700 border border-gray-300 px-3 sm:px-4 py-2 text-xs sm:text-sm rounded hover:bg-gray-50 transition-colors">
+                        <button onClick={() => handleCancel(order)} className="bg-white text-gray-700 border border-gray-300 px-3 sm:px-4 py-2 text-xs sm:text-sm rounded hover:bg-gray-50 transition-colors">
                           Hủy Đơn Hàng
                         </button>
                         <Link to={`/orders/${order.id}`} className="bg-white text-gray-700 border border-gray-300 px-3 sm:px-4 py-2 text-xs sm:text-sm rounded flex items-center justify-center hover:bg-gray-50 transition-colors">
@@ -586,7 +592,7 @@ export default function Orders({ embedded = false }) {
                           Đã Nhận Được Hàng
                         </button>
                         {order.shippingStatus === 'PENDING' && (
-                          <button onClick={() => handleCancel(order.id)} className="bg-white text-gray-700 border border-gray-300 px-3 sm:px-4 py-2 text-xs sm:text-sm rounded hover:bg-gray-50 transition-colors">
+                          <button onClick={() => handleCancel(order)} className="bg-white text-gray-700 border border-gray-300 px-3 sm:px-4 py-2 text-xs sm:text-sm rounded hover:bg-gray-50 transition-colors">
                             Hủy Đơn Hàng
                           </button>
                         )}

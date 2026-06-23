@@ -239,9 +239,15 @@ export default function OrderDetail() {
   };
 
   const handleCancelOrder = async () => {
+    let text = "Bạn có chắc chắn muốn hủy đơn hàng này không?";
+    
+    if (order && order.paymentMethod !== 'COD' && order.status !== 'PENDING_PAYMENT') {
+      text = `Đơn hàng đã được thanh toán qua ${order.paymentMethod}. Hệ thống sẽ hoàn lại tiền vào tài khoản ${order.paymentMethod} của bạn. Bạn có chắc chắn muốn hủy?`;
+    }
+
     const result = await Swal.fire({
       title: 'Hủy đơn hàng?',
-      text: "Bạn có chắc chắn muốn hủy đơn hàng này không?",
+      text: text,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
