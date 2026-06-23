@@ -49,12 +49,9 @@ export default function OrderDetail() {
     if (status === 'REFUNDED') return 'ĐÃ HOÀN TIỀN';
     if (status === 'COMPLETED') return 'ĐƠN HÀNG ĐÃ HOÀN THÀNH';
     if (status === 'CANCELLED') return 'ĐƠN HÀNG ĐÃ HỦY';
-    if (paymentMethod === 'COD' && (status === 'PENDING' || status === 'PENDING_PAYMENT' || status === 'PROCESSING') && shippingStatus !== 'SHIPPING') {
-      return 'ĐƠN HÀNG CHỜ GIAO';
-    }
-    if (status === 'PENDING' || status === 'PENDING_PAYMENT') return 'ĐƠN HÀNG CHỜ THANH TOÁN';
     if (shippingStatus === 'SHIPPING') return 'ĐƠN HÀNG ĐANG VẬN CHUYỂN';
-    if (status === 'PROCESSING') return 'ĐƠN HÀNG CHỜ GIAO';
+    if (status === 'PENDING_PAYMENT') return 'ĐƠN HÀNG CHỜ THANH TOÁN';
+    if (status === 'PENDING' || status === 'PROCESSING') return 'ĐƠN HÀNG CHỜ GIAO';
     return `ĐƠN HÀNG ${status}`;
   };
 
@@ -106,7 +103,7 @@ export default function OrderDetail() {
 
       if (result.isConfirmed) {
         setLoading(true);
-        await axios.put(`${API_BASE_URL}/orders/${id}/shipping?status=DELIVERED`, {}, {
+        await axios.put(`${API_BASE_URL}/orders/${id}/confirm-received`, {}, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         Swal.fire('Thành công', 'Cảm ơn bạn đã mua sắm tại YiYi Book!', 'success');
@@ -438,7 +435,7 @@ export default function OrderDetail() {
                 {order.status === 'RETURNED' ? (
                   <span className="font-medium text-amber-600">Yêu cầu Trả hàng/Hoàn tiền đang được chờ người bán xác nhận.</span>
                 ) : order.status === 'REFUNDED' ? (
-                  <span className="font-medium text-emerald-600">Yêu cầu Trả hàng/Hoàn tiền đã được xử lý và hoàn tiền thành công.</span>
+                  <span className="font-medium text-emerald-600">Đơn hàng đã được xử lý hoàn tiền thành công.</span>
                 ) : order.status === 'CANCELLED' ? (
                   <span className="font-medium text-red-500">Đơn hàng đã được hủy.</span>
                 ) : (
@@ -451,7 +448,7 @@ export default function OrderDetail() {
               <div className="flex flex-col gap-2 min-w-[200px]">
                 {order.status === 'COMPLETED' ? (
                   <>
-                    <button onClick={() => navigate(`/books/${order.items[0]?.book?.id}#reviews`)} className="bg-primary text-white w-full py-2.5 text-sm rounded shadow-sm hover:bg-primary-light transition-colors">
+                    <button onClick={() => navigate(`/book/${order.items[0]?.book?.id}#reviews`)} className="bg-primary text-white w-full py-2.5 text-sm rounded shadow-sm hover:bg-primary-light transition-colors">
                       Đánh Giá
                     </button>
                     <button onClick={handleReturn} className="bg-white border border-primary text-primary w-full py-2.5 text-sm rounded shadow-sm hover:bg-red-50 transition-colors">
@@ -461,7 +458,7 @@ export default function OrderDetail() {
                       Mua Lại
                     </button>
                   </>
-                ) : (order.status === 'PENDING' || order.status === 'PENDING_PAYMENT') && order.paymentMethod !== 'COD' ? (
+                ) : order.status === 'PENDING_PAYMENT' ? (
                   <>
                     <button onClick={handlePayment} className="bg-primary text-white w-full py-2.5 text-sm rounded shadow-sm hover:bg-primary-light transition-colors">
                       Thanh Toán Ngay
@@ -483,6 +480,11 @@ export default function OrderDetail() {
                     >
                       Đã Nhận Được Hàng
                     </button>
+                    {order.shippingStatus === 'PENDING' && (
+                      <button onClick={handleCancelOrder} className="bg-white border border-gray-300 text-gray-700 w-full py-2.5 text-sm rounded shadow-sm hover:bg-gray-50 transition-colors">
+                        Hủy Đơn Hàng
+                      </button>
+                    )}
                   </>
                 )}
                 <button onClick={() => Swal.fire('Liên hệ', 'Hotline hỗ trợ: 1900 1234', 'info')} className="bg-white border border-gray-300 text-gray-700 w-full py-2.5 text-sm rounded shadow-sm hover:bg-gray-50 transition-colors">

@@ -336,15 +336,10 @@ public class OrderService {
             order.setShippingStatus(ShippingStatus.valueOf(status));
             // Đồng bộ trạng thái đơn hàng chung
             if (status.equals("DELIVERED")) {
-                order.setStatus("COMPLETED");
-                if (wasNotCompleted) {
-                    User user = order.getUser();
-                    boolean isFirstOrder = orderRepository.findByUserOrderByCreatedAtDesc(user).size() <= 1;
-                    updatePointsAndSpent(user, order.getTotalAmount(), isFirstOrder);
-                }
+                order.setStatus("SHIPPED");
             } else if (status.equals("CANCELLED")) {
                 order.setStatus("CANCELLED");
-            } else if (status.equals("SHIPPED")) {
+            } else if (status.equals("SHIPPING")) {
                 order.setStatus("SHIPPED");
             } else {
                 order.setStatus("PROCESSING");
@@ -359,16 +354,40 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
+    public void confirmOrderReceived(Long orderId, String username) {
+        Order order = getOrderById(orderId);
+        if (!order.getUser().getUsername().equals(username)) {
+            throw new RuntimeException("Bạn không có quyền thao tác đơn hàng này!");
+        }
+        if ("COMPLETED".equals(order.getStatus())) {
+            throw new RuntimeException("Đơn hàng đã được xác nhận hoàn thành!");
+        }
+
+        order.setStatus("COMPLETED");
+        
+        // Update points
+        User user = order.getUser();
+        boolean isFirstOrder = orderRepository.findByUserOrderByCreatedAtDesc(user).size() <= 1;
+        updatePointsAndSpent(user, order.getTotalAmount(), isFirstOrder);
+
+        orderRepository.save(order);
+    }
+
     public void userCancelOrder(Long orderId, String username) {
         Order order = getOrderById(orderId);
         if (!order.getUser().getUsername().equals(username)) {
             throw new RuntimeException("Bạn không có quyền huỷ đơn hàng này!");
         }
-        if (!"PENDING".equals(order.getStatus()) && !"PENDING_PAYMENT".equals(order.getStatus())) {
-            throw new RuntimeException("Chỉ có thể huỷ đơn hàng ở trạng thái Chờ xác nhận!");
+        if (order.getShippingStatus() != ShippingStatus.PENDING) {
+            throw new RuntimeException("Chỉ có thể huỷ đơn hàng khi người bán chưa xác nhận giao hàng!");
         }
 
-        order.setStatus("CANCELLED");
+        if (!"COD".equalsIgnoreCase(order.getPaymentMethod()) && !"PENDING_PAYMENT".equals(order.getStatus())) {
+            // Paid online -> need refund
+            order.setStatus("REFUNDED"); // In a real app, this goes to REFUND_PENDING. Here we just set it to REFUNDED to indicate money returned.
+        } else {
+            order.setStatus("CANCELLED");
+        }
         order.setShippingStatus(ShippingStatus.CANCELLED);
         orderRepository.save(order);
 

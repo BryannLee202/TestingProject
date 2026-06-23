@@ -48,12 +48,9 @@ export default function Orders({ embedded = false }) {
     if (status === 'REFUNDED') return 'ĐÃ HOÀN TIỀN';
     if (status === 'COMPLETED') return 'HOÀN THÀNH';
     if (status === 'CANCELLED') return 'ĐÃ HỦY';
-    if (paymentMethod === 'COD' && (status === 'PENDING' || status === 'PENDING_PAYMENT' || status === 'PROCESSING') && shippingStatus !== 'SHIPPING') {
-      return 'CHỜ GIAO HÀNG';
-    }
-    if (status === 'PENDING' || status === 'PENDING_PAYMENT') return 'CHỜ THANH TOÁN';
     if (shippingStatus === 'SHIPPING') return 'ĐANG VẬN CHUYỂN';
-    if (status === 'PROCESSING') return 'CHỜ GIAO HÀNG';
+    if (status === 'PENDING_PAYMENT') return 'CHỜ THANH TOÁN';
+    if (status === 'PENDING' || status === 'PROCESSING') return 'CHỜ GIAO HÀNG';
     return status;
   };
 
@@ -61,11 +58,11 @@ export default function Orders({ embedded = false }) {
     // Filter by tab
     let tabMatch = true;
     if (activeTab === 'PENDING') {
-      tabMatch = (order.status === 'PENDING' || order.status === 'PENDING_PAYMENT') && order.paymentMethod !== 'COD';
+      tabMatch = order.status === 'PENDING_PAYMENT';
     } else if (activeTab === 'SHIPPING') {
-      tabMatch = order.shippingStatus === 'SHIPPING';
+      tabMatch = order.shippingStatus === 'SHIPPING' || (order.shippingStatus === 'DELIVERED' && order.status !== 'COMPLETED' && order.status !== 'RETURNED' && order.status !== 'REFUNDED');
     } else if (activeTab === 'PROCESSING') {
-      tabMatch = (order.status === 'PROCESSING' || ((order.status === 'PENDING' || order.status === 'PENDING_PAYMENT') && order.paymentMethod === 'COD')) && order.shippingStatus !== 'SHIPPING';
+      tabMatch = (order.status === 'PROCESSING' || order.status === 'PENDING') && order.shippingStatus !== 'SHIPPING';
     } else if (activeTab === 'COMPLETED') {
       tabMatch = order.status === 'COMPLETED';
     } else if (activeTab === 'CANCELLED') {
@@ -399,11 +396,11 @@ export default function Orders({ embedded = false }) {
   const getTabCount = (tabId) => {
     return orders.filter(order => {
       if (tabId === 'PENDING') {
-        return (order.status === 'PENDING' || order.status === 'PENDING_PAYMENT') && order.paymentMethod !== 'COD';
+        return order.status === 'PENDING_PAYMENT';
       } else if (tabId === 'SHIPPING') {
-        return order.shippingStatus === 'SHIPPING';
+        return order.shippingStatus === 'SHIPPING' || (order.shippingStatus === 'DELIVERED' && order.status !== 'COMPLETED' && order.status !== 'RETURNED' && order.status !== 'REFUNDED');
       } else if (tabId === 'PROCESSING') {
-        return (order.status === 'PROCESSING' || ((order.status === 'PENDING' || order.status === 'PENDING_PAYMENT') && order.paymentMethod === 'COD')) && order.shippingStatus !== 'SHIPPING';
+        return (order.status === 'PROCESSING' || order.status === 'PENDING') && order.shippingStatus !== 'SHIPPING';
       } else if (tabId === 'COMPLETED') {
         return order.status === 'COMPLETED';
       } else if (tabId === 'CANCELLED') {
@@ -536,7 +533,7 @@ export default function Orders({ embedded = false }) {
                 <div className="text-xs text-gray-500 pt-4">
                   {order.status === 'COMPLETED' ? 'Đánh giá sản phẩm trước để nhận Thưởng Xu' : 
                    order.status === 'RETURNED' ? 'Đơn hàng đang được yêu cầu trả hàng/hoàn tiền' : 
-                   order.status === 'REFUNDED' ? 'Yêu cầu trả hàng/hoàn tiền đã được xử lý và hoàn tiền thành công' : 
+                   order.status === 'REFUNDED' ? 'Đơn hàng đã được xử lý hoàn tiền thành công' : 
                    order.status === 'CANCELLED' ? 'Đơn hàng đã hủy' : 
                    'Vui lòng kiểm tra kỹ tình trạng hàng hóa'}
                 </div>
@@ -545,7 +542,7 @@ export default function Orders({ embedded = false }) {
                 <div className="flex flex-wrap justify-end items-center pt-4 gap-2">
                     {order.status === 'COMPLETED' ? (
                       <>
-                        <button onClick={() => navigate(`/books/${order.items[0]?.book?.id}#reviews`)} className="bg-primary text-white border border-primary px-4 sm:px-8 py-2 text-xs sm:text-sm rounded hover:bg-primary-light transition-colors">
+                        <button onClick={() => navigate(`/book/${order.items[0]?.book?.id}#reviews`)} className="bg-primary text-white border border-primary px-4 sm:px-8 py-2 text-xs sm:text-sm rounded hover:bg-primary-light transition-colors">
                           Đánh Giá
                         </button>
                         <button onClick={() => handleReturn(order.id)} className="bg-white text-primary border border-primary px-3 sm:px-4 py-2 text-xs sm:text-sm rounded hover:bg-red-50 transition-colors">
@@ -558,10 +555,13 @@ export default function Orders({ embedded = false }) {
                           Xem Chi Tiết
                         </Link>
                       </>
-                    ) : (order.status === 'PENDING' || order.status === 'PENDING_PAYMENT') && order.paymentMethod !== 'COD' ? (
+                    ) : order.status === 'PENDING_PAYMENT' ? (
                       <>
                         <button onClick={() => handlePayment(order)} className="bg-primary text-white border border-primary px-4 sm:px-8 py-2 text-xs sm:text-sm rounded hover:bg-primary-light transition-colors">
                           Thanh Toán Ngay
+                        </button>
+                        <button onClick={() => handleCancel(order.id)} className="bg-white text-gray-700 border border-gray-300 px-3 sm:px-4 py-2 text-xs sm:text-sm rounded hover:bg-gray-50 transition-colors">
+                          Hủy Đơn Hàng
                         </button>
                         <Link to={`/orders/${order.id}`} className="bg-white text-gray-700 border border-gray-300 px-3 sm:px-4 py-2 text-xs sm:text-sm rounded flex items-center justify-center hover:bg-gray-50 transition-colors">
                           Xem Chi Tiết
@@ -585,6 +585,11 @@ export default function Orders({ embedded = false }) {
                         >
                           Đã Nhận Được Hàng
                         </button>
+                        {order.shippingStatus === 'PENDING' && (
+                          <button onClick={() => handleCancel(order.id)} className="bg-white text-gray-700 border border-gray-300 px-3 sm:px-4 py-2 text-xs sm:text-sm rounded hover:bg-gray-50 transition-colors">
+                            Hủy Đơn Hàng
+                          </button>
+                        )}
                         <Link to={`/orders/${order.id}`} className="bg-white text-gray-700 border border-gray-300 px-3 sm:px-4 py-2 text-xs sm:text-sm flex items-center justify-center rounded hover:bg-gray-50 transition-colors">
                           Xem Chi Tiết
                         </Link>
