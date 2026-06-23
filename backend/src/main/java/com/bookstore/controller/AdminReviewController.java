@@ -36,6 +36,12 @@ public class AdminReviewController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/{id}/dismiss-report")
+    public ResponseEntity<Review> dismissReport(@PathVariable Long id) {
+        Review review = reviewService.dismissReport(id);
+        return ResponseEntity.ok(review);
+    }
+
     @Data
     public static class UpdateReviewRequest {
         private String comment;

@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Entity
 @Table(name = "books")
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Book {
 
     @Id

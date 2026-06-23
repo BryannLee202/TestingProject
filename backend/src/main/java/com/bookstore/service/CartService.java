@@ -13,10 +13,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+import org.springframework.transaction.annotation.Transactional;
+
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class CartService {
-
     private final CartRepository cartRepository;
     private final BookRepository bookRepository;
     private final UserRepository userRepository;

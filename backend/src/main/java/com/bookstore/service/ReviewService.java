@@ -221,4 +221,20 @@ public class ReviewService {
     public List<ReviewComment> getComments(Long reviewId) {
         return reviewCommentRepository.findByReviewIdOrderByCreatedAtAsc(reviewId);
     }
+
+    @Transactional
+    public Review reportReview(Long reviewId) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đánh giá!"));
+        review.setIsReported(true);
+        return reviewRepository.save(review);
+    }
+
+    @Transactional
+    public Review dismissReport(Long reviewId) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đánh giá!"));
+        review.setIsReported(false);
+        return reviewRepository.save(review);
+    }
 }

@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Entity
 @Table(name = "wishlists")
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Wishlist {
 
     @Id
@@ -25,7 +26,7 @@ public class Wishlist {
     @com.fasterxml.jackson.annotation.JsonIgnore
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
 

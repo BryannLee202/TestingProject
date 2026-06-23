@@ -1,0 +1,72 @@
+[
+  {
+    "id": "1",
+    "description": null,
+    "name": "Sách Thiếu Nhi",
+    "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSsUuMSblBy84lSJcwnwuntQOUWJhHvmKOTHTVQBrPEPQYlve8FYlRuXmpF&s=10",
+    "is_featured": true
+  },
+  {
+    "id": "2",
+    "description": null,
+    "name": "Tiểu Thuyết",
+    "image_url": "https://m.yodycdn.com/blog/cac-the-loai-sach-yody-vn-11.jpg",
+    "is_featured": true
+  },
+  {
+    "id": "3",
+    "description": null,
+    "name": "Khoa Học Công Nghệ",
+    "image_url": "https://i.pinimg.com/736x/82/9e/6e/829e6e1566a3ab2b356e8768cce278c0.jpg",
+    "is_featured": false
+  },
+  {
+    "id": "4",
+    "description": null,
+    "name": "Combo Sách",
+    "image_url": "https://i.pinimg.com/736x/f0/bf/d3/f0bfd3616141ecff9825d9a3e33e69d4.jpg",
+    "is_featured": true
+  },
+  {
+    "id": "5",
+    "description": null,
+    "name": "Văn phòng phẩm",
+    "image_url": "https://i.pinimg.com/736x/f5/03/c4/f503c4f70070e73c9f94cde4e013e60d.jpg",
+    "is_featured": true
+  },
+  {
+    "id": "6",
+    "description": null,
+    "name": "Đồ chơi",
+    "image_url": "https://i.pinimg.com/736x/72/a3/e9/72a3e9073f267b5770121e653ec90e1e.jpg",
+    "is_featured": true
+  },
+  {
+    "id": "7",
+    "description": null,
+    "name": "Manga-Comic",
+    "image_url": "https://i.pinimg.com/736x/84/87/4d/84874d4e2398384459e0442573636355.jpg",
+    "is_featured": true
+  },
+  {
+    "id": "8",
+    "description": null,
+    "name": "Sách ngoại văn",
+    "image_url": "https://i.pinimg.com/736x/90/2b/99/902b99f2d416142988afbd25ef0da95d.jpg",
+    "is_featured": false
+  },
+  {
+    "id": "9",
+    "description": null,
+    "name": "Quà lưu niệm",
+    "image_url": "https://i.pinimg.com/736x/38/0b/f2/380bf2cc38d90735946dd69503ab01ee.jpg",
+    "is_featured": false
+  },
+  {
+    "id": "10",
+    "description": null,
+    "name": "Bách hóa",
+    "image_url": "https://i.pinimg.com/736x/e7/dc/77/e7dc7786be4b2faad53e5b40344d7eef.jpg",
+    "is_featured": false
+  }
+]

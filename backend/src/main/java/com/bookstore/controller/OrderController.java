@@ -1,6 +1,7 @@
 package com.bookstore.controller;
 
 import com.bookstore.dto.OrderRequest;
+import com.bookstore.dto.ReturnRequest;
 import com.bookstore.entity.Order;
 import com.bookstore.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -50,6 +51,32 @@ public class OrderController {
     @PutMapping("/{id}/cancel")
     public ResponseEntity<Void> cancelOrder(Authentication authentication, @PathVariable Long id) {
         orderService.userCancelOrder(id, authentication.getName());
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{id}/payment-method")
+    public ResponseEntity<Order> updatePaymentMethod(
+            Authentication authentication,
+            @PathVariable Long id,
+            @RequestParam String method) {
+        return ResponseEntity.ok(orderService.updatePaymentMethod(id, method, authentication.getName()));
+    }
+
+    @PutMapping("/{id}/return")
+    public ResponseEntity<Void> returnOrder(Authentication authentication, @PathVariable Long id, @RequestBody(required = false) ReturnRequest request) {
+        orderService.userReturnOrder(id, authentication.getName(), request);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{id}/return/approve")
+    public ResponseEntity<Void> approveReturnOrder(@PathVariable Long id) {
+        orderService.adminApproveReturn(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{id}/return/reject")
+    public ResponseEntity<Void> rejectReturnOrder(@PathVariable Long id) {
+        orderService.adminRejectReturn(id);
         return ResponseEntity.ok().build();
     }
 

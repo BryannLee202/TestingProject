@@ -63,6 +63,15 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.addComment(reviewId, authentication.getName(), request.getContent()));
     }
 
+    // --- Report a review ---
+    @PostMapping("/{reviewId}/report")
+    public ResponseEntity<Review> reportReview(@PathVariable Long reviewId, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(reviewService.reportReview(reviewId));
+    }
+
     @GetMapping("/check-eligibility/{bookId}")
     public ResponseEntity<java.util.Map<String, Object>> checkEligibility(@PathVariable Long bookId, Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {

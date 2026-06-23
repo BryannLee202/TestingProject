@@ -46,6 +46,10 @@ public class Review {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "is_reported")
+    @Builder.Default
+    private Boolean isReported = false;
+
     @OneToMany(mappedBy = "review", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JsonIgnoreProperties("review")
     private List<ReviewComment> comments;

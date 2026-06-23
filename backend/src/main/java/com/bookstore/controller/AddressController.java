@@ -84,6 +84,38 @@ public class AddressController {
         return ResponseEntity.ok(Map.of("message", "Đã đặt làm địa chỉ mặc định"));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateAddress(@PathVariable Long id, @RequestBody Address updatedAddress, Authentication auth) {
+        User user = getAuthenticatedUser(auth);
+        if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        Optional<Address> opt = addressRepository.findById(id);
+        if (opt.isEmpty() || !opt.get().getUser().getId().equals(user.getId())) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Address existing = opt.get();
+        existing.setRecipientName(updatedAddress.getRecipientName());
+        existing.setPhone(updatedAddress.getPhone());
+        existing.setCity(updatedAddress.getCity());
+        existing.setWard(updatedAddress.getWard());
+        existing.setStreet(updatedAddress.getStreet());
+        
+        if (updatedAddress.isDefault() && !existing.isDefault()) {
+            List<Address> all = addressRepository.findByUserId(user.getId());
+            all.forEach(a -> {
+                if (!a.getId().equals(existing.getId())) {
+                    a.setDefault(false);
+                    addressRepository.save(a);
+                }
+            });
+            existing.setDefault(true);
+        }
+
+        Address saved = addressRepository.save(existing);
+        return ResponseEntity.ok(saved);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteAddress(@PathVariable Long id, Authentication auth) {
         User user = getAuthenticatedUser(auth);

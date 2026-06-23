@@ -37,7 +37,7 @@ public class BookService {
     }
 
     public List<Book> getBestsellers() {
-        return bookRepository.findTop10ByOrderBySalesCountDesc();
+        return bookRepository.findTop200ByOrderBySalesCountDesc();
     }
 
     public List<Book> getCombos() {
@@ -56,7 +56,7 @@ public class BookService {
     }
 
     public List<Book> getLatestBooks() {
-        return bookRepository.findTop10ByOrderByIdDesc();
+        return bookRepository.findTop200ByOrderByIdDesc();
     }
 
     public List<Book> getDiscountedBooks() {

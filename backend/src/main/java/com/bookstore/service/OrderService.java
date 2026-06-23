@@ -1,6 +1,7 @@
 package com.bookstore.service;
 
 import com.bookstore.dto.OrderRequest;
+import com.bookstore.dto.ReturnRequest;
 import com.bookstore.entity.*;
 import com.bookstore.repository.BookRepository;
 import com.bookstore.repository.CouponRepository;
@@ -182,7 +183,12 @@ public class OrderService {
         if (request.getShippingCouponCode() != null && !request.getShippingCouponCode().trim().isEmpty()) {
             try {
                 shippingCoupon = couponService.validateCoupon(request.getShippingCouponCode(), subtotal, username);
-                if (!"SHIPPING".equals(shippingCoupon.getCategory())) {
+                boolean isShipping = "SHIPPING".equals(shippingCoupon.getCategory()) || 
+                                     (shippingCoupon.getCategory() == null && shippingCoupon.getCode().toUpperCase().contains("FREESHIP"));
+                if (!isShipping && shippingCoupon.getCategory() != null) {
+                    throw new RuntimeException("Mã này không phải mã miễn phí vận chuyển!");
+                } else if (!isShipping && shippingCoupon.getCategory() == null) {
+                    // It's null category and not a FREESHIP code, so maybe it's a discount coupon mistakenly used as shipping
                     throw new RuntimeException("Mã này không phải mã miễn phí vận chuyển!");
                 }
                 double calcShipDiscount = couponService.calculateDiscount(shippingCoupon, shippingFee);
@@ -392,6 +398,88 @@ public class OrderService {
             book.setSalesCount(Math.max(0, (book.getSalesCount() == null ? 0 : book.getSalesCount()) - item.getQuantity()));
             bookRepository.save(book);
         }
+    }
+
+    public void userReturnOrder(Long orderId, String username, ReturnRequest returnRequest) {
+        Order order = getOrderById(orderId);
+        if (!order.getUser().getUsername().equals(username)) {
+            throw new RuntimeException("Bạn không có quyền thao tác đơn hàng này!");
+        }
+        if (!"COMPLETED".equals(order.getStatus())) {
+            throw new RuntimeException("Chỉ có thể yêu cầu trả hàng/hoàn tiền cho đơn hàng đã hoàn thành!");
+        }
+
+        order.setStatus("RETURNED");
+        
+        if (returnRequest != null) {
+            order.setReturnReason(returnRequest.getReason());
+            order.setReturnPhone(returnRequest.getPhone());
+            order.setReturnBank(returnRequest.getBank());
+            order.setReturnDetails(returnRequest.getDetails());
+        }
+
+        orderRepository.save(order);
+    }
+
+    public void adminApproveReturn(Long orderId) {
+        Order order = getOrderById(orderId);
+        if (!"RETURNED".equals(order.getStatus())) {
+            throw new RuntimeException("Chỉ có thể duyệt đơn hàng đang yêu cầu trả hàng!");
+        }
+        order.setStatus("REFUNDED");
+        orderRepository.save(order);
+    }
+
+    public void adminRejectReturn(Long orderId) {
+        Order order = getOrderById(orderId);
+        if (!"RETURNED".equals(order.getStatus())) {
+            throw new RuntimeException("Chỉ có thể từ chối đơn hàng đang yêu cầu trả hàng!");
+        }
+        order.setStatus("COMPLETED");
+        order.setShippingStatus(ShippingStatus.DELIVERED);
+        
+        // Xóa thông tin yêu cầu trả hàng
+        order.setReturnReason(null);
+        order.setReturnPhone(null);
+        order.setReturnBank(null);
+        order.setReturnDetails(null);
+        
+        orderRepository.save(order);
+    }
+
+    public Order updatePaymentMethod(Long orderId, String newMethod, String username) {
+        Order order = getOrderById(orderId);
+        if (!order.getUser().getUsername().equals(username)) {
+            throw new RuntimeException("Bạn không có quyền thao tác đơn hàng này!");
+        }
+        if (!"PENDING_PAYMENT".equals(order.getStatus()) && !"PENDING".equals(order.getStatus())) {
+            throw new RuntimeException("Không thể thay đổi phương thức thanh toán cho đơn hàng ở trạng thái này!");
+        }
+
+        order.setPaymentMethod(newMethod);
+
+        if ("COD".equalsIgnoreCase(newMethod)) {
+            order.setStatus("PENDING");
+            
+            // Remove items from user's cart since the order is now placed with COD
+            for (com.bookstore.entity.OrderItem item : order.getItems()) {
+                cartService.removeCartItem(username, item.getBook().getId());
+            }
+
+            // Apply coupons if any
+            if (order.getDiscountCouponCode() != null && !order.getDiscountCouponCode().isEmpty()) {
+                couponRepository.findByCodeIgnoreCaseAndIsActiveTrue(order.getDiscountCouponCode())
+                        .ifPresent(couponService::useCoupon);
+            }
+            if (order.getShippingCouponCode() != null && !order.getShippingCouponCode().isEmpty()) {
+                couponRepository.findByCodeIgnoreCaseAndIsActiveTrue(order.getShippingCouponCode())
+                        .ifPresent(couponService::useCoupon);
+            }
+        } else {
+            order.setStatus("PENDING_PAYMENT");
+        }
+
+        return orderRepository.save(order);
     }
 
     public void deleteOrder(Long id) {

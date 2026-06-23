@@ -15,11 +15,11 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     
     java.util.Optional<Book> findFirstByTitle(String title);
 
-    List<Book> findTop10ByOrderBySalesCountDesc();
+    List<Book> findTop200ByOrderBySalesCountDesc();
 
     List<Book> findByIsComboTrue();
 
-    List<Book> findTop10ByOrderByIdDesc();
+    List<Book> findTop200ByOrderByIdDesc();
 
     List<Book> findByIsFeaturedTrue();
 

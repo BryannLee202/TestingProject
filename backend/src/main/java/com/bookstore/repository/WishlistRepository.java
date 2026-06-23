@@ -9,6 +9,8 @@ import java.util.Optional;
 
 @Repository
 public interface WishlistRepository extends JpaRepository<Wishlist, Long> {
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"book"})
     List<Wishlist> findByUserIdOrderByCreatedAtDesc(Long userId);
+    
     Optional<Wishlist> findByUserIdAndBookId(Long userId, Long bookId);
 }

@@ -5,5 +5,6 @@ public enum ShippingStatus {
     PROCESSING,
     SHIPPING,
     DELIVERED,
-    CANCELLED
+    CANCELLED,
+    RETURNED
 }
