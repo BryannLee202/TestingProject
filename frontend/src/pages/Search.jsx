@@ -173,7 +173,7 @@ export default function Search() {
                 <div>
                   <h1 className="text-xl font-bold text-gray-800">
                     {query ? (
-                      <>Kết quả tìm kiếm cho: <span className="text-primary">"{query}"</span></>
+                      <div translate="no" className="notranslate inline">Kết quả tìm kiếm cho: <span className="text-primary">"{query}"</span></div>
                     ) : (
                       <>Tất cả sản phẩm</>
                     )}

@@ -1,7 +1,8 @@
+package com.bookstore;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
-
 public class FixDb {
     public static void main(String[] args) {
         String url = "jdbc:mysql://bjf8ihu44kqfbqwzs1iv-mysql.services.clever-cloud.com:3306/bjf8ihu44kqfbqwzs1iv?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";

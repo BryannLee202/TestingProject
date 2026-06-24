@@ -7,6 +7,7 @@ import { AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import ScrollToTop from './components/common/ScrollToTop';
 import ScrollToTopButton from './components/common/ScrollToTopButton';
+import Intro from './components/common/Intro';
 
 // Các trang người dùng hay vào nhất - load ngay (không lazy)
 import Home from './pages/Home';
@@ -68,6 +69,7 @@ function App() {
       <AuthProvider>
       <CartProvider>
         <BrowserRouter>
+          <Intro />
           <ScrollToTop />
           <Suspense fallback={<PageLoader />}>
             <Routes>

@@ -1244,6 +1244,7 @@ function MemberRulesModal({ onClose }) {
                 <div className="bg-gray-50 p-3 mt-2 rounded-lg border border-gray-200">
                   <span className="font-semibold text-gray-800">Ví dụ:</span> Tài khoản mua hàng của khách hàng đã thanh toán hoàn tất là 100.000 đồng thì sẽ được quy đổi như sau:
                   <ul className="list-disc pl-5 mt-1 text-gray-600">
+                    <li>Thành viên ĐỒNG: 0.5% x 100.000 đồng = 500 Y-Point</li>
                     <li>Thành viên BẠC: 0.5% x 100.000 đồng = 500 Y-Point</li>
                     <li>Thành viên VÀNG: 1.0% x 100.000 đồng = 1.000 Y-Point</li>
                     <li>Thành viên KIM CƯƠNG: 2.0% x 100.000 đồng = 2.000 Y-Point</li>

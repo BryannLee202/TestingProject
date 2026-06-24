@@ -174,8 +174,8 @@ export default function AdminUsers() {
                            const acc = user.accumulatedPoints || 0;
                            let rank = { name: 'Thành viên Đồng', bg: 'bg-orange-100', text: 'text-orange-800' };
                            if (user.role === 'ADMIN' || acc >= 100000) rank = { name: 'Thành viên Kim Cương', bg: 'bg-gray-800', text: 'text-yellow-500' };
-                           else if (acc >= 50000) rank = { name: 'Thành viên Vàng', bg: 'bg-yellow-100', text: 'text-yellow-700' };
-                           else if (acc >= 20000) rank = { name: 'Thành viên Bạc', bg: 'bg-gray-200', text: 'text-gray-700' };
+                           else if (acc >= 30000) rank = { name: 'Thành viên Vàng', bg: 'bg-yellow-100', text: 'text-yellow-700' };
+                           else if (acc >= 5000) rank = { name: 'Thành viên Bạc', bg: 'bg-gray-200', text: 'text-gray-700' };
                            return (
                              <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${rank.bg} ${rank.text}`}>
                                {rank.name}

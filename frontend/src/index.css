@@ -20,3 +20,44 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Language Transition Effect */
+body {
+  transition: opacity 0.8s ease-in-out, filter 0.8s ease-in-out;
+}
+body.lang-transitioning {
+  opacity: 0.15;
+  filter: blur(8px);
+}
+
+/* Hide Google Translate Default Widgets */
+#google_translate_element {
+  display: none !important;
+}
+.skiptranslate iframe {
+  display: none !important;
+}
+body {
+  top: 0 !important;
+}
+
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

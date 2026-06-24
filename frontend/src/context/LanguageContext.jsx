@@ -15,6 +15,24 @@ export const LanguageProvider = ({ children }) => {
     localStorage.setItem('language', language);
   }, [language]);
 
+  // Try to sync with Google Translate on mount
+  useEffect(() => {
+    const syncGoogleTranslate = () => {
+      const selectField = document.querySelector('.goog-te-combo');
+      if (selectField) {
+        if (selectField.value !== language) {
+          selectField.value = language;
+          selectField.dispatchEvent(new Event('change'));
+        }
+      } else {
+        setTimeout(syncGoogleTranslate, 500); // Wait for script to load
+      }
+    };
+    if (language === 'en') {
+      setTimeout(syncGoogleTranslate, 500);
+    }
+  }, []);
+
   const translations = language === 'vi' ? vi : en;
 
   // Function to translate keys
@@ -23,7 +41,31 @@ export const LanguageProvider = ({ children }) => {
   };
 
   const changeLanguage = (lang) => {
+    // Add transitioning class for CSS effect
+    document.body.classList.add('lang-transitioning');
+    
     setLanguage(lang);
+    
+    // Trigger Google Translate
+    setTimeout(() => {
+      if (lang === 'vi') {
+        // Clear Google Translate cookies to ensure it completely restores the original DOM
+        document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname}`;
+        window.location.reload();
+      } else {
+        const selectField = document.querySelector('.goog-te-combo');
+        if (selectField) {
+          selectField.value = lang;
+          selectField.dispatchEvent(new Event('change'));
+        }
+      }
+      
+      // Remove transitioning class after 800ms
+      setTimeout(() => {
+        document.body.classList.remove('lang-transitioning');
+      }, 800);
+    }, 10);
   };
 
   return (

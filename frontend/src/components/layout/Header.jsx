@@ -265,7 +265,7 @@ export default function Header() {
             )}
           </div>
 
-          <form onSubmit={handleSearch} className="relative flex-1">
+          <form translate="no" onSubmit={handleSearch} className="notranslate relative flex-1">
             <input 
               type="text" 
               value={searchQuery}
@@ -284,7 +284,7 @@ export default function Header() {
 
           {/* Suggestions Dropdown */}
           {showSuggestions && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50">
+            <div translate="no" className="notranslate absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50">
               {searchQuery.trim().length > 0 ? (
                 <>
                   {matchedCategories.length > 0 && (
@@ -330,11 +330,10 @@ export default function Header() {
                           </div>
                         </Link>
                       ))}
-                      <div 
-                        onClick={handleSearch}
-                        className="p-3 text-center text-sm text-primary font-medium hover:bg-gray-50 cursor-pointer"
-                      >
-                        Xem tất cả kết quả cho "{searchQuery}"
+                      <div translate="no" className="notranslate px-4 py-3 text-center border-t border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer" onClick={handleSearch}>
+                        <span className="text-sm text-primary font-medium">
+                          Xem tất cả kết quả cho "{searchQuery}"
+                        </span>
                       </div>
                     </div>
                   ) : matchedCategories.length === 0 ? (
@@ -468,7 +467,7 @@ export default function Header() {
         {/* Icons & Language */}
         <div className="flex items-center gap-6">
           {/* Language Switcher */}
-          <div className="flex items-center gap-2 text-sm font-medium border border-gray-200 rounded-full p-1 bg-gray-50">
+          <div translate="no" className="notranslate flex items-center gap-2 text-sm font-medium border border-gray-200 rounded-full p-1 bg-gray-50">
             <button 
               onClick={() => changeLanguage('vi')}
               className={`px-2 py-1 rounded-full transition-colors ${language === 'vi' ? 'bg-primary text-white' : 'text-gray-500 hover:text-primary'}`}
@@ -554,7 +553,7 @@ export default function Header() {
                   {user ? `${t('header.welcome')}, ${user.fullName || user.name || ''}` : t('header.account')}
                 </span>
                 <span className="text-[11px] font-bold">
-                  {user ? (user.role === 'ADMIN' || (user.yPoints || 0) >= 100000 ? t('header.diamond') : (user.yPoints || 0) >= 30000 ? t('header.gold') : t('header.silver')) : t('header.loginRegister')}
+                  {user ? (user.role === 'ADMIN' || (user.accumulatedPoints || 0) >= 100000 ? t('header.diamond') : (user.accumulatedPoints || 0) >= 30000 ? t('header.gold') : (user.accumulatedPoints || 0) >= 5000 ? t('header.silver') : t('header.bronze')) : t('header.loginRegister')}
                 </span>
               </div>
             </div>
@@ -566,10 +565,10 @@ export default function Header() {
                   <>
                     <Link to="/profile" className="flex items-center justify-between px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors">
                       <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${(user.role === 'ADMIN' || (user.yPoints || 0) >= 100000) ? 'bg-gray-800 text-yellow-500' : (user.yPoints || 0) >= 30000 ? 'bg-yellow-100 text-yellow-500' : 'bg-gray-100 text-gray-500'}`}>
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${(user.role === 'ADMIN' || (user.accumulatedPoints || 0) >= 100000) ? 'bg-gray-800 text-yellow-500' : (user.accumulatedPoints || 0) >= 30000 ? 'bg-yellow-100 text-yellow-500' : (user.accumulatedPoints || 0) >= 5000 ? 'bg-gray-200 text-gray-600' : 'bg-orange-100 text-orange-600'}`}>
                           <FaCrown size={20} />
                         </div>
-                        <span className="font-bold text-gray-700">{t('header.member')} {user.role === 'ADMIN' || (user.yPoints || 0) >= 100000 ? t('header.diamond') : (user.yPoints || 0) >= 30000 ? t('header.gold') : t('header.silver')}</span>
+                        <span className="font-bold text-gray-700">{t('header.member')} {user.role === 'ADMIN' || (user.accumulatedPoints || 0) >= 100000 ? t('header.diamond') : (user.accumulatedPoints || 0) >= 30000 ? t('header.gold') : (user.accumulatedPoints || 0) >= 5000 ? t('header.silver') : t('header.bronze')}</span>
                       </div>
                       <FaChevronRight className="text-gray-400" />
                     </Link>
@@ -618,7 +617,7 @@ export default function Header() {
         >
           <FaThLarge className="text-2xl" />
         </button>
-        <form onSubmit={handleSearch} className="relative flex-1">
+        <form translate="no" onSubmit={handleSearch} className="notranslate relative flex-1">
           <input
             type="text"
             value={searchQuery}
@@ -637,7 +636,7 @@ export default function Header() {
 
         {/* Mobile Suggestions Dropdown */}
         {showSuggestions && (
-          <div className="absolute left-0 right-0 mt-1 bg-white shadow-lg border-t border-gray-100 z-50 max-h-[70vh] overflow-y-auto">
+          <div translate="no" className="notranslate absolute left-0 right-0 mt-1 bg-white shadow-lg border-t border-gray-100 z-50 max-h-[70vh] overflow-y-auto">
             {searchQuery.trim().length > 0 ? (
               <>
                 {matchedCategories.length > 0 && (
@@ -683,7 +682,7 @@ export default function Header() {
                         </div>
                       </Link>
                     ))}
-                    <div onClick={handleSearch} className="p-3 text-center text-sm text-primary font-medium hover:bg-gray-50 cursor-pointer">
+                    <div translate="no" className="notranslate p-3 text-center text-sm text-primary font-medium hover:bg-gray-50 cursor-pointer" onClick={handleSearch}>
                       Xem tất cả kết quả cho "{searchQuery}"
                     </div>
                   </div>

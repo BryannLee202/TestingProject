@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, Link, NavLink, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -25,6 +25,10 @@ export default function AdminLayout() {
   const { user, logout, loading } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    document.title = "Trang Admin";
+  }, []);
 
   if (loading) {
     return (
@@ -68,7 +72,7 @@ export default function AdminLayout() {
         <div className="h-16 flex items-center justify-between px-6 border-b border-gray-800 bg-gray-950">
           <div className="flex items-center gap-2 font-bold text-lg text-primary-light">
             <FaShieldAlt className="text-xl" />
-            <span>GRAPE ADMIN</span>
+            <span>Trang Admin</span>
           </div>
           <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-white hover:text-primary transition-colors">
             <FaTimes />
