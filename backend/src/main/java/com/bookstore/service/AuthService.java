@@ -60,9 +60,9 @@ public class AuthService {
                 System.err.println("Firebase Token Error: " + e.getMessage());
                 throw new RuntimeException("Xác thực số điện thoại thất bại! Vui lòng thử lại.");
             }
-        } else if (request.getPhone() != null && request.getOtp() != null) {
-            // Dự phòng cho OTP Email nếu Frontend vẫn gửi OTP
-            if (!otpService.verifyOtp(request.getPhone(), request.getOtp())) {
+        } else if (request.getOtp() != null) {
+            String verifyKey = (request.getEmail() != null && !request.getEmail().isEmpty()) ? request.getEmail() : request.getPhone();
+            if (!otpService.verifyOtp(verifyKey, request.getOtp())) {
                 throw new RuntimeException("Mã OTP không chính xác hoặc đã hết hạn!");
             }
         }
