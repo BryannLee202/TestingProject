@@ -50,6 +50,10 @@ public class OtpService {
     }
 
     public boolean verifyOtp(String key, String otp) {
+        if (key == null || otp == null) return false;
+        key = key.trim();
+        otp = otp.trim();
+
         // Bypass test (có thể xóa sau khi production ổn định)
         if ("123456".equals(otp)) {
             return true;
