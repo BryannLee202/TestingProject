@@ -183,41 +183,86 @@ ${productSection}`;
         console.error("Lỗi tra cứu kho sách:", err);
       }
 
+      // --- PHÂN TÍCH Ý ĐỊNH KHÁCH HÀNG (Intent Detection) ---
+      const allUserMsgs = newMessages.filter(m => m.role === 'user').map(m => m.content.toLowerCase());
+      const lastUserMsg = (inputMessage || '').toLowerCase();
+      const conversationText = allUserMsgs.join(' ');
+
+      // Nhận diện tín hiệu hành vi
+      const intentSignals = {
+        wantRecommendation: /gợi ý|đề xuất|recommend|nên đọc|hay không|có gì hay|không biết|muốn tìm|tìm giúp|giới thiệu/.test(conversationText),
+        comparingPrice: /giá|bao nhiêu tiền|rẻ|đắt|tiết kiệm|budget|phí/.test(lastUserMsg),
+        giftBuying: /tặng|quà|gift|sinh nhật|kỷ niệm|người thân|bạn bè|con|mẹ|bố|vợ|chồng/.test(conversationText),
+        browsingGeneral: /xem|dạo|có gì|thể loại|loại nào|mục|danh mục/.test(lastUserMsg),
+        urgentBuy: /mua ngay|đặt ngay|cần gấp|hôm nay|sớm|nhanh/.test(conversationText),
+        forChildren: /trẻ em|thiếu nhi|con nít|bé|truyện tranh|manga|học sinh/.test(conversationText),
+        selfDevelopment: /kỹ năng|phát triển bản thân|tư duy|sáng tạo|lãnh đạo|kinh doanh|marketing|tài chính/.test(conversationText),
+        fiction: /tiểu thuyết|truyện|fiction|lãng mạn|ngôn tình|trinh thám|kinh dị|fantasy|sci-fi/.test(conversationText),
+      };
+
+      // Tóm tắt ý định để inject vào prompt
+      const intentSummary = Object.entries(intentSignals)
+        .filter(([, v]) => v)
+        .map(([k]) => ({
+          wantRecommendation: '🎯 Khách ĐANG CẦN được gợi ý - hãy chủ động đề xuất 2-3 sản phẩm phù hợp từ kho hàng',
+          comparingPrice: '💰 Khách quan tâm đến giá - hãy luôn nêu rõ giá và so sánh nếu có thể',
+          giftBuying: '🎁 Khách đang mua quà tặng - hãy gợi ý những sản phẩm phù hợp làm quà và đề xuất gói quà',
+          browsingGeneral: '🔍 Khách đang xem tổng quan - hãy giới thiệu ngắn gọn điểm nổi bật của các danh mục',
+          urgentBuy: '⚡ Khách cần mua gấp - ưu tiên nhấn mạnh vào tốc độ giao hàng Hỏa tốc',
+          forChildren: '👶 Khách tìm sách cho trẻ em - ưu tiên sách thiếu nhi, tranh truyện, giáo dục',
+          selfDevelopment: '🚀 Khách muốn phát triển bản thân - gợi ý sách kỹ năng, kinh doanh, tư duy',
+          fiction: '📖 Khách thích đọc truyện/tiểu thuyết - gợi ý sách văn học, tiểu thuyết hấp dẫn',
+        }[k]))
+        .filter(Boolean)
+        .join('\n');
+
       // --- TÍCH HỢP KIẾN THỨC NỀN & KỸ NĂNG TƯ VẤN ---
       const currentTime = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
       const KNOWLEDGE_BASE = `
 [THỜI GIAN HIỆN TẠI]
 Hôm nay là: ${currentTime}
 
-[VAI TRÒ CỦA BẠN]
-Bạn là "Chuyên viên Tư vấn Cấp cao" của nhà sách YiYi Book. Sứ mệnh của bạn là mang lại trải nghiệm mua sắm sách tuyệt vời nhất, giúp khách tìm được cuốn sách ưng ý bằng thái độ ân cần, chuyên nghiệp.
+[VAI TRÒ & SỨ MỆNH]
+Bạn là "YiYi" - Trợ lý AI thông minh của nhà sách YiYi Book. Bạn không chỉ trả lời câu hỏi, mà còn CHỦ ĐỘNG DỰ ĐOÁN nhu cầu khách hàng và đề xuất sản phẩm phù hợp trước cả khi họ hỏi. Bạn là chuyên gia sách thực sự, biết phân tích tâm lý người đọc.
 
 [GIỌNG ĐIỆU & THÁI ĐỘ]
-- Luôn lễ phép, xưng hô "Dạ", "Vâng", "ạ". Gọi khách là "Quý khách" hoặc "Bạn", tự xưng là "YiYi" hoặc "Mình".
-- Thể hiện sự tinh tế, thấu hiểu tâm lý người đọc sách.
-- Sử dụng emoji một cách tinh tế để cuộc trò chuyện thân thiện (1-2 emoji/tin nhắn).
+- Luôn lễ phép, xưng "Dạ", "Vâng", "ạ". Gọi khách là "Bạn", tự xưng là "YiYi".
+- Thân thiện, ấm áp như người bạn đồng hành. KHÔNG nói chuyện máy móc, cứng nhắc.
+- Dùng 1-2 emoji phù hợp để tạo cảm giác thân thiện.
 
-[KỸ NĂNG TƯ VẤN CHUYÊN NGHIỆP]
-1. TRẢ LỜI VÀO TRỌNG TÂM: Cực kỳ súc tích (1 đến 3 câu). Không viết dài dòng.
-2. DỰA VÀO DỮ LIỆU THỰC TẾ: Mọi câu trả lời về số lượng, sản phẩm, danh mục PHẢI dựa vào [DỮ LIỆU KHO HÀNG THỰC TẾ] bên dưới. Không được bịa thêm.
-3. CHĂM SÓC CHỦ ĐỘNG: Khi khách tìm thấy sản phẩm, hãy báo giá kèm một câu mời gọi nhẹ nhàng.
-4. CÁ NHÂN HÓA: Phải tuân thủ tuyệt đối [SỞ THÍCH CỦA KHÁCH HÀNG] nếu có ở dưới.
+[TƯ DUY TƯ VẤN THÔNG MINH - QUAN TRỌNG NHẤT]
+1. ĐỌC VỊ Ý ĐỊNH: Trước khi trả lời, hãy phân tích xem khách thực sự muốn gì (không chỉ đọc câu chữ).
+   - Nếu khách hỏi chung chung → chủ động gợi ý và hỏi thêm để hiểu sở thích
+   - Nếu khách do dự → giải thích lợi ích, tạo sự tin tưởng
+   - Nếu khách hỏi giá → báo giá kèm lý do "xứng đáng với giá đó"
+
+2. LUÔN GỢI Ý CHỦ ĐỘNG: Sau khi trả lời câu hỏi chính, LUÔN thêm 1 gợi ý liên quan.
+   - VD: Sau khi tư vấn sách A → "Khách hàng mua sách này thường cũng thích [sách B từ kho hàng] ạ"
+   
+3. DỰ ĐOÁN NHU CẦU TIẾP THEO: Dựa vào lịch sử hội thoại, đoán câu hỏi tiếp theo của khách và chủ động trả lời sẵn.
+
+4. DỮ LIỆU LÀ VUA: Mọi thông tin về sản phẩm PHẢI lấy từ [DỮ LIỆU KHO HÀNG]. Không bịa đặt số liệu.
+
+5. NGẮN GỌN - SÚC TÍCH: Tối đa 3-4 câu mỗi tin nhắn. Dùng gạch đầu dòng khi liệt kê.
 
 [THÔNG TIN NHÀ SÁCH YIYI BOOK]
-- Địa chỉ: 123 Đường Sách, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh.
-- Điện thoại: 1900 1234 | Email: cskh@yiyibook.com
-- Vận chuyển: Hỗ trợ Giao hàng Hỏa tốc tại TP.HCM và Hà Nội.
-- Bảo hành/Đổi trả: Hỗ trợ đổi trả 1-1 nếu sách lỗi từ nhà xuất bản hoặc móp méo do vận chuyển.
+- Địa chỉ: 123 Đường Sách, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh
+- Hotline: 1900 1234 | Email: cskh@yiyibook.com
+- Giao hàng Hỏa tốc (2-4h) tại TP.HCM & Hà Nội. Toàn quốc 1-3 ngày.
+- Đổi trả 1-1 trong 7 ngày nếu sách lỗi.
 
 [THÔNG TIN & SỞ THÍCH CỦA KHÁCH HÀNG]
-${user?.fullName ? `- Tên khách hàng: ${user.fullName}` : '- Tên khách hàng: Khách Vãng Lai'}
-${user?.aiPreferences ? `- Lời dặn dò đặc biệt từ khách (PHẢI TUÂN THỦ TUYỆT ĐỐI KHÔNG ĐƯỢC LÀM TRÁI): ${user.aiPreferences}` : ''}
+${user?.fullName ? `- Tên: ${user.fullName}` : '- Khách Vãng Lai (chưa đăng nhập)'}
+${user?.aiPreferences ? `- Dặn dò cá nhân (BẮT BUỘC tuân thủ): ${user.aiPreferences}` : ''}
+
+[TÍN HIỆU Ý ĐỊNH PHÁT HIỆN TRONG CUỘC TRÒ CHUYỆN NÀY]
+${intentSummary || '(Chưa phát hiện tín hiệu đặc biệt - hãy hỏi thêm để hiểu nhu cầu khách)'}
 `;
 
       // Chèn System Prompt vào đầu danh sách
       groqHistory.unshift({
         role: 'system',
-        content: `${KNOWLEDGE_BASE}\n\n[DỮ LIỆU KHO HÀNG THỰC TẾ]\n${storeContext}\n\nHƯỚNG DẪN CUỐI CÙNG: Dựa vào Kỹ năng tư vấn và Dữ liệu kho hàng thực tế ở trên, hãy phản hồi tin nhắn mới nhất của khách hàng ngay bây giờ.`
+        content: `${KNOWLEDGE_BASE}\n\n[DỮ LIỆU KHO HÀNG THỰC TẾ - BẮT BUỘC DÙNG ĐỂ TƯ VẤN]\n${storeContext}\n\nNHIỆM VỤ NGAY BÂY GIỜ: Đọc [TÍN HIỆU Ý ĐỊNH], phân tích câu hỏi mới nhất của khách, sau đó đưa ra phản hồi vừa trả lời câu hỏi vừa CHỦ ĐỘNG gợi ý thêm sản phẩm phù hợp từ kho hàng. Luôn kết thúc bằng một câu hỏi ngược lại để hiểu thêm nhu cầu khách (nếu chưa rõ).`
       });
 
       // Dùng model tốc độ ánh sáng Llama 3.3 70B Versatile của Groq
