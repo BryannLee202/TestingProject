@@ -47,25 +47,29 @@ export const LanguageProvider = ({ children }) => {
     setLanguage(lang);
     
     // Trigger Google Translate
-    setTimeout(() => {
-      if (lang === 'vi') {
-        // Clear Google Translate cookies to ensure it completely restores the original DOM
-        document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-        document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname}`;
-        window.location.reload();
-      } else {
-        const selectField = document.querySelector('.goog-te-combo');
-        if (selectField) {
+    const triggerTranslation = () => {
+      const selectField = document.querySelector('.goog-te-combo');
+      if (selectField) {
+        if (lang === 'vi') {
+          document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+          document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname}`;
+          selectField.value = 'vi';
+        } else {
           selectField.value = lang;
-          selectField.dispatchEvent(new Event('change'));
         }
+        selectField.dispatchEvent(new Event('change', { bubbles: true }));
       }
-      
-      // Remove transitioning class after 800ms
-      setTimeout(() => {
-        document.body.classList.remove('lang-transitioning');
-      }, 800);
-    }, 10);
+    };
+
+    setTimeout(triggerTranslation, 10);
+    // Retry to ensure Google Translate catches the event (fixes the "double click required" issue)
+    setTimeout(triggerTranslation, 200);
+    setTimeout(triggerTranslation, 500);
+
+    // Remove transitioning class after 800ms
+    setTimeout(() => {
+      document.body.classList.remove('lang-transitioning');
+    }, 800);
   };
 
   return (

@@ -61,3 +61,13 @@ body {
     opacity: 1;
   }
 }
+
+/* Hide Google Translate Tooltip and Highlights */
+#goog-gt-tt, .goog-te-balloon-frame {
+  display: none !important;
+}
+.goog-text-highlight {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
