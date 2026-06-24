@@ -81,7 +81,7 @@ export default function Footer() {
           {/* Col 1: Company Info */}
           <div className="lg:col-span-1">
             <Link to="/" className="flex items-center text-primary font-bold text-2xl gap-2 mb-4">
-              <img src="/logoYiYi.png" alt="YiYi Book" className="h-10 object-contain" />
+              <img src="/logoYiYi.png" alt="YiYi Book" className="h-10 w-10 object-cover rounded-full" />
             </Link>
             <ul className="space-y-3 text-sm text-gray-600">
               <li className="flex items-start gap-3">

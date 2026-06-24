@@ -221,7 +221,7 @@ export default function Header() {
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 text-2xl font-bold text-primary mr-4">
-          <img src="/logoYiYi.png" alt="YiYi Book" className="h-10 object-contain" />
+          <img src="/logoYiYi.png" alt="YiYi Book" className="h-10 w-10 object-cover rounded-full" />
         </Link>
 
         {/* Search */}
