@@ -53,7 +53,7 @@ export default function AIChatWidget() {
         parts: [{ text: msg.content }]
       }));
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -64,15 +64,50 @@ export default function AIChatWidget() {
         })
       });
 
-      const data = await response.json();
-      
       if (!response.ok) {
-        throw new Error(data.error?.message || `Lỗi máy chủ (${response.status})`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error?.message || `Lỗi máy chủ (${response.status})`);
       }
 
-      const botReply = data.candidates[0].content.parts[0].text;
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
       
-      setMessages(prev => [...prev, { role: 'model', content: botReply }]);
+      // Tạo một tin nhắn rỗng của bot để stream dữ liệu vào
+      setMessages(prev => [...prev, { role: 'model', content: '' }]);
+      setIsTyping(false); // Tắt hiệu ứng typing vì chữ bắt đầu hiện ra
+
+      let done = false;
+      let buffer = "";
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+        if (value) {
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          // Giữ lại phần tử cuối cùng vì có thể nó chưa tải xong một dòng hoàn chỉnh
+          buffer = lines.pop() || "";
+          
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              const dataStr = line.replace("data: ", "").trim();
+              if (!dataStr || dataStr === "[DONE]") continue;
+              try {
+                const data = JSON.parse(dataStr);
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                if (text) {
+                  setMessages(prev => {
+                    const newMsgs = [...prev];
+                    newMsgs[newMsgs.length - 1].content += text;
+                    return newMsgs;
+                  });
+                }
+              } catch (e) {
+                console.error("Lỗi parse chunk:", e, dataStr);
+              }
+            }
+          }
+        }
+      }
     } catch (error) {
       console.error("Gemini API Error:", error);
       setMessages(prev => [...prev, { role: 'model', content: `Lỗi kết nối: ${error.message}` }]);
