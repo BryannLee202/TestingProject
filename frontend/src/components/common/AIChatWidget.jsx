@@ -3,9 +3,15 @@ import { FaCommentDots, FaTimes, FaPaperPlane, FaRobot, FaUser, FaKey } from 're
 
 export default function AIChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    { role: 'model', content: 'Xin chào! Mình là trợ lý AI của YiYi Book. Bạn cần hỗ trợ tìm sách hay tư vấn gì không ạ?' }
-  ]);
+  const [messages, setMessages] = useState(() => {
+    const saved = localStorage.getItem('yiyi_chat_history');
+    if (saved) {
+      try { return JSON.parse(saved); } catch(e) {}
+    }
+    return [
+      { role: 'model', content: 'Xin chào! Mình là trợ lý AI của YiYi Book. Mình luôn ghi nhớ sở thích của bạn, hôm nay bạn muốn tìm sách gì ạ?' }
+    ];
+  });
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -46,8 +52,18 @@ export default function AIChatWidget() {
   };
 
   useEffect(() => {
+    localStorage.setItem('yiyi_chat_history', JSON.stringify(messages));
     scrollToBottom();
   }, [messages, isTyping]);
+
+  // Nút xóa lịch sử trò chuyện
+  const handleClearHistory = () => {
+    if (window.confirm('Bạn có chắc muốn xóa toàn bộ lịch sử trò chuyện?')) {
+      const initMsg = [{ role: 'model', content: 'Lịch sử đã được xóa. Mình có thể giúp gì cho bạn lúc này?' }];
+      setMessages(initMsg);
+      localStorage.setItem('yiyi_chat_history', JSON.stringify(initMsg));
+    }
+  };
 
   const handleSendMessage = async (e) => {
     e?.preventDefault();
@@ -68,9 +84,8 @@ export default function AIChatWidget() {
     setIsTyping(true);
 
     try {
-      // Chuẩn bị lịch sử chat cho Gemini
-      // GROQ: Lịch sử hội thoại
-      const recentMessages = newMessages.slice(-6);
+      // Chuẩn bị lịch sử chat cho Groq (Giữ ngữ cảnh dài hơn để AI "nhớ" lâu hơn)
+      const recentMessages = newMessages.slice(-20);
 
       const groqHistory = recentMessages.map(msg => ({
         role: msg.role === 'model' ? 'assistant' : 'user',
@@ -124,7 +139,11 @@ export default function AIChatWidget() {
       }
 
       // --- TÍCH HỢP KIẾN THỨC NỀN & KỸ NĂNG TƯ VẤN ---
+      const currentTime = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
       const KNOWLEDGE_BASE = `
+[THỜI GIAN HIỆN TẠI]
+Hôm nay là: ${currentTime}
+
 [VAI TRÒ CỦA BẠN]
 Bạn là "Chuyên viên Tư vấn Cấp cao" của nhà sách YiYi Book. Sứ mệnh của bạn là mang lại trải nghiệm mua sắm sách tuyệt vời nhất, giúp khách tìm được cuốn sách ưng ý bằng thái độ ân cần, chuyên nghiệp.
 
@@ -137,6 +156,7 @@ Bạn là "Chuyên viên Tư vấn Cấp cao" của nhà sách YiYi Book. Sứ m
 1. TRẢ LỜI VÀO TRỌNG TÂM: Cực kỳ súc tích (1 đến 3 câu). Không viết dài dòng.
 2. NÓI KHÔNG VỚI BỊA ĐẶT: Nếu khách hỏi sách không có trong [DỮ LIỆU KHO HÀNG], tuyệt đối báo hết hàng. Chân thành xin lỗi và chủ động gợi ý: "Bạn có muốn YiYi giới thiệu tựa sách khác cùng chủ đề không ạ?".
 3. CHĂM SÓC CHỦ ĐỘNG: Khi khách tìm thấy sách, hãy báo giá kèm một câu mời gọi nhẹ nhàng (VD: "Bạn có muốn đặt luôn để YiYi gói gửi Hỏa tốc cho mình không ạ?").
+4. CÁ NHÂN HÓA (HỌC HỎI TỪ KHÁCH HÀNG): Luôn ghi nhớ sở thích, thói quen và lịch sử trò chuyện trước đó của khách để đưa ra gợi ý sách phù hợp nhất. Thể hiện rằng bạn nhớ những gì khách đã nói.
 
 [THÔNG TIN NHÀ SÁCH YIYI BOOK]
 - Địa chỉ: 123 Đường Sách, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh.
@@ -241,24 +261,33 @@ Bạn là "Chuyên viên Tư vấn Cấp cao" của nhà sách YiYi Book. Sứ m
         }`}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#C92127] via-[#e63946] to-[#ff4d4d] text-white px-6 py-5 flex items-center gap-4 relative overflow-hidden">
-          {/* Decorative background elements */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl"></div>
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-black/10 rounded-full -ml-10 -mb-10 blur-xl"></div>
-          
-          <div className="w-12 h-12 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full flex items-center justify-center shadow-inner relative z-10">
-            <FaRobot className="text-2xl drop-shadow-md" />
+        <div className="bg-gradient-to-r from-[#C92127] via-[#e63946] to-[#ff4d4d] text-white px-6 py-5 flex items-center justify-between relative overflow-hidden shrink-0">
+          <div className="flex items-center gap-4">
+            {/* Decorative background elements */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-black/10 rounded-full -ml-10 -mb-10 blur-xl"></div>
+            
+            <div className="w-12 h-12 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full flex items-center justify-center shadow-inner relative z-10">
+              <FaRobot className="text-2xl drop-shadow-md" />
+            </div>
+            <div className="relative z-10">
+              <h3 className="font-extrabold text-lg tracking-wide drop-shadow-sm">Trợ lý AI YiYi</h3>
+              <p className="text-xs font-medium text-red-50 flex items-center gap-1.5 opacity-90">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-300 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-400 border border-green-200"></span>
+                </span>
+                Luôn sẵn sàng hỗ trợ
+              </p>
+            </div>
           </div>
-          <div className="relative z-10">
-            <h3 className="font-extrabold text-lg tracking-wide drop-shadow-sm">Trợ lý AI YiYi</h3>
-            <p className="text-xs font-medium text-red-50 flex items-center gap-1.5 opacity-90">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-300 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-400 border border-green-200"></span>
-              </span>
-              Luôn sẵn sàng hỗ trợ
-            </p>
-          </div>
+          <button 
+            onClick={handleClearHistory}
+            className="text-white/70 hover:text-white transition-colors relative z-10 p-2"
+            title="Xóa lịch sử trò chuyện"
+          >
+            <FaTimes size={16} />
+          </button>
         </div>
 
         {/* Khung cảnh báo API Key */}
