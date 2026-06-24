@@ -15,10 +15,10 @@ public class FixDb {
             System.out.println("Connected to database!");
             
             try {
-                stmt.executeUpdate("ALTER TABLE otp_store DROP COLUMN `key`");
-                System.out.println("Successfully dropped column `key` from otp_store.");
+                int count = stmt.executeUpdate("UPDATE orders SET created_at = DATE_ADD(created_at, INTERVAL 7 HOUR)");
+                System.out.println("Successfully added 7 hours to " + count + " orders.");
             } catch (Exception e) {
-                System.out.println("Error dropping column (maybe it doesn't exist?): " + e.getMessage());
+                System.out.println("Error updating orders: " + e.getMessage());
             }
             
         } catch (Exception e) {
