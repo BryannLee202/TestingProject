@@ -14,12 +14,9 @@ export default function AIChatWidget() {
   // ==========================================
   // ==========================================
   // API Key lấy từ cấu hình môi trường Vercel (.env)
-  // Nếu không có, sẽ dùng key dự phòng (đã được làm mờ để tránh Github chặn)
+  // Vui lòng đăng ký Groq.com để lấy Key và điền vào biến VITE_GROQ_API_KEY
   // ==========================================
-  const p1 = 'sk-or-v1-37c9';
-  const p2 = 'd8ce93e2319593e5a7';
-  const p3 = 'fc89d52926757116e8b538e4fa620fdb4f097fe9c0';
-  const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || (p1 + p2 + p3);
+  const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY || 'YOUR_GROQ_API_KEY';
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -33,10 +30,10 @@ export default function AIChatWidget() {
     e?.preventDefault();
     if (!inputMessage.trim()) return;
 
-    if (!OPENROUTER_API_KEY) {
+    if (!GROQ_API_KEY || GROQ_API_KEY === 'YOUR_GROQ_API_KEY') {
       setMessages(prev => [...prev, 
         { role: 'user', content: inputMessage },
-        { role: 'model', content: '⚠️ Hệ thống chưa được cấu hình API Key. Vui lòng thêm biến môi trường VITE_OPENROUTER_API_KEY vào Vercel để sử dụng tính năng này.' }
+        { role: 'model', content: '⚠️ Hệ thống chưa được cấu hình API Key. Vui lòng thêm biến môi trường VITE_GROQ_API_KEY vào Vercel để sử dụng tính năng này.' }
       ]);
       setInputMessage('');
       return;
@@ -49,30 +46,30 @@ export default function AIChatWidget() {
 
     try {
       // Chuẩn bị lịch sử chat cho Gemini
-      // OPENROUTER: Lịch sử hội thoại không bắt buộc phải tuân theo thứ tự khắt khe như Gemini
+      // GROQ: Lịch sử hội thoại
       const recentMessages = newMessages.slice(-6);
 
-      const openRouterHistory = recentMessages.map(msg => ({
+      const groqHistory = recentMessages.map(msg => ({
         role: msg.role === 'model' ? 'assistant' : 'user',
         content: msg.content
       }));
 
       // Chèn System Prompt vào đầu danh sách
-      openRouterHistory.unshift({
+      groqHistory.unshift({
         role: 'system',
         content: "Từ bây giờ, bạn là trợ lý tư vấn của nhà sách YiYi Book. Bạn luôn trả lời lịch sự, ngắn gọn (tối đa 2-3 câu) và nhiệt tình bằng tiếng Việt."
       });
 
-      // Dùng model tốc độ cao Llama 3.2 3B Instruct để phản hồi nhanh nhất
-      const response = await fetch(`https://openrouter.ai/api/v1/chat/completions`, {
+      // Dùng model tốc độ ánh sáng Llama 3.3 70B Versatile của Groq
+      const response = await fetch(`https://api.groq.com/openai/v1/chat/completions`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OPENROUTER_API_KEY}`
+          'Authorization': `Bearer ${GROQ_API_KEY}`
         },
         body: JSON.stringify({
-          model: "openrouter/free",
-          messages: openRouterHistory,
+          model: "llama-3.3-70b-versatile",
+          messages: groqHistory,
           stream: true
         })
       });
@@ -125,7 +122,7 @@ export default function AIChatWidget() {
         }
       }
     } catch (error) {
-      console.error("OpenRouter API Error:", error);
+      console.error("Groq API Error:", error);
       setMessages(prev => [...prev, { role: 'model', content: `Lỗi kết nối: ${error.message}` }]);
     } finally {
       setIsTyping(false);
@@ -166,12 +163,12 @@ export default function AIChatWidget() {
         </div>
 
         {/* Khung cảnh báo API Key */}
-        {!OPENROUTER_API_KEY && (
+        {(!GROQ_API_KEY || GROQ_API_KEY === 'YOUR_GROQ_API_KEY') && (
           <div className="bg-yellow-50 px-4 py-3 border-b border-yellow-200 text-sm text-yellow-800 flex items-start gap-2">
             <FaKey className="mt-0.5 flex-shrink-0" />
             <p>
               <strong>Cần cài đặt API Key!</strong><br/>
-              Hãy thêm biến môi trường <code className="bg-yellow-200 px-1 rounded">VITE_OPENROUTER_API_KEY</code> trên Vercel để Chatbot hoạt động.
+              Hãy thêm biến môi trường <code className="bg-yellow-200 px-1 rounded">VITE_GROQ_API_KEY</code> trên Vercel để Chatbot hoạt động.
             </p>
           </div>
         )}
@@ -228,7 +225,7 @@ export default function AIChatWidget() {
             </button>
           </form>
           <div className="text-center mt-2">
-            <span className="text-[10px] text-gray-400">Powered by OpenRouter AI</span>
+            <span className="text-[10px] text-gray-400">Powered by Groq Llama 3.3 70B</span>
           </div>
         </div>
       </div>
