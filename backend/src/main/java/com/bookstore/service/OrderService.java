@@ -93,7 +93,7 @@ public class OrderService {
         double totalOldPrice = 0;
         double shippingFee = request.getShippingFee() != null ? request.getShippingFee() : 0.0;
 
-        String initialStatus = "VNPAY".equalsIgnoreCase(request.getPaymentMethod()) ? "PENDING_PAYMENT" : "PENDING";
+        String initialStatus = "COD".equalsIgnoreCase(request.getPaymentMethod()) ? "PENDING" : "PENDING_PAYMENT";
 
         Order order = Order.builder()
                 .user(user)

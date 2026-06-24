@@ -446,7 +446,7 @@ export default function OrderDetail() {
                   <span className="font-medium text-red-500">Đơn hàng đã được hủy.</span>
                 ) : (
                   <>
-                    Nếu hàng nhận được có vấn đề, bạn có thể gửi yêu cầu Trả hàng/Hoàn tiền trước <span className="font-medium text-gray-800">23-06-2026</span><br/>
+                    Nếu hàng nhận được có vấn đề, bạn có thể gửi yêu cầu Trả hàng/Hoàn tiền trước <span className="font-medium text-gray-800">{order?.createdAt ? new Date(new Date(order.createdAt).getTime() + 15 * 24 * 60 * 60 * 1000).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-') : '...'}</span><br/>
                     <span className="text-xs text-gray-500 mt-1 inline-block">🚀 Giao nhanh đúng hẹn: nhận Voucher 15.000đ nếu đơn hàng được giao đến bạn sau ngày dự kiến.</span>
                   </>
                 )}
