@@ -28,6 +28,9 @@ public class UserService {
         user.setPhone(request.getPhone());
         user.setGender(request.getGender());
         user.setBirthday(request.getBirthday());
+        if (request.getAiPreferences() != null) {
+            user.setAiPreferences(request.getAiPreferences());
+        }
         
         return userRepository.save(user);
     }

@@ -1,17 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { FaCommentDots, FaTimes, FaPaperPlane, FaRobot, FaUser, FaKey } from 'react-icons/fa';
+import { useAuth } from '../../context/AuthContext';
 
 export default function AIChatWidget() {
+  const { user } = useAuth();
+  const userId = user ? user.id : 'guest';
+  const STORAGE_KEY = `yiyi_chat_history_${userId}`;
+
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState(() => {
-    const saved = localStorage.getItem('yiyi_chat_history');
-    if (saved) {
-      try { return JSON.parse(saved); } catch(e) {}
-    }
-    return [
-      { role: 'model', content: 'Xin chào! Mình là trợ lý AI của YiYi Book. Mình luôn ghi nhớ sở thích của bạn, hôm nay bạn muốn tìm sách gì ạ?' }
-    ];
-  });
+  const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -51,17 +48,33 @@ export default function AIChatWidget() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Load chat history khi thay đổi tài khoản
   useEffect(() => {
-    localStorage.setItem('yiyi_chat_history', JSON.stringify(messages));
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try { 
+        setMessages(JSON.parse(saved)); 
+        return;
+      } catch(e) {}
+    }
+    setMessages([
+      { role: 'model', content: user ? `Xin chào ${user.fullName}! Mình là trợ lý AI của YiYi Book. Hôm nay bạn muốn tìm sách gì ạ?` : 'Xin chào! Mình là trợ lý AI của YiYi Book. Bạn cần tư vấn gì ạ?' }
+    ]);
+  }, [STORAGE_KEY, user]);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+    }
     scrollToBottom();
-  }, [messages, isTyping]);
+  }, [messages, isTyping, STORAGE_KEY]);
 
   // Nút xóa lịch sử trò chuyện
   const handleClearHistory = () => {
     if (window.confirm('Bạn có chắc muốn xóa toàn bộ lịch sử trò chuyện?')) {
       const initMsg = [{ role: 'model', content: 'Lịch sử đã được xóa. Mình có thể giúp gì cho bạn lúc này?' }];
       setMessages(initMsg);
-      localStorage.setItem('yiyi_chat_history', JSON.stringify(initMsg));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(initMsg));
     }
   };
 
@@ -162,13 +175,17 @@ Bạn là "Chuyên viên Tư vấn Cấp cao" của nhà sách YiYi Book. Sứ m
 1. TRẢ LỜI VÀO TRỌNG TÂM: Cực kỳ súc tích (1 đến 3 câu). Không viết dài dòng.
 2. NÓI KHÔNG VỚI BỊA ĐẶT: Nếu khách hỏi sản phẩm không có trong [DỮ LIỆU KHO HÀNG], tuyệt đối báo hết hàng. Chân thành xin lỗi và chủ động gợi ý. Chú ý nhà sách còn bán văn phòng phẩm, đồ chơi, quà lưu niệm.
 3. CHĂM SÓC CHỦ ĐỘNG: Khi khách tìm thấy sản phẩm, hãy báo giá kèm một câu mời gọi nhẹ nhàng (VD: "Bạn có muốn đặt luôn để YiYi gói gửi Hỏa tốc cho mình không ạ?").
-4. CÁ NHÂN HÓA (HỌC HỎI TỪ KHÁCH HÀNG): Luôn ghi nhớ sở thích, thói quen và lịch sử trò chuyện trước đó của khách để đưa ra gợi ý phù hợp nhất. Thể hiện rằng bạn nhớ những gì khách đã nói.
+4. CÁ NHÂN HÓA: Phải tuân thủ tuyệt đối [SỞ THÍCH CỦA KHÁCH HÀNG] nếu có ở dưới.
 
 [THÔNG TIN NHÀ SÁCH YIYI BOOK]
 - Địa chỉ: 123 Đường Sách, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh.
 - Điện thoại: 1900 1234 | Email: cskh@yiyibook.com
 - Vận chuyển: Hỗ trợ Giao hàng Hỏa tốc tại TP.HCM và Hà Nội.
 - Bảo hành/Đổi trả: Hỗ trợ đổi trả 1-1 nếu sách lỗi từ nhà xuất bản hoặc móp méo do vận chuyển.
+
+[THÔNG TIN & SỞ THÍCH CỦA KHÁCH HÀNG]
+${user?.fullName ? `- Tên khách hàng: ${user.fullName}` : '- Tên khách hàng: Khách Vãng Lai'}
+${user?.aiPreferences ? `- Lời dặn dò đặc biệt từ khách (PHẢI TUÂN THỦ TUYỆT ĐỐI KHÔNG ĐƯỢC LÀM TRÁI): ${user.aiPreferences}` : ''}
 `;
 
       // Chèn System Prompt vào đầu danh sách

@@ -63,6 +63,9 @@ public class User implements UserDetails {
     @Builder.Default
     private Integer freeShipCoupons = 0;
 
+    @Column(name = "ai_preferences", columnDefinition = "TEXT")
+    private String aiPreferences;
+
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private AuthProvider provider = AuthProvider.LOCAL;

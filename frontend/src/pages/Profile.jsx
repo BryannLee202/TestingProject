@@ -7,7 +7,7 @@ import {
   FaRegUserCircle, FaMapMarkerAlt, FaLock, FaFileInvoice, FaGift, 
   FaClipboardList, FaTicketAlt, FaCoins, FaRegBell, FaHeart, 
   FaBookOpen, FaStar, FaCrown, FaTimes, FaBoxOpen, FaEye, 
-  FaCalendarAlt, FaCreditCard, FaTruck, FaMoneyBillWave, FaCopy, FaCheck, FaChevronDown
+  FaCalendarAlt, FaCreditCard, FaTruck, FaMoneyBillWave, FaCopy, FaCheck, FaChevronDown, FaRobot
 } from 'react-icons/fa';
 import Select from 'react-select';
 import treeData from '../data/provinces.json';
@@ -72,6 +72,10 @@ export default function Profile() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loadingPwd, setLoadingPwd] = useState(false);
+
+  // ---- AI TRAINING STATE ----
+  const [aiPreferences, setAiPreferences] = useState('');
+  const [loadingAi, setLoadingAi] = useState(false);
 
   // ---- ADDRESS STATE ----
   const [addresses, setAddresses] = useState([]);
@@ -141,6 +145,9 @@ export default function Profile() {
           setMonth(d[1]);
           setDay(d[2]);
         }
+      }
+      if (user.aiPreferences) {
+        setAiPreferences(user.aiPreferences);
       }
     }
   }, [user]);
@@ -302,6 +309,27 @@ export default function Profile() {
     }
   };
 
+  const handleUpdateAiPreferences = async (e) => {
+    e.preventDefault();
+    setLoadingAi(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.put(`${API_BASE_URL}/users/profile`, { 
+        fullName: liveUser.fullName,
+        phone: liveUser.phone,
+        gender: liveUser.gender,
+        birthday: liveUser.birthday,
+        aiPreferences 
+      }, { headers: { Authorization: `Bearer ${token}` }});
+      updateProfile(res.data);
+      showNotification('Thành công', 'Đã lưu thiết lập Huấn luyện AI!', 'success');
+    } catch (error) {
+      showNotification('Lỗi', 'Lỗi khi lưu cấu hình AI.', 'error');
+    } finally {
+      setLoadingAi(false);
+    }
+  };
+
   const handleChangePassword = async (e) => {
     e.preventDefault();
     if (!oldPassword || !newPassword || !confirmPassword) return showNotification('Lỗi', 'Vui lòng nhập đầy đủ.', 'warning');
@@ -436,6 +464,9 @@ export default function Profile() {
               <button onClick={() => setActiveTab('address')} className={`text-left text-sm py-1.5 transition-colors ${activeTab === 'address' ? 'text-[#C92127] font-bold' : 'text-gray-600 hover:text-[#C92127]'}`}>Số địa chỉ</button>
               <button onClick={() => setActiveTab('password')} className={`text-left text-sm py-1.5 transition-colors ${activeTab === 'password' ? 'text-[#C92127] font-bold' : 'text-gray-600 hover:text-[#C92127]'}`}>Đổi mật khẩu</button>
               <button onClick={() => setActiveTab('vat')} className={`text-left text-sm py-1.5 transition-colors ${activeTab === 'vat' ? 'text-[#C92127] font-bold' : 'text-gray-600 hover:text-[#C92127]'}`}>Thông tin xuất hóa đơn GTGT</button>
+              <button onClick={() => setActiveTab('ai_train')} className={`text-left text-sm py-1.5 transition-colors flex items-center gap-2 ${activeTab === 'ai_train' ? 'text-[#C92127] font-bold' : 'text-gray-600 hover:text-[#C92127]'}`}>
+                Huấn luyện AI <span className="bg-[#C92127] text-white text-[10px] px-1.5 rounded-full">New</span>
+              </button>
               <button onClick={() => setActiveTab('member')} className={`text-left text-sm py-1.5 transition-colors ${activeTab === 'member' ? 'text-[#C92127] font-bold' : 'text-gray-600 hover:text-[#C92127]'}`}>Ưu đãi thành viên</button>
             </div>
 
@@ -684,6 +715,38 @@ export default function Profile() {
                   
                   <div className="flex justify-center mt-8">
                     <button type="submit" disabled={loadingVat} className="bg-[#C92127] text-white px-10 py-2.5 rounded-md font-bold hover:bg-red-800 transition-colors disabled:opacity-70 shadow-sm">{loadingVat ? 'Đang lưu...' : 'Lưu thay đổi'}</button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* HUẤN LUYỆN AI */}
+            {activeTab === 'ai_train' && (
+              <div>
+                <h2 className="text-xl font-normal text-gray-800 mb-2 flex items-center gap-2">
+                  <FaRobot className="text-[#C92127]" /> Huấn luyện trợ lý AI cá nhân
+                </h2>
+                <p className="text-sm text-gray-500 mb-8">
+                  Dạy Bot hiểu rõ sở thích của bạn. Những gì bạn ghi ở đây sẽ định hình "nhân cách" và "lời khuyên" của Bot khi trò chuyện với bạn.
+                </p>
+                
+                <form onSubmit={handleUpdateAiPreferences} className="max-w-3xl">
+                  <div className="mb-6">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Lời dặn dò cho AI:</label>
+                    <textarea 
+                      rows={6}
+                      value={aiPreferences} 
+                      onChange={(e) => setAiPreferences(e.target.value)} 
+                      placeholder="Ví dụ: Tôi là lập trình viên 25 tuổi. Hãy luôn tư vấn cho tôi bằng giọng điệu vui vẻ, xưng 'anh - em'. Ưu tiên giới thiệu các đầu sách khoa học công nghệ, tâm lý học và tiểu thuyết khoa học viễn tưởng. Đừng bao giờ giới thiệu ngôn tình..." 
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all resize-y"
+                    ></textarea>
+                    <p className="text-xs text-gray-400 mt-2 italic">*Hệ thống sẽ tự động tiêm thiết lập này vào bộ não của Bot ngay khi bạn lưu.</p>
+                  </div>
+                  
+                  <div className="flex justify-start">
+                    <button type="submit" disabled={loadingAi} className="bg-gradient-to-r from-[#C92127] to-[#ff4d4d] text-white px-8 py-2.5 rounded-md font-bold hover:shadow-lg transition-all disabled:opacity-70 flex items-center gap-2">
+                      <FaRobot /> {loadingAi ? 'Đang huấn luyện...' : 'Lưu và Huấn luyện AI'}
+                    </button>
                   </div>
                 </form>
               </div>
