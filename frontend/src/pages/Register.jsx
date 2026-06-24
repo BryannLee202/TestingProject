@@ -94,23 +94,14 @@ export default function Register() {
       });
 
       if (res.data.token || res.status === 201 || res.status === 200) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Đăng ký thành công!',
-          html: `
-            <div style="text-align: left; margin-top: 15px; font-size: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px dashed #ccc;">
-              <p style="margin-bottom: 8px;"><strong>Tài khoản (Email):</strong> <span style="color: #2563eb;">${email}</span></p>
-              <p style="margin-bottom: 8px;"><strong>Mật khẩu:</strong> <span style="color: #2563eb;">${password}</span></p>
-              <p style="margin-bottom: 0;"><strong>Thời gian tạo:</strong> ${new Date().toLocaleString('vi-VN')}</p>
-            </div>
-            <p style="color: #dc2626; font-size: 13px; margin-top: 15px;">*Vui lòng lưu lại thông tin này để đăng nhập!</p>
-          `,
-          confirmButtonText: 'Tuyệt vời, Đăng nhập ngay',
-          confirmButtonColor: '#C92127',
-          allowOutsideClick: false
-        }).then(() => {
+        if (res.data.token && res.data.user) {
+          login(res.data.user, res.data.token);
+          showNotification('Đăng ký thành công', `Chào mừng ${res.data.user.fullName}!`, 'success');
+          navigate('/');
+        } else {
+          showNotification('Đăng ký thành công', 'Vui lòng đăng nhập để tiếp tục', 'success');
           navigate('/login');
-        });
+        }
       }
     } catch (error) {
       console.error(error);
