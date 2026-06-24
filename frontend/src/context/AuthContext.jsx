@@ -62,7 +62,14 @@ export const AuthProvider = ({ children }) => {
     try {
       const token = tokenOverride || localStorage.getItem('token');
       if (!token) return;
-      const res = await axios.get(`${API_BASE_URL}/users/profile`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.get(`${API_BASE_URL}/users/profile?t=${Date.now()}`, { 
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        } 
+      });
       setUser(res.data);
       localStorage.setItem('user', JSON.stringify(res.data));
     } catch(e) {
