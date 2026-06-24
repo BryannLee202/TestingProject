@@ -11,10 +11,9 @@ import java.util.Map;
 @Service
 public class EmailService {
 
-    @Value("${RESEND_API_KEY:}")
-    private String resendApiKey;
+    @Value("${BREVO_API_KEY:}")
+    private String brevoApiKey;
 
-    // Fallback: nếu không có Resend thì dùng SMTP
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private org.springframework.mail.javamail.JavaMailSender mailSender;
 
@@ -22,9 +21,9 @@ public class EmailService {
     private String fromEmail;
 
     public void sendOtpEmail(String toEmail, String otp) {
-        // Ưu tiên Resend API (hoạt động trên mọi cloud)
-        if (resendApiKey != null && !resendApiKey.isBlank()) {
-            sendViaResend(toEmail, otp);
+        // Ưu tiên Brevo API (hoạt động trên mọi cloud, không bị chặn SMTP)
+        if (brevoApiKey != null && !brevoApiKey.isBlank()) {
+            sendViaBrevo(toEmail, otp);
         } else if (mailSender != null) {
             sendViaSMTP(toEmail, otp);
         } else {
@@ -33,13 +32,13 @@ public class EmailService {
         }
     }
 
-    private void sendViaResend(String toEmail, String otp) {
+    private void sendViaBrevo(String toEmail, String otp) {
         try {
             RestTemplate restTemplate = new RestTemplate();
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Authorization", "Bearer " + resendApiKey);
+            headers.set("api-key", brevoApiKey);
 
             String htmlBody = "<div style='font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;border:1px solid #e5e7eb;border-radius:12px'>"
                     + "<div style='text-align:center;margin-bottom:24px'>"
@@ -52,34 +51,34 @@ public class EmailService {
                     + "</div>"
                     + "<p style='color:#6b7280;font-size:13px'>Mã có hiệu lực trong <b>5 phút</b>. Vui lòng không chia sẻ mã này cho bất kỳ ai.</p>"
                     + "<hr style='border:none;border-top:1px solid #e5e7eb;margin:24px 0'>"
-                    + "<p style='color:#9ca3af;font-size:12px;text-align:center'>© 2025 YiYi Book - Cảm ơn bạn đã sử dụng dịch vụ!</p>"
+                    + "<p style='color:#9ca3af;font-size:12px;text-align:center'>© 2026 YiYi Book - Cảm ơn bạn đã sử dụng dịch vụ!</p>"
                     + "</div>";
 
             Map<String, Object> payload = Map.of(
-                "from", "YiYi Book <onboarding@resend.dev>",
-                "to", new String[]{ toEmail },
+                "sender", Map.of("name", "YiYi Book", "email", fromEmail),
+                "to", new Object[]{ Map.of("email", toEmail) },
                 "subject", "Mã xác nhận OTP - YiYi Book",
-                "html", htmlBody
+                "htmlContent", htmlBody
             );
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
             ResponseEntity<String> response = restTemplate.postForEntity(
-                "https://api.resend.com/emails", request, String.class
+                "https://api.brevo.com/v3/smtp/email", request, String.class
             );
 
             if (response.getStatusCode().is2xxSuccessful()) {
-                System.out.println("Resend: Đã gửi OTP tới " + toEmail);
+                System.out.println("Brevo: Đã gửi OTP tới " + toEmail);
             } else {
-                System.err.println("Resend: Lỗi gửi email - " + response.getBody());
+                System.err.println("Brevo: Lỗi gửi email - " + response.getBody());
             }
         } catch (Exception e) {
-            System.err.println("Resend exception: " + e.getMessage());
+            System.err.println("Brevo exception: " + e.getMessage());
             // Thử fallback SMTP nếu có
             if (mailSender != null) {
                 System.out.println("Fallback sang SMTP...");
                 sendViaSMTP(toEmail, otp);
             } else {
-                throw new RuntimeException("Gửi Email thất bại. Hệ thống chưa cấu hình SMTP fallback.");
+                throw new RuntimeException("Gửi Email thất bại. Hệ thống bị lỗi cấu hình Email API.");
             }
         }
     }
