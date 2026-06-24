@@ -157,29 +157,37 @@ export default function AIChatWidget() {
       {/* Nút bật/tắt chat */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 ${
-          isOpen ? 'bg-gray-800 hover:bg-gray-900 rotate-90 scale-90' : 'bg-[#C92127] hover:bg-[#a81a20] hover:scale-110'
+        className={`w-14 h-14 rounded-full flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-500 z-50 hover:shadow-[0_8px_30px_rgba(201,33,39,0.3)] ${
+          isOpen ? 'bg-slate-800 hover:bg-slate-900 rotate-90 scale-90' : 'bg-gradient-to-tr from-[#C92127] to-[#ff4d4d] hover:scale-110 animate-bounce'
         } text-white`}
+        style={{ animationDuration: '2s' }}
       >
         {isOpen ? <FaTimes className="text-2xl" /> : <FaCommentDots className="text-2xl" />}
       </button>
 
       {/* Cửa sổ chat */}
       <div 
-        className={`absolute bottom-20 right-0 w-[350px] sm:w-[400px] h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden transition-all duration-300 origin-bottom-right ${
-          isOpen ? 'scale-100 opacity-100 visible' : 'scale-0 opacity-0 invisible'
+        className={`absolute bottom-20 right-0 w-[360px] sm:w-[420px] h-[550px] bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100/50 flex flex-col overflow-hidden transition-all duration-500 ease-out origin-bottom-right ${
+          isOpen ? 'scale-100 opacity-100 translate-y-0 visible' : 'scale-95 opacity-0 translate-y-4 invisible'
         }`}
       >
         {/* Header */}
-        <div className="bg-[#C92127] text-white px-5 py-4 flex items-center gap-3">
-          <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-            <FaRobot className="text-2xl" />
+        <div className="bg-gradient-to-r from-[#C92127] via-[#e63946] to-[#ff4d4d] text-white px-6 py-5 flex items-center gap-4 relative overflow-hidden">
+          {/* Decorative background elements */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-black/10 rounded-full -ml-10 -mb-10 blur-xl"></div>
+          
+          <div className="w-12 h-12 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full flex items-center justify-center shadow-inner relative z-10">
+            <FaRobot className="text-2xl drop-shadow-md" />
           </div>
-          <div>
-            <h3 className="font-bold text-lg leading-tight">Trợ lý AI YiYi</h3>
-            <p className="text-xs text-red-100 flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-              Đang trực tuyến
+          <div className="relative z-10">
+            <h3 className="font-extrabold text-lg tracking-wide drop-shadow-sm">Trợ lý AI YiYi</h3>
+            <p className="text-xs font-medium text-red-50 flex items-center gap-1.5 opacity-90">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-300 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-400 border border-green-200"></span>
+              </span>
+              Luôn sẵn sàng hỗ trợ
             </p>
           </div>
         </div>
@@ -196,16 +204,16 @@ export default function AIChatWidget() {
         )}
 
         {/* Khu vực tin nhắn */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+        <div className="flex-1 overflow-y-auto p-5 space-y-5 bg-[#f8f9fa] scroll-smooth custom-scrollbar">
           {messages.map((msg, index) => (
-            <div key={index} className={`flex gap-3 max-w-[85%] ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : ''}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.role === 'user' ? 'bg-gray-200 text-gray-600' : 'bg-[#C92127] text-white'}`}>
-                {msg.role === 'user' ? <FaUser size={14} /> : <FaRobot size={14} />}
+            <div key={index} className={`flex gap-3 max-w-[88%] ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : 'mr-auto'} animate-fade-in-up`} style={{ animationDuration: '0.3s' }}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm ${msg.role === 'user' ? 'bg-white text-gray-400 border border-gray-200' : 'bg-gradient-to-br from-[#C92127] to-[#ff4d4d] text-white'}`}>
+                {msg.role === 'user' ? <FaUser size={13} /> : <FaRobot size={14} />}
               </div>
-              <div className={`px-4 py-2.5 rounded-2xl text-sm ${
+              <div className={`px-4 py-3 rounded-2xl text-[14px] leading-relaxed shadow-sm ${
                 msg.role === 'user' 
-                  ? 'bg-blue-600 text-white rounded-tr-sm' 
-                  : 'bg-white border border-gray-100 text-gray-800 rounded-tl-sm shadow-sm'
+                  ? 'bg-gradient-to-r from-slate-800 to-slate-700 text-white rounded-tr-sm' 
+                  : 'bg-white border border-gray-100/80 text-gray-700 rounded-tl-sm'
               }`}>
                 {msg.content}
               </div>
@@ -213,14 +221,14 @@ export default function AIChatWidget() {
           ))}
           
           {isTyping && (
-            <div className="flex gap-3 max-w-[85%]">
-              <div className="w-8 h-8 rounded-full bg-[#C92127] text-white flex items-center justify-center flex-shrink-0">
+            <div className="flex gap-3 max-w-[85%] animate-fade-in-up">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#C92127] to-[#ff4d4d] text-white flex items-center justify-center flex-shrink-0 shadow-sm">
                 <FaRobot size={14} />
               </div>
-              <div className="px-4 py-3 bg-white border border-gray-100 rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-1.5">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+              <div className="px-4 py-3.5 bg-white border border-gray-100/80 rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></div>
+                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
               </div>
             </div>
           )}
@@ -228,26 +236,28 @@ export default function AIChatWidget() {
         </div>
 
         {/* Khu vực nhập tin nhắn */}
-        <div className="p-3 bg-white border-t border-gray-100">
-          <form onSubmit={handleSendMessage} className="flex gap-2 relative">
+        <div className="p-4 bg-white/90 backdrop-blur-md border-t border-gray-100/80">
+          <form onSubmit={handleSendMessage} className="flex relative items-center group">
             <input 
               type="text" 
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
-              placeholder="Nhập tin nhắn..." 
-              className="flex-1 bg-gray-100 border-none rounded-full px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#C92127]/20"
+              placeholder="Nhập tin nhắn để được tư vấn..." 
+              className="flex-1 bg-gray-50/50 border border-gray-200/80 rounded-full pl-5 pr-14 py-3.5 text-[15px] text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#C92127]/20 focus:bg-white focus:border-[#C92127]/30 transition-all shadow-inner"
               disabled={isTyping || isStreaming}
             />
             <button 
               type="submit" 
               disabled={!inputMessage.trim() || isTyping || isStreaming}
-              className="w-11 h-11 bg-[#C92127] hover:bg-[#a81a20] disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-full flex items-center justify-center transition-colors absolute right-1 top-0.5"
+              className="absolute right-1.5 w-[38px] h-[38px] bg-gradient-to-r from-[#C92127] to-[#e63946] hover:shadow-lg disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none disabled:cursor-not-allowed text-white rounded-full flex items-center justify-center transition-all transform hover:scale-105 active:scale-95"
             >
-              <FaPaperPlane size={14} className="-ml-0.5" />
+              <FaPaperPlane size={13} className="-ml-0.5" />
             </button>
           </form>
-          <div className="text-center mt-2">
-            <span className="text-[10px] text-gray-400">Chatbot được huấn luyện bởi Graperu</span>
+          <div className="text-center mt-3 flex items-center justify-center gap-1.5 opacity-70">
+            <span className="w-4 border-t border-gray-200"></span>
+            <span className="text-[10px] uppercase tracking-wider font-semibold text-gray-400">Huấn luyện bởi Graperu</span>
+            <span className="w-4 border-t border-gray-200"></span>
           </div>
         </div>
       </div>
