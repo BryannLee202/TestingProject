@@ -7,7 +7,7 @@ export default function TawkToWidget() {
   useEffect(() => {
     // You can replace 'YOUR_PROPERTY_ID' with your actual Tawk.to Property ID
     // Example: '65b263b60ff6374032c4e339/1hl23456'
-    const propertyId = 'YOUR_PROPERTY_ID'; 
+    const propertyId = '6a3b8fe105d9c61d3e7e419b/1jrsak35c'; 
 
     if (propertyId === 'YOUR_PROPERTY_ID') {
       // If no ID is set, we show our setup instruction button instead
