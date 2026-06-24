@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <clipPath id="circleView">
+      <circle cx="50" cy="50" r="50" />
+    </clipPath>
+  </defs>
+  <!-- Zoom in by making width/height larger than 100, and centering it with negative x/y -->
+  <image x="-15" y="-15" width="130" height="130" href="/logoYiYi.png" clip-path="url(#circleView)" preserveAspectRatio="xMidYMid slice" />
+</svg>
