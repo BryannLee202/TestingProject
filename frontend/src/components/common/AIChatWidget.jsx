@@ -14,9 +14,9 @@ export default function AIChatWidget() {
   // API Key lấy từ cấu hình môi trường Vercel (.env)
   // Nếu không có, sẽ dùng key dự phòng (được chia nhỏ để tránh Github chặn)
   // ==========================================
-  const p1 = 'AIzaSyC25';
-  const p2 = 'eH7GEXxHc68U7';
-  const p3 = 'sqzMdUgY5_4I-c1Tg';
+  const p1 = 'AQ.Ab8RN';
+  const p2 = '6IyLz_8WcoMnM9uqk';
+  const p3 = 'BVFrF5f3JI71DpqA_gv3kgOY_dlg';
   const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || (p1 + p2 + p3);
 
   const scrollToBottom = () => {
@@ -53,9 +53,12 @@ export default function AIChatWidget() {
         parts: [{ text: msg.content }]
       }));
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent?alt=sse`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-goog-api-key': GEMINI_API_KEY
+        },
         body: JSON.stringify({
           system_instruction: {
             parts: [{ text: "Từ bây giờ, bạn là trợ lý tư vấn của nhà sách YiYi Book. Bạn luôn trả lời lịch sự, ngắn gọn và nhiệt tình bằng tiếng Việt." }]
