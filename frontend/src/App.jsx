@@ -7,7 +7,7 @@ import { AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import ScrollToTop from './components/common/ScrollToTop';
 import ScrollToTopButton from './components/common/ScrollToTopButton';
-import TawkToWidget from './components/common/TawkToWidget';
+import AIChatWidget from './components/common/AIChatWidget';
 import Intro from './components/common/Intro';
 
 // Các trang người dùng hay vào nhất - load ngay (không lazy)
@@ -123,7 +123,7 @@ function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>
-          <TawkToWidget />
+          <AIChatWidget />
           <ScrollToTopButton />
         </BrowserRouter>
       </CartProvider>
