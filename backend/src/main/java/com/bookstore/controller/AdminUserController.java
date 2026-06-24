@@ -46,6 +46,7 @@ public class AdminUserController {
         }
     }
 
+    @org.springframework.transaction.annotation.Transactional
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         if (!userRepository.existsById(id)) {
@@ -59,6 +60,8 @@ public class AdminUserController {
             jdbcTemplate.update("DELETE FROM wishlists WHERE user_id = ?", id);
             jdbcTemplate.update("DELETE FROM point_transactions WHERE user_id = ?", id);
             jdbcTemplate.update("DELETE FROM review_comments WHERE review_id IN (SELECT id FROM reviews WHERE user_id = ?)", id);
+            jdbcTemplate.update("DELETE FROM review_likes WHERE review_id IN (SELECT id FROM reviews WHERE user_id = ?)", id);
+            jdbcTemplate.update("DELETE FROM review_likes WHERE user_id = ?", id);
             jdbcTemplate.update("DELETE FROM reviews WHERE user_id = ?", id);
             // Xóa order items trước, rồi xóa orders
             jdbcTemplate.update("DELETE FROM order_items WHERE order_id IN (SELECT id FROM orders WHERE user_id = ?)", id);
