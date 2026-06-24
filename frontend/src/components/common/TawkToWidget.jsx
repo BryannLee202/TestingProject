@@ -18,7 +18,7 @@ export default function TawkToWidget() {
     var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
     const script = document.createElement('script');
     script.async = true;
-    script.src = `https://embed.tawk.to/${propertyId}/default`;
+    script.src = `https://embed.tawk.to/${propertyId}`;
     script.charset = 'UTF-8';
     script.setAttribute('crossorigin', '*');
     
