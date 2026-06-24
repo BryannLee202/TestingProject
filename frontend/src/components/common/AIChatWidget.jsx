@@ -70,7 +70,7 @@ export default function AIChatWidget() {
           'Authorization': `Bearer ${OPENROUTER_API_KEY}`
         },
         body: JSON.stringify({
-          model: "google/gemma-2-9b-it:free",
+          model: "meta-llama/llama-3.3-70b-instruct:free",
           messages: openRouterHistory,
           stream: true
         })
