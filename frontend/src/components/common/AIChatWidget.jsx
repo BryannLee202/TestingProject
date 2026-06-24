@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { FaCommentDots, FaTimes, FaPaperPlane, FaRobot, FaUser, FaKey } from 'react-icons/fa';
+import { FaCommentDots, FaTimes, FaPaperPlane, FaRobot, FaUser, FaKey, FaExpand, FaCompress } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 
 export default function AIChatWidget() {
@@ -8,6 +8,7 @@ export default function AIChatWidget() {
   const STORAGE_KEY = `yiyi_chat_history_${userId}`;
 
   const [isOpen, setIsOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -279,9 +280,18 @@ ${user?.aiPreferences ? `- Lời dặn dò đặc biệt từ khách (PHẢI TU�
 
       {/* Cửa sổ chat */}
       <div 
-        className={`absolute bottom-20 right-0 w-[360px] sm:w-[420px] h-[550px] bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100/50 flex flex-col overflow-hidden transition-all duration-500 ease-out origin-bottom-right ${
-          isOpen ? 'scale-100 opacity-100 translate-y-0 visible' : 'scale-95 opacity-0 translate-y-4 invisible'
-        }`}
+        className={`
+          bg-white shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100/50 flex flex-col overflow-hidden
+          transition-all duration-500 ease-out
+          ${
+            isExpanded
+              ? 'fixed inset-4 sm:inset-6 rounded-3xl z-[9999]'
+              : 'absolute bottom-20 right-0 w-[360px] sm:w-[420px] h-[550px] rounded-3xl origin-bottom-right'
+          }
+          ${
+            isOpen ? 'scale-100 opacity-100 translate-y-0 visible' : 'scale-95 opacity-0 translate-y-4 invisible'
+          }
+        `}
       >
         {/* Header */}
         <div className="bg-gradient-to-r from-[#C92127] via-[#e63946] to-[#ff4d4d] text-white px-6 py-5 flex items-center justify-between relative overflow-hidden shrink-0">
@@ -304,13 +314,22 @@ ${user?.aiPreferences ? `- Lời dặn dò đặc biệt từ khách (PHẢI TU�
               </p>
             </div>
           </div>
-          <button 
-            onClick={handleClearHistory}
-            className="text-white/70 hover:text-white transition-colors relative z-10 p-2"
-            title="Xóa lịch sử trò chuyện"
-          >
-            <FaTimes size={16} />
-          </button>
+          <div className="flex items-center gap-1 relative z-10">
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="text-white/70 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10"
+              title={isExpanded ? 'Thu nhỏ' : 'Mở rộng'}
+            >
+              {isExpanded ? <FaCompress size={14} /> : <FaExpand size={14} />}
+            </button>
+            <button 
+              onClick={handleClearHistory}
+              className="text-white/70 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10"
+              title="Xóa lịch sử trò chuyện"
+            >
+              <FaTimes size={14} />
+            </button>
+          </div>
         </div>
 
         {/* Khung cảnh báo API Key */}
