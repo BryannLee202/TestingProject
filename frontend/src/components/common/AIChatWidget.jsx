@@ -10,7 +10,26 @@ export default function AIChatWidget() {
   const [isTyping, setIsTyping] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const messagesEndRef = useRef(null);
+  const [allBooks, setAllBooks] = useState([]);
   
+  // Fetch toàn bộ sách 1 lần duy nhất khi load (Client-side RAG)
+  useEffect(() => {
+    const fetchAllBooks = async () => {
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
+        const res = await fetch(`${API_BASE_URL}/books?size=200`);
+        if (res.ok) {
+          const data = await res.json();
+          const books = Array.isArray(data) ? data : (data.content || []);
+          setAllBooks(books);
+        }
+      } catch (err) {
+        console.error("Lỗi tải data kho sách cho AI:", err);
+      }
+    };
+    fetchAllBooks();
+  }, []);
+
   // ==========================================
   // ==========================================
   // ==========================================
@@ -58,19 +77,45 @@ export default function AIChatWidget() {
         content: msg.content
       }));
 
-      // --- TÍCH HỢP ĐỌC DỮ LIỆU KHO HÀNG (Mini RAG) ---
-      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
+      // --- TÍCH HỢP ĐỌC DỮ LIỆU KHO HÀNG (Mini RAG - Fuzzy Search) ---
       let storeContext = "Hiện không có thông tin tồn kho.";
       try {
-        const searchRes = await fetch(`${API_BASE_URL}/books/search?keyword=${encodeURIComponent(inputMessage)}`);
-        if (searchRes.ok) {
-          const booksFound = await searchRes.json();
-          if (booksFound && booksFound.length > 0) {
-             const topBooks = booksFound.slice(0, 3).map(b => `- ${b.title} (Giá: ${b.price.toLocaleString('vi-VN')}đ)`).join("\n");
-             storeContext = `Kết quả tra cứu kho hàng cho từ khóa của khách:\n${topBooks}`;
+        if (allBooks.length > 0) {
+          const lowerInput = inputMessage.toLowerCase();
+          
+          // Lọc sách: nếu tên sách xuất hiện trong câu hỏi (hoặc ngược lại)
+          // hoặc tác giả xuất hiện trong câu hỏi
+          const matchedBooks = allBooks.filter(b => {
+             const title = b.title ? b.title.toLowerCase() : "";
+             const author = b.author ? b.author.toLowerCase() : "";
+             
+             // Nếu user gõ chỉ 1 chữ cái thì bỏ qua (tránh filter sai)
+             if (lowerInput.length < 2) return false;
+
+             return (title && lowerInput.includes(title)) || 
+                    (title && title.includes(lowerInput)) ||
+                    (author && lowerInput.includes(author));
+          });
+          
+          if (matchedBooks.length > 0) {
+             const topBooks = matchedBooks.slice(0, 5).map(b => `- ${b.title} của tác giả ${b.author || 'Đang cập nhật'} (Giá: ${b.price?.toLocaleString('vi-VN')}đ)`).join("\n");
+             storeContext = `Kết quả tra cứu kho hàng khớp với nhu cầu của khách:\n${topBooks}`;
           } else {
-             storeContext = "Thông báo từ hệ thống: Cửa hàng KHÔNG CÓ cuốn sách nào khớp với câu hỏi của khách.";
+             storeContext = "Thông báo từ hệ thống: Cửa hàng KHÔNG CÓ cuốn sách nào khớp với câu hỏi của khách. Hãy gợi ý khách tìm sách khác.";
           }
+        } else {
+           // Fallback API Search truyền thống nếu allBooks rỗng
+           const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
+           const searchRes = await fetch(`${API_BASE_URL}/books/search?keyword=${encodeURIComponent(inputMessage)}`);
+           if (searchRes.ok) {
+             const booksFound = await searchRes.json();
+             if (booksFound && booksFound.length > 0) {
+                const topBooks = booksFound.slice(0, 3).map(b => `- ${b.title} (Giá: ${b.price.toLocaleString('vi-VN')}đ)`).join("\n");
+                storeContext = `Kết quả tra cứu kho hàng:\n${topBooks}`;
+             } else {
+                storeContext = "Thông báo từ hệ thống: Cửa hàng KHÔNG CÓ cuốn sách nào khớp với câu hỏi của khách.";
+             }
+           }
         }
       } catch (err) {
         console.error("Lỗi tra cứu kho sách:", err);
