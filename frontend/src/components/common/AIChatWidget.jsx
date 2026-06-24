@@ -62,8 +62,8 @@ export default function AIChatWidget() {
 
       const data = await response.json();
       
-      if (data.error) {
-        throw new Error(data.error.message || 'Lỗi API');
+      if (!response.ok) {
+        throw new Error(data.error?.message || `Lỗi máy chủ (${response.status})`);
       }
 
       const botReply = data.candidates[0].content.parts[0].text;
@@ -71,7 +71,7 @@ export default function AIChatWidget() {
       setMessages(prev => [...prev, { role: 'model', content: botReply }]);
     } catch (error) {
       console.error("Gemini API Error:", error);
-      setMessages(prev => [...prev, { role: 'model', content: 'Xin lỗi, hiện tại hệ thống AI đang bận. Vui lòng thử lại sau!' }]);
+      setMessages(prev => [...prev, { role: 'model', content: `Lỗi kết nối: ${error.message}` }]);
     } finally {
       setIsTyping(false);
     }
