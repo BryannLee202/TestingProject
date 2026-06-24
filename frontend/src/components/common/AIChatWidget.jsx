@@ -18,12 +18,12 @@ export default function AIChatWidget() {
   const messagesEndRef = useRef(null);
   const [allBooks, setAllBooks] = useState([]);
   
-  // Fetch toàn bộ sách 1 lần duy nhất khi load (Client-side RAG)
+  // Fetch toàn bộ sản phẩm 1 lần duy nhất khi load (Client-side RAG)
   useEffect(() => {
     const fetchAllBooks = async () => {
       try {
         const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
-        const res = await fetch(`${API_BASE_URL}/books?size=200`);
+        const res = await fetch(`${API_BASE_URL}/books?size=5000`);
         if (res.ok) {
           const data = await res.json();
           const books = Array.isArray(data) ? data : (data.content || []);
@@ -95,43 +95,49 @@ export default function AIChatWidget() {
       // --- TÍCH HỢP ĐỌC DỮ LIỆU KHO HÀNG (Mini RAG - Fuzzy Search Context-Aware) ---
       let storeContext = "Hiện không có thông tin tồn kho.";
       try {
-        // Gom 2 tin nhắn gần nhất của user để giữ ngữ cảnh (tránh lỗi khi khách hỏi trống không như "sao lại ko có")
+        // Gom 2 tin nhắn gần nhất của user để giữ ngữ cảnh
         const recentUserMsgs = newMessages.filter(m => m.role === 'user').slice(-2);
         const searchInput = recentUserMsgs.map(m => m.content).join(" ").toLowerCase();
 
+        let matchedBooks = [];
         if (allBooks.length > 0) {
           // Lọc sách: nếu tên sách xuất hiện trong câu hỏi (hoặc ngược lại)
-          // hoặc tác giả xuất hiện trong câu hỏi
-          const matchedBooks = allBooks.filter(b => {
+          matchedBooks = allBooks.filter(b => {
              const title = b.title ? b.title.toLowerCase() : "";
              const author = b.author ? b.author.toLowerCase() : "";
              
-             // Nếu user gõ chỉ 1 chữ cái thì bỏ qua (tránh filter sai)
              if (searchInput.length < 2) return false;
 
              return (title && searchInput.includes(title)) || 
                     (title && title.includes(searchInput)) ||
                     (author && searchInput.includes(author));
           });
+        }
           
-          if (matchedBooks.length > 0) {
-             const topBooks = matchedBooks.slice(0, 5).map(b => `- ${b.title} của tác giả ${b.author || 'Đang cập nhật'} (Giá: ${b.price?.toLocaleString('vi-VN')}đ)`).join("\n");
-             storeContext = `Kết quả tra cứu kho hàng khớp với nhu cầu của khách:\n${topBooks}`;
-          } else {
-             storeContext = "Thông báo từ hệ thống: Cửa hàng KHÔNG CÓ cuốn sách nào khớp với câu hỏi của khách. Hãy gợi ý khách tìm sách khác.";
-          }
+        if (matchedBooks.length > 0) {
+           const topBooks = matchedBooks.slice(0, 5).map(b => {
+             const authorText = b.author ? ` (Tác giả: ${b.author})` : '';
+             return `- ${b.title}${authorText} - Giá: ${b.price?.toLocaleString('vi-VN')}đ`;
+           }).join("\n");
+           storeContext = `Kết quả tra cứu kho hàng khớp với nhu cầu của khách:\n${topBooks}`;
         } else {
-           // Fallback API Search truyền thống nếu allBooks rỗng
+           // Fallback API Search truyền thống nếu không tìm thấy trên client
+           // Chỉ dùng inputMessage hiện tại vì searchInput gom chuỗi quá dài backend sẽ tịt ngòi
            const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
            const searchRes = await fetch(`${API_BASE_URL}/books/search?keyword=${encodeURIComponent(inputMessage)}`);
            if (searchRes.ok) {
              const booksFound = await searchRes.json();
              if (booksFound && booksFound.length > 0) {
-                const topBooks = booksFound.slice(0, 3).map(b => `- ${b.title} (Giá: ${b.price.toLocaleString('vi-VN')}đ)`).join("\n");
+                const topBooks = booksFound.slice(0, 3).map(b => {
+                  const authorText = b.author ? ` (Tác giả: ${b.author})` : '';
+                  return `- ${b.title}${authorText} - Giá: ${b.price?.toLocaleString('vi-VN')}đ`;
+                }).join("\n");
                 storeContext = `Kết quả tra cứu kho hàng:\n${topBooks}`;
              } else {
-                storeContext = "Thông báo từ hệ thống: Cửa hàng KHÔNG CÓ cuốn sách nào khớp với câu hỏi của khách.";
+                storeContext = "Thông báo từ hệ thống: Cửa hàng KHÔNG CÓ sản phẩm nào khớp với câu hỏi của khách.";
              }
+           } else {
+              storeContext = "Thông báo từ hệ thống: Cửa hàng KHÔNG CÓ sản phẩm nào khớp với câu hỏi của khách.";
            }
         }
       } catch (err) {
@@ -154,9 +160,9 @@ Bạn là "Chuyên viên Tư vấn Cấp cao" của nhà sách YiYi Book. Sứ m
 
 [KỸ NĂNG TƯ VẤN CHUYÊN NGHIỆP]
 1. TRẢ LỜI VÀO TRỌNG TÂM: Cực kỳ súc tích (1 đến 3 câu). Không viết dài dòng.
-2. NÓI KHÔNG VỚI BỊA ĐẶT: Nếu khách hỏi sách không có trong [DỮ LIỆU KHO HÀNG], tuyệt đối báo hết hàng. Chân thành xin lỗi và chủ động gợi ý: "Bạn có muốn YiYi giới thiệu tựa sách khác cùng chủ đề không ạ?".
-3. CHĂM SÓC CHỦ ĐỘNG: Khi khách tìm thấy sách, hãy báo giá kèm một câu mời gọi nhẹ nhàng (VD: "Bạn có muốn đặt luôn để YiYi gói gửi Hỏa tốc cho mình không ạ?").
-4. CÁ NHÂN HÓA (HỌC HỎI TỪ KHÁCH HÀNG): Luôn ghi nhớ sở thích, thói quen và lịch sử trò chuyện trước đó của khách để đưa ra gợi ý sách phù hợp nhất. Thể hiện rằng bạn nhớ những gì khách đã nói.
+2. NÓI KHÔNG VỚI BỊA ĐẶT: Nếu khách hỏi sản phẩm không có trong [DỮ LIỆU KHO HÀNG], tuyệt đối báo hết hàng. Chân thành xin lỗi và chủ động gợi ý. Chú ý nhà sách còn bán văn phòng phẩm, đồ chơi, quà lưu niệm.
+3. CHĂM SÓC CHỦ ĐỘNG: Khi khách tìm thấy sản phẩm, hãy báo giá kèm một câu mời gọi nhẹ nhàng (VD: "Bạn có muốn đặt luôn để YiYi gói gửi Hỏa tốc cho mình không ạ?").
+4. CÁ NHÂN HÓA (HỌC HỎI TỪ KHÁCH HÀNG): Luôn ghi nhớ sở thích, thói quen và lịch sử trò chuyện trước đó của khách để đưa ra gợi ý phù hợp nhất. Thể hiện rằng bạn nhớ những gì khách đã nói.
 
 [THÔNG TIN NHÀ SÁCH YIYI BOOK]
 - Địa chỉ: 123 Đường Sách, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh.
