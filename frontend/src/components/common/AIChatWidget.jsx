@@ -12,12 +12,9 @@ export default function AIChatWidget() {
   
   // ==========================================
   // API Key lấy từ cấu hình môi trường Vercel (.env)
-  // Nếu không có, sẽ dùng key dự phòng (được chia nhỏ để tránh Github chặn)
+  // Vui lòng đăng ký OpenRouter.ai để lấy Key và điền vào biến VITE_OPENROUTER_API_KEY
   // ==========================================
-  const p1 = 'AQ.Ab8RN';
-  const p2 = '6IyLz_8WcoMnM9uqk';
-  const p3 = 'BVFrF5f3JI71DpqA_gv3kgOY_dlg';
-  const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || (p1 + p2 + p3);
+  const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || 'YOUR_OPENROUTER_KEY';
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -47,29 +44,31 @@ export default function AIChatWidget() {
 
     try {
       // Chuẩn bị lịch sử chat cho Gemini
-      // TỐI ƯU HÓA TOKEN: Chỉ gửi tối đa 4 tin nhắn gần nhất lên máy chủ
-      // Đồng thời đảm bảo lịch sử luôn bắt đầu bằng tin nhắn của người dùng ('user')
-      let recentMessages = newMessages.slice(-4);
-      if (recentMessages.length > 0 && recentMessages[0].role === 'model') {
-        recentMessages = recentMessages.slice(1);
-      }
+      // OPENROUTER: Lịch sử hội thoại không bắt buộc phải tuân theo thứ tự khắt khe như Gemini
+      const recentMessages = newMessages.slice(-6);
 
-      const geminiHistory = recentMessages.map(msg => ({
-        role: msg.role === 'model' ? 'model' : 'user',
-        parts: [{ text: msg.content }]
+      const openRouterHistory = recentMessages.map(msg => ({
+        role: msg.role === 'model' ? 'assistant' : 'user',
+        content: msg.content
       }));
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:streamGenerateContent?alt=sse`, {
+      // Chèn System Prompt vào đầu danh sách
+      openRouterHistory.unshift({
+        role: 'system',
+        content: "Từ bây giờ, bạn là trợ lý tư vấn của nhà sách YiYi Book. Bạn luôn trả lời lịch sự, ngắn gọn (tối đa 2-3 câu) và nhiệt tình bằng tiếng Việt."
+      });
+
+      // Dùng model miễn phí từ OpenRouter (Gemma 2 9B IT cực kỳ thông minh và hỗ trợ tiếng Việt tốt)
+      const response = await fetch(`https://openrouter.ai/api/v1/chat/completions`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'X-goog-api-key': GEMINI_API_KEY
+          'Authorization': `Bearer ${OPENROUTER_API_KEY}`
         },
         body: JSON.stringify({
-          system_instruction: {
-            parts: [{ text: "Từ bây giờ, bạn là trợ lý tư vấn của nhà sách YiYi Book. Bạn luôn trả lời lịch sự, ngắn gọn (tối đa 2-3 câu) và nhiệt tình bằng tiếng Việt." }]
-          },
-          contents: geminiHistory
+          model: "google/gemma-2-9b-it:free",
+          messages: openRouterHistory,
+          stream: true
         })
       });
 
@@ -104,7 +103,8 @@ export default function AIChatWidget() {
             
             try {
               const data = JSON.parse(dataStr);
-              const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+              // Phân tích cú pháp dữ liệu theo chuẩn OpenAI
+              const text = data.choices?.[0]?.delta?.content || '';
               if (text) {
                 setMessages(prev => {
                   const newMsgs = [...prev];
