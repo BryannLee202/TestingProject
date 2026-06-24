@@ -257,7 +257,7 @@ Bạn là "Chuyên viên Tư vấn Cấp cao" của nhà sách YiYi Book. Sứ m
         } text-white`}
         style={{ animationDuration: '2s' }}
       >
-        {isOpen ? <FaTimes className="text-2xl" /> : <FaCommentDots className="text-2xl" />}
+        {isOpen ? <FaTimes className="text-2xl" /> : <FaRobot className="text-[28px] drop-shadow-md" />}
       </button>
 
       {/* Cửa sổ chat */}
