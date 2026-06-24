@@ -106,53 +106,78 @@ export default function AIChatWidget() {
         content: msg.content
       }));
 
-      // --- TÍCH HỢP ĐỌC DỮ LIỆU KHO HÀNG (Mini RAG - Fuzzy Search Context-Aware) ---
-      let storeContext = "Hiện không có thông tin tồn kho.";
+      // --- TÍCH HỢP ĐỌC DỮ LIỆU KHO HÀNG TOÀN DIỆN ---
+      let storeContext = "Chưa tải được dữ liệu kho hàng.";
       try {
-        // Gom 2 tin nhắn gần nhất của user để giữ ngữ cảnh
-        const recentUserMsgs = newMessages.filter(m => m.role === 'user').slice(-2);
-        const searchInput = recentUserMsgs.map(m => m.content).join(" ").toLowerCase();
-
-        let matchedBooks = [];
         if (allBooks.length > 0) {
-          // Lọc sách: nếu tên sách xuất hiện trong câu hỏi (hoặc ngược lại)
-          matchedBooks = allBooks.filter(b => {
-             const title = b.title ? b.title.toLowerCase() : "";
-             const author = b.author ? b.author.toLowerCase() : "";
-             
-             if (searchInput.length < 2) return false;
+          // 1. Thống kê tổng quan
+          const totalProducts = allBooks.length;
 
-             return (title && searchInput.includes(title)) || 
-                    (title && title.includes(searchInput)) ||
-                    (author && searchInput.includes(author));
+          // 2. Phân nhóm theo danh mục
+          const categoryMap = {};
+          allBooks.forEach(b => {
+            const cat = b.category?.name || 'Khác';
+            if (!categoryMap[cat]) categoryMap[cat] = [];
+            categoryMap[cat].push(b);
           });
-        }
-          
-        if (matchedBooks.length > 0) {
-           const topBooks = matchedBooks.slice(0, 5).map(b => {
-             const authorText = b.author ? ` (Tác giả: ${b.author})` : '';
-             return `- ${b.title}${authorText} - Giá: ${b.price?.toLocaleString('vi-VN')}đ`;
-           }).join("\n");
-           storeContext = `Kết quả tra cứu kho hàng khớp với nhu cầu của khách:\n${topBooks}`;
-        } else {
-           // Fallback API Search truyền thống nếu không tìm thấy trên client
-           // Chỉ dùng inputMessage hiện tại vì searchInput gom chuỗi quá dài backend sẽ tịt ngòi
-           const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
-           const searchRes = await fetch(`${API_BASE_URL}/books/search?keyword=${encodeURIComponent(inputMessage)}`);
-           if (searchRes.ok) {
-             const booksFound = await searchRes.json();
-             if (booksFound && booksFound.length > 0) {
-                const topBooks = booksFound.slice(0, 3).map(b => {
-                  const authorText = b.author ? ` (Tác giả: ${b.author})` : '';
-                  return `- ${b.title}${authorText} - Giá: ${b.price?.toLocaleString('vi-VN')}đ`;
-                }).join("\n");
-                storeContext = `Kết quả tra cứu kho hàng:\n${topBooks}`;
-             } else {
-                storeContext = "Thông báo từ hệ thống: Cửa hàng KHÔNG CÓ sản phẩm nào khớp với câu hỏi của khách.";
-             }
-           } else {
-              storeContext = "Thông báo từ hệ thống: Cửa hàng KHÔNG CÓ sản phẩm nào khớp với câu hỏi của khách.";
-           }
+          const categorySummary = Object.entries(categoryMap)
+            .sort((a, b) => b[1].length - a[1].length)
+            .slice(0, 10)
+            .map(([cat, items]) => `  + ${cat}: ${items.length} sản phẩm`)
+            .join('\n');
+
+          // 3. Tìm kiếm thông minh dựa trên ngữ cảnh (2 tin nhắn gần nhất)
+          const recentUserMsgs = newMessages.filter(m => m.role === 'user').slice(-2);
+          const searchInput = recentUserMsgs.map(m => m.content).join(' ').toLowerCase();
+
+          let relevantProducts = [];
+          if (searchInput.length >= 2) {
+            // Tách từ khóa, bỏ stopwords phổ biến
+            const stopWords = ['có', 'không', 'bao', 'nhiêu', 'sản', 'phẩm', 'cuốn', 'quyển', 'sách', 'của', 'và', 'là', 'tôi', 'mình', 'bạn', 'cho', 'với', 'một', 'những', 'các', 'này', 'đó', 'cái'];
+            const keywords = searchInput
+              .split(/\s+/)
+              .filter(w => w.length >= 2 && !stopWords.includes(w));
+
+            if (keywords.length > 0) {
+              relevantProducts = allBooks.filter(b => {
+                const title = (b.title || '').toLowerCase();
+                const author = (b.author || '').toLowerCase();
+                const cat = (b.category?.name || '').toLowerCase();
+                return keywords.some(kw => title.includes(kw) || author.includes(kw) || cat.includes(kw));
+              });
+            }
+          }
+
+          // 4. Xây dựng context
+          let productSection = '';
+          if (relevantProducts.length > 0) {
+            const topMatches = relevantProducts.slice(0, 8).map(b => {
+              const authorText = b.author ? ` | Tác giả: ${b.author}` : '';
+              const catText = b.category?.name ? ` | Thể loại: ${b.category.name}` : '';
+              const priceText = b.price ? ` | Giá: ${b.price.toLocaleString('vi-VN')}đ` : '';
+              const stock = b.stockQuantity != null ? ` | Tồn kho: ${b.stockQuantity}` : '';
+              return `  • ${b.title}${authorText}${catText}${priceText}${stock}`;
+            }).join('\n');
+            productSection = `\nSẢN PHẨM LIÊN QUAN ĐẾN CÂU HỎI (${relevantProducts.length} kết quả, hiển thị tối đa 8):\n${topMatches}`;
+          } else {
+            // Khi không có kết quả cụ thể, show mẫu đại diện mỗi danh mục
+            const sampleProducts = Object.entries(categoryMap)
+              .sort((a, b) => b[1].length - a[1].length)
+              .slice(0, 5)
+              .map(([cat, items]) => {
+                const sample = items[0];
+                return `  • [${cat}] ${sample.title}${sample.price ? ' - ' + sample.price.toLocaleString('vi-VN') + 'đ' : ''}`;
+              }).join('\n');
+            productSection = `\nMẪU SẢN PHẨM ĐẠI DIỆN CÁC DANH MỤC:\n${sampleProducts}`;
+          }
+
+          storeContext = `TỔNG QUAN KHO HÀNG YIYI BOOK:
+- Tổng số sản phẩm: ${totalProducts} sản phẩm
+- Số danh mục: ${Object.keys(categoryMap).length} danh mục
+
+PHÂN BỔ THEO DANH MỤC:
+${categorySummary}
+${productSection}`;
         }
       } catch (err) {
         console.error("Lỗi tra cứu kho sách:", err);
@@ -174,8 +199,8 @@ Bạn là "Chuyên viên Tư vấn Cấp cao" của nhà sách YiYi Book. Sứ m
 
 [KỸ NĂNG TƯ VẤN CHUYÊN NGHIỆP]
 1. TRẢ LỜI VÀO TRỌNG TÂM: Cực kỳ súc tích (1 đến 3 câu). Không viết dài dòng.
-2. NÓI KHÔNG VỚI BỊA ĐẶT: Nếu khách hỏi sản phẩm không có trong [DỮ LIỆU KHO HÀNG], tuyệt đối báo hết hàng. Chân thành xin lỗi và chủ động gợi ý. Chú ý nhà sách còn bán văn phòng phẩm, đồ chơi, quà lưu niệm.
-3. CHĂM SÓC CHỦ ĐỘNG: Khi khách tìm thấy sản phẩm, hãy báo giá kèm một câu mời gọi nhẹ nhàng (VD: "Bạn có muốn đặt luôn để YiYi gói gửi Hỏa tốc cho mình không ạ?").
+2. DỰA VÀO DỮ LIỆU THỰC TẾ: Mọi câu trả lời về số lượng, sản phẩm, danh mục PHẢI dựa vào [DỮ LIỆU KHO HÀNG THỰC TẾ] bên dưới. Không được bịa thêm.
+3. CHĂM SÓC CHỦ ĐỘNG: Khi khách tìm thấy sản phẩm, hãy báo giá kèm một câu mời gọi nhẹ nhàng.
 4. CÁ NHÂN HÓA: Phải tuân thủ tuyệt đối [SỞ THÍCH CỦA KHÁCH HÀNG] nếu có ở dưới.
 
 [THÔNG TIN NHÀ SÁCH YIYI BOOK]
