@@ -11,9 +11,9 @@ export default function AIChatWidget() {
   const messagesEndRef = useRef(null);
   
   // ==========================================
-  // THAY API KEY CỦA BẠN VÀO ĐÂY
+  // API Key lấy từ cấu hình môi trường Vercel (.env)
   // ==========================================
-  const GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY';
+  const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -27,10 +27,10 @@ export default function AIChatWidget() {
     e?.preventDefault();
     if (!inputMessage.trim()) return;
 
-    if (GEMINI_API_KEY === 'YOUR_GEMINI_API_KEY') {
+    if (!GEMINI_API_KEY) {
       setMessages(prev => [...prev, 
         { role: 'user', content: inputMessage },
-        { role: 'model', content: '⚠️ Hệ thống chưa được cấu hình API Key. Vui lòng mở file AIChatWidget.jsx và thêm YOUR_GEMINI_API_KEY để sử dụng tính năng này.' }
+        { role: 'model', content: '⚠️ Hệ thống chưa được cấu hình API Key. Vui lòng thêm biến môi trường VITE_GEMINI_API_KEY vào Vercel để sử dụng tính năng này.' }
       ]);
       setInputMessage('');
       return;
@@ -112,12 +112,12 @@ export default function AIChatWidget() {
         </div>
 
         {/* Khung cảnh báo API Key */}
-        {GEMINI_API_KEY === 'YOUR_GEMINI_API_KEY' && (
+        {!GEMINI_API_KEY && (
           <div className="bg-yellow-50 px-4 py-3 border-b border-yellow-200 text-sm text-yellow-800 flex items-start gap-2">
             <FaKey className="mt-0.5 flex-shrink-0" />
             <p>
               <strong>Cần cài đặt API Key!</strong><br/>
-              Truy cập <a href="https://aistudio.google.com/" target="_blank" rel="noreferrer" className="text-blue-600 underline">Google AI Studio</a> để lấy key và thay vào file <code className="bg-yellow-200 px-1 rounded">AIChatWidget.jsx</code>.
+              Hãy thêm biến môi trường <code className="bg-yellow-200 px-1 rounded">VITE_GEMINI_API_KEY</code> trên Vercel để Chatbot hoạt động.
             </p>
           </div>
         )}
