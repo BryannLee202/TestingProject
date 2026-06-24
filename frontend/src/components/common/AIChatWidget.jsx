@@ -32,10 +32,10 @@ export default function AIChatWidget() {
     e?.preventDefault();
     if (!inputMessage.trim()) return;
 
-    if (!GEMINI_API_KEY) {
+    if (!OPENROUTER_API_KEY) {
       setMessages(prev => [...prev, 
         { role: 'user', content: inputMessage },
-        { role: 'model', content: '⚠️ Hệ thống chưa được cấu hình API Key. Vui lòng thêm biến môi trường VITE_GEMINI_API_KEY vào Vercel để sử dụng tính năng này.' }
+        { role: 'model', content: '⚠️ Hệ thống chưa được cấu hình API Key. Vui lòng thêm biến môi trường VITE_OPENROUTER_API_KEY vào Vercel để sử dụng tính năng này.' }
       ]);
       setInputMessage('');
       return;
@@ -163,12 +163,12 @@ export default function AIChatWidget() {
         </div>
 
         {/* Khung cảnh báo API Key */}
-        {!GEMINI_API_KEY && (
+        {!OPENROUTER_API_KEY && (
           <div className="bg-yellow-50 px-4 py-3 border-b border-yellow-200 text-sm text-yellow-800 flex items-start gap-2">
             <FaKey className="mt-0.5 flex-shrink-0" />
             <p>
               <strong>Cần cài đặt API Key!</strong><br/>
-              Hãy thêm biến môi trường <code className="bg-yellow-200 px-1 rounded">VITE_GEMINI_API_KEY</code> trên Vercel để Chatbot hoạt động.
+              Hãy thêm biến môi trường <code className="bg-yellow-200 px-1 rounded">VITE_OPENROUTER_API_KEY</code> trên Vercel để Chatbot hoạt động.
             </p>
           </div>
         )}
@@ -225,7 +225,7 @@ export default function AIChatWidget() {
             </button>
           </form>
           <div className="text-center mt-2">
-            <span className="text-[10px] text-gray-400">Powered by Google Gemini AI</span>
+            <span className="text-[10px] text-gray-400">Powered by OpenRouter AI</span>
           </div>
         </div>
       </div>
