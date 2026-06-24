@@ -11,7 +11,8 @@ Dự án **YiYi Book** là một nền tảng thương mại điện tử (E-Com
 Hệ thống được thiết kế hướng tới việc tối ưu hóa trải nghiệm khách hàng (Customer Experience - CX) và tự động hóa quy trình quản trị cho doanh nghiệp (Admin Business Operations) thông qua các giải pháp công nghệ tiên tiến:
 *   **Hệ thống điểm thưởng thông minh (Y-Point System):** Cơ chế tích lũy điểm dựa trên giá trị đơn hàng thực tế, cho phép người dùng đổi điểm thành mã giảm giá hoặc trừ trực tiếp vào hóa đơn thanh toán.
 *   **Chiến lược giữ chân khách hàng (Membership Gamification):** Tự động phân hạng thành viên (Bạc, Vàng, Kim Cương) dựa trên điểm tích lũy lũy kế, mang đến đặc quyền miễn phí vận chuyển và ưu đãi riêng.
-*   **Thanh toán số tích hợp sâu:** Thanh toán nhanh qua VNPAY, quét mã VietQR động tự tạo thông tin đơn hàng, MoMo, ZaloPay và phương thức thanh toán truyền thống COD (Cash on Delivery) có logic thông minh.
+*   **Thanh toán số & Đăng nhập mạng xã hội:** Tích hợp thanh toán nhanh qua VNPAY, mã VietQR động, và đăng nhập cực nhanh qua Google/Apple (Firebase Auth).
+*   **Hệ thống Đa ngôn ngữ (Multilingual):** Hỗ trợ song ngữ Tiếng Việt - Tiếng Anh (i18n) với cơ chế đồng bộ mượt mà qua Google Translate.
 
 ---
 
@@ -22,12 +23,12 @@ Hệ thống áp dụng mô hình kiến trúc Client-Server tiêu chuẩn công
 ```
 ┌─────────────────────────────────┐          ┌─────────────────────────────────┐
 │        FRONTEND CLIENT          │          │         BACKEND SERVICES        │
-│    (ReactJS SPA - Port 5173)    │          │     (Spring Boot - Port 8081)   │
+│    (ReactJS SPA - Vercel)       │          │     (Spring Boot - Render)      │
 ├─────────────────────────────────┤          ├─────────────────────────────────┤
 │  • React 18 + Vite              │  HTTP/   │  • Java 17 + Spring Boot 3      │
 │  • Tailwind CSS (v4)            │  JSON    │  • Spring Security (JWT Auth)   │
-│  • Context API (Auth/Cart/Flow) ├─────────►│  • Spring Data JPA + Hibernate  │
-│  • SwiperJS (Sliders & Loops)   │◄─────────┤  • Spring Mail Sender (Gmail)   │
+│  • Context API (Auth/Cart/Lang) ├─────────►│  • Spring Data JPA + Hibernate  │
+│  • Firebase Auth (Social Login) │◄─────────┤  • Resend API & Spring Mail     │
 │  • Axios (HTTP client)          │          │  • VNPAY & QR Payment Gateways  │
 └─────────────────────────────────┘          └─────────────────────────────────┘
                                                               │
@@ -35,68 +36,52 @@ Hệ thống áp dụng mô hình kiến trúc Client-Server tiêu chuẩn công
                                              ┌─────────────────────────────────┐
                                              │        DATABASE SYSTEMS         │
                                              ├─────────────────────────────────┤
-                                             │  • MS SQL Server (Production)   │
-                                             │  • H2 In-Memory DB (Testing)    │
+                                             │  • Clever Cloud MySQL (Prod)    │
+                                             │  • MS SQL Server (Local)        │
                                              └─────────────────────────────────┘
 ```
 
 ---
 
-## 🔍 III. Phân Tích Yêu Cầu Chức Năng Chi Tiết (Exhaustive Features)
+## 🔍 III. Phân Tích Yêu Cầu Chức Năng Chi Tiết
 
 ### 1. Phân hệ Khách hàng (Customer App)
-*   **Xác thực tài khoản (Authentication):** Đăng ký tài khoản mới, Đăng nhập an toàn, cơ chế lưu trạng thái phiên với JWT, tự động đính kèm Token vào Authorization Header trong mọi request tiếp theo thông qua Axios Interceptors.
+*   **Xác thực tài khoản (Authentication):** Đăng ký bằng Email/OTP, Đăng nhập an toàn qua Social Login (Google, Apple) tích hợp Firebase, cơ chế lưu phiên JWT, tự động đính kèm Token qua Axios Interceptors.
+*   **Đa Ngôn Ngữ (Internationalization):** Cho phép chuyển đổi linh hoạt giữa Tiếng Việt và Tiếng Anh với React Context kết hợp fallback tự động bằng Google Translate DOM Syncing.
 *   **Trang chủ động (Dynamic Homepage):**
     *   **Hero Slider:** Trình chiếu các chương trình khuyến mãi lớn, hỗ trợ autoplay và chạm vuốt.
     *   **Side Banners Double Carousel:** 2 băng chuyền chạy độc lập ở góc màn hình giới thiệu các ưu đãi phụ.
     *   **Flash Sale Board:** Hiển thị sản phẩm giảm giá chớp nhoáng với bộ đếm ngược thời gian thực (Countdown Timer).
-    *   **Best Sellers Category Tab Cycling:** Tự động chuyển tab danh mục và cuộn đổi thứ hạng sách 1-5 mỗi 4.5 giây để thu hút sự chú ý của người xem mà không dịch chuyển màn hình chính.
+    *   **Best Sellers Category Tab Cycling:** Tự động chuyển tab danh mục và cuộn đổi thứ hạng sách.
     *   **Partner Brands Marquee:** Băng chuyền cuộn ngang vô hạn logo các nhà xuất bản lớn.
-    *   **Personalized Suggestions:** Tự động đề xuất sách thông minh theo thói quen người dùng dựa trên danh mục sách vừa xem cuối cùng.
 *   **Tìm kiếm & Lọc nâng cao (Search & Filtering):** Tìm kiếm sách theo từ khóa, tên sách, tác giả; bộ lọc đa tiêu chí (danh mục, khoảng giá, sắp xếp theo giá tăng/giảm, bán chạy nhất, mới nhất).
 *   **Chi Tiết Sản Phẩm & Tương Tác Cộng Đồng:**
-    *   Hiển thị thông số sách (Tác giả, nhà xuất bản, số trang, số lượng tồn kho).
-    *   Xem album ảnh chi tiết của sách.
-    *   Đánh giá sản phẩm nhiều ảnh đính kèm (Review Rating với số sao từ 1 đến 5).
+    *   Xem album ảnh chi tiết, đánh giá nhiều ảnh đính kèm (Review Rating).
     *   Thả tim bình luận yêu thích và bình luận phản hồi nhiều tầng (Multi-level Nested Replies).
-    *   Danh sách yêu thích (Wishlist) để lưu lại sách muốn mua sau này.
+    *   Danh sách yêu thích (Wishlist).
 *   **Giỏ Hàng & Thanh Toán (Cart & Checkout):**
-    *   Cập nhật số lượng sách trực tiếp trong giỏ hàng, tự động kiểm tra số lượng tồn kho để giới hạn đặt mua.
     *   Lưu trữ giỏ hàng trong cơ sở dữ liệu để đồng bộ hóa trên mọi thiết bị khi đăng nhập.
-    *   Áp dụng đồng thời Coupon giảm giá sản phẩm và Coupon Freeship.
-    *   Sử dụng điểm Y-Point tích lũy để giảm trừ hóa đơn (1 Y-Point = 1đ).
-    *   Xuất hóa đơn điện tử VAT trực tiếp bằng cách nhập thông tin công ty, mã số thuế tại trang đặt hàng.
+    *   Áp dụng đồng thời Coupon giảm giá sản phẩm, Coupon Freeship và Điểm Y-Point.
     *   Thanh toán đa dạng: Cổng thanh toán VNPAY, Ví điện tử, Quét mã QR, hoặc COD.
 *   **Theo Dõi & Quản Lý Đơn Hàng:**
     *   Theo dõi trạng thái đơn hàng thời gian thực qua Stepper 5 bước trực quan.
-    *   **Logic tối ưu cho đơn hàng COD:** Đơn hàng COD sẽ được tự động xếp vào tab "Chờ giao hàng" thay vì "Chờ thanh toán". Bước "Đơn Hàng Đã Thanh Toán" trên Stepper sẽ tự động được dời xuống vị trí thứ 4 (sau khi Shipper giao hàng thành công và nhận tiền mặt).
-    *   Yêu cầu trả hàng/hoàn tiền (Return/Refund) trực tiếp từ chi tiết đơn hàng: User gửi form nhập lý do trả hàng, số điện thoại, ngân hàng nhận hoàn tiền và hình ảnh minh chứng.
+    *   Yêu cầu trả hàng/hoàn tiền (Return/Refund) trực tiếp kèm minh chứng hình ảnh.
 *   **Trang Cá Nhân (User Profile & Membership):**
-    *   Hiển thị hạng thành viên trực quan (Bạc, Vàng, Kim Cương) dựa trên điểm tích lũy lũy kế.
-    *   Quản lý danh sách địa chỉ nhận hàng (Thêm/Sửa/Xóa địa chỉ mặc định).
-    *   Tra cứu lịch sử biến động điểm Y-Point (Cộng điểm từ đơn hàng, trừ điểm khi mua sách hoặc đổi voucher).
-    *   Hộp thư thông báo cá nhân nhận tin nhắn khuyến mãi hoặc cập nhật đơn hàng.
+    *   Hiển thị hạng thành viên trực quan, quản lý địa chỉ nhận hàng, tra cứu lịch sử Y-Point.
 
 ### 2. Phân hệ Quản trị viên (Admin Portal)
-*   **Dashboard Thống Kê Tổng Quan:** Biểu đồ trực quan hóa dữ liệu kinh doanh: tổng doanh thu, số lượng đơn hàng, số người dùng đăng ký mới, danh sách đơn hàng vừa đặt cần xử lý ngay.
-*   **Quản Lý Sách & Kho Hàng (Book Management):** Thêm sách mới, cập nhật giá nhập, giá bán lẻ, chiết khấu, hình ảnh đại diện, số lượng trong kho. Hệ thống tự khóa hoặc ẩn sách khi hết hàng.
-*   **Quản Lý Danh Mục (Category Management):** Quản lý cây danh mục sách và danh mục văn phòng phẩm. Thiết lập danh mục nổi bật (Featured Categories) hiển thị ngoài trang chủ.
-*   **Quản Lý Đơn Hàng (Order Fulfillment):** Cập nhật trạng thái đơn hàng (Đang xử lý -> Đang giao hàng -> Đã giao hàng), nhập mã vận đơn để khách hàng theo dõi.
-*   **Quản Lý Khuyến Mãi & Voucher:**
-    *   Thiết lập mã Coupon giảm giá theo % hoặc số tiền cố định, giới hạn lượt dùng và ngày hết hạn.
-    *   Quản lý kho Voucher quy đổi điểm: Định nghĩa các loại voucher (Giảm tiền đơn hàng, miễn phí vận chuyển) và số điểm Y-Point cần thiết để quy đổi.
-*   **Kiểm Duyệt Review & Reply:** Quản lý toàn bộ đánh giá của khách hàng trên hệ thống, kiểm duyệt nội dung văn bản và hình ảnh đính kèm, thực hiện xóa bỏ các nội dung vi phạm hoặc tiêu cực.
-*   **Hệ Thống Thông Báo Đẩy (Notification Engine):** Tạo thông báo gửi cho toàn bộ người dùng (Broadcast) hoặc gửi riêng cho một khách hàng cụ thể (Private message).
-*   **Quản Lý Thành Viên & Phân Quyền (User Management):** Quản lý danh sách khách hàng, cập nhật hạng thành viên thủ công hoặc phân quyền tài khoản (User / Admin).
-*   **Cài Đặt Hệ Thống (Site Settings):** Quản lý logo trang web, thông tin liên hệ (Địa chỉ, Hotline, Email), mạng xã hội, giờ làm việc hiển thị ở footer.
+*   **Dashboard Thống Kê Tổng Quan:** Biểu đồ trực quan hóa dữ liệu kinh doanh, danh sách đơn hàng cần xử lý ngay.
+*   **Quản Lý Sách & Kho Hàng:** Thêm sách mới, cập nhật giá, hình ảnh, số lượng. Hệ thống tự khóa sách khi hết hàng.
+*   **Quản Lý Danh Mục:** Quản lý cây danh mục sách và văn phòng phẩm. Thiết lập danh mục nổi bật (Featured Categories).
+*   **Quản Lý Đơn Hàng:** Cập nhật trạng thái đơn hàng, duyệt giao hàng, hoàn tiền.
+*   **Quản Lý Khuyến Mãi & Voucher:** Thiết lập mã Coupon, quản lý kho Voucher quy đổi điểm Y-Point.
+*   **Kiểm Duyệt Review & Reply:** Quản lý đánh giá, duyệt và xóa nội dung vi phạm.
+*   **Hệ Thống Thông Báo Đẩy:** Gửi tin nhắn Broadcast hoặc Private message.
+*   **Quản Lý Thành Viên & Cài Đặt:** Quản lý người dùng, cài đặt thông tin website, banner quảng cáo.
 
 ---
 
 ## 🗺️ IV. Thiết Kế Sơ Đồ Quy Trình & Workflow Nghiệp Vụ
-
-Để dễ dàng nắm bắt quy trình vận hành hệ thống và thiết lập slide báo cáo, toàn bộ luồng nghiệp vụ chính được chia nhỏ thành từng phần riêng biệt kèm giải thích chi tiết dưới đây.
-
----
 
 ### 1. Luồng Xác Thực Tài Khoản & Phân Quyền (Security JWT Workflow)
 
@@ -106,45 +91,29 @@ sequenceDiagram
   actor User as Khách Hàng
   participant FE as Frontend (React)
   participant BE as Backend (Spring Boot)
-  participant DB as Database (SQL Server)
+  participant Firebase as Firebase Auth
+  participant DB as Database (MySQL/SQL Server)
 
-  User->>FE: Nhập username & password
-  FE->>BE: POST /api/auth/login
-  BE->>DB: Truy vấn thông tin User theo Username
-  DB-->>BE: Trả về thực thể User (đã mã hóa mật khẩu)
-  BE->>BE: So sánh mật khẩu bằng BCryptPasswordEncoder
-  alt Mật khẩu hợp lệ
+  alt Đăng nhập Truyền thống
+      User->>FE: Nhập email & password
+      FE->>BE: POST /api/auth/login
+  else Social Login (Google/Apple)
+      User->>FE: Bấm đăng nhập Google
+      FE->>Firebase: Gọi signInWithPopup
+      Firebase-->>FE: Trả về ID Token
+      FE->>BE: POST /api/auth/social-login (kèm Token)
+  end
+
+  BE->>DB: Truy vấn thông tin User
+  alt Tồn tại User hợp lệ
     BE->>BE: Tạo chuỗi JWT Token chứa Username & Roles
-    BE-->>FE: Trả về HTTP 200 OK + JWT Token + User info
+    BE-->>FE: Trả về HTTP 200 OK + JWT Token
     FE->>FE: Lưu JWT Token vào LocalStorage
     FE-->>User: Chuyển hướng về Trang Chủ / Dashboard
-  else Mật khẩu sai
+  else Lỗi xác thực
     BE-->>FE: Trả về HTTP 401 Unauthorized
-    FE-->>User: Hiển thị thông báo sai thông tin tài khoản
-  end
-
-  Note over FE,BE: Quy trình gọi các API cần quyền truy cập
-  FE->>FE: Đính kèm Header 'Authorization: Bearer [Token]'
-  FE->>BE: GET /api/orders/my-orders
-  BE->>BE: JwtRequestFilter giải mã và kiểm tra hạn dùng Token
-  alt Token hợp lệ
-    BE->>DB: Lấy danh sách đơn hàng của User
-    DB-->>BE: Trả về dữ liệu
-    BE-->>FE: Trả về HTTP 200 OK + Data
-  else Token hết hạn hoặc không hợp lệ
-    BE-->>FE: Trả về HTTP 403 Forbidden
-    FE->>FE: Xóa Token trong LocalStorage, chuyển hướng về trang Login
   end
 ```
-
-**🔍 Giải thích chi tiết các bước vận hành:**
-*   **Bước 1 - 2:** Người dùng điền thông tin đăng nhập trên giao diện. Frontend gửi một request chứa Username và Password về phía Backend.
-*   **Bước 3 - 5:** Spring Security tiếp nhận yêu cầu, truy vấn thông tin User trong database, so khớp mật khẩu đã được mã hóa bằng thuật toán BCrypt.
-*   **Bước 6:** Nếu khớp, hệ thống tạo ra một mã JWT Token (chứa thông tin danh tính và phân quyền) rồi trả về cho Frontend kèm thông tin cá nhân cơ bản.
-*   **Bước 7 - 8:** Frontend lưu trữ mã JWT này vào `localStorage` của trình duyệt.
-*   **Bước 9 - 13 (Khi gọi API cần quyền truy cập):** Mỗi request tiếp theo từ Frontend sẽ tự động đính kèm Token trong Header dưới dạng `Authorization: Bearer <Token>`. Bộ lọc bảo mật `JwtRequestFilter` của Spring Security sẽ chặn lại, giải mã kiểm tra tính hợp lệ của Token trước khi quyết định cấp quyền truy cập dữ liệu cho người dùng.
-
----
 
 ### 2. Luồng Đặt Hàng & Thanh Toán Chi Tiết (Checkout Flow Diagram)
 
@@ -154,210 +123,57 @@ flowchart TD
   
   %% Nhánh COD
   B -- COD (Tiền mặt) --> C1[Tạo Đơn Hàng: Trạng thái PENDING]
-  C1 --> D1[Trừ số lượng tồn kho của Sách tương ứng]
-  C1 --> E1[Giải phóng giỏ hàng của User]
-  C1 --> F1[Áp dụng Coupon & khấu trừ điểm Y-Point dùng giảm giá]
+  C1 --> D1[Trừ tồn kho & Khấu trừ điểm Y-Point]
   C1 --> G1[Đưa đơn hàng vào tab 'Chờ Giao Hàng']
   G1 --> H1[Admin chuyển trạng thái đơn sang SHIPPING]
   H1 --> I1[Shipper giao hàng thành công & thu tiền mặt]
-  I1 --> J1[Cập nhật trạng thái đơn thành COMPLETED và SHIP_STATUS thành DELIVERED]
-  J1 --> K1[Cộng điểm tích lũy Y-Point cho User]
-  K1 --> L1[Stepper hiển thị 'Đơn Hàng Đã Thanh Toán' ở bước 4] --> M1([Kết thúc đơn hàng])
+  I1 --> J1[Cập nhật trạng thái đơn thành COMPLETED]
+  J1 --> K1[Cộng điểm tích lũy Y-Point cho User] --> M1([Kết thúc])
 
   %% Nhánh Online
-  B -- Online (VNPAY/Ví/QR) --> C2[Tạo Đơn Hàng: Trạng thái PENDING_PAYMENT]
-  C2 --> D2[Tạo link thanh toán VNPAY chứa số tiền đơn hàng]
-  D2 --> E2[Chuyển hướng người dùng đến Cổng thanh toán VNPAY]
+  B -- Online (VNPAY/QR) --> C2[Tạo Đơn Hàng: Trạng thái PENDING_PAYMENT]
+  C2 --> D2[Tạo link thanh toán VNPAY/QR Code]
+  D2 --> E2[Chuyển hướng người dùng đến Cổng thanh toán]
   E2 --> F2{Thanh toán thành công?}
   
-  F2 -- Thất bại / Hủy --> G2[Đơn hàng giữ ở tab 'Chờ Thanh Toán' trên web]
-  G2 --> H2[Hiển thị nút 'Thanh Toán Lại' ở chi tiết đơn hàng] --> I2([Đợi thanh toán lại hoặc tự hủy sau 24h])
+  F2 -- Thất bại / Hủy --> G2[Đơn hàng giữ ở tab 'Chờ Thanh Toán']
   
   F2 -- Thành công --> G3[Cập nhật đơn hàng thành PENDING]
-  G3 --> H3[Trừ tồn kho, giải phóng giỏ hàng & áp dụng Coupon/Y-Point]
-  G3 --> I3[Đánh dấu mốc 'Đã Thanh Toán' tại bước 2 trên Stepper]
+  G3 --> H3[Trừ tồn kho, áp dụng Coupon/Y-Point]
+  H3 --> I3[Đánh dấu mốc 'Đã Thanh Toán']
   I3 --> J3[Đưa đơn hàng vào tab 'Chờ Giao Hàng' để Admin duyệt]
-  J3 --> K3[Admin bàn giao cho ĐVVC giao hàng đến khách]
-  K3 --> L3[Giao hàng thành công: cập nhật trạng thái đơn thành COMPLETED]
-  L3 --> M3[Cộng điểm tích lũy Y-Point cho User] --> N3([Kết thúc đơn hàng])
+  J3 --> K3[Admin bàn giao giao hàng]
+  K3 --> L3[Giao hàng thành công: cập nhật trạng thái COMPLETED]
+  L3 --> M3[Cộng điểm tích lũy Y-Point] --> N3([Kết thúc])
 ```
-
-**🔍 Giải thích chi tiết các bước vận hành:**
-*   **Bước 1 - 3 (Khởi tạo đặt hàng):** Người dùng xác nhận thông tin thanh toán trong giỏ hàng. Hệ thống kiểm tra tài khoản, bắt buộc đăng nhập nếu là khách vãng lai.
-*   **Bước 4 - 6 (Cấu hình đơn hàng):** Người dùng nhập địa chỉ giao hàng, lựa chọn Coupon giảm giá, quy đổi điểm tích lũy Y-Point và chọn phương thức thanh toán.
-*   **Nhánh 1: Nếu phương thức thanh toán là COD (Tiền mặt):**
-    *   Đơn hàng ngay lập tức được khởi tạo ở trạng thái `PENDING` (Chờ xử lý giao hàng), hệ thống tự động trừ kho sản phẩm tương ứng, giải phóng giỏ hàng và đưa đơn hàng thẳng vào danh sách "Chờ giao hàng" trên màn hình quản lý của cả khách hàng và Admin.
-    *   Khi shipper giao hàng thành công, trạng thái sẽ đổi sang `COMPLETED`, cập nhật mốc đã thanh toán tại thời điểm nhận hàng (đã được dời về bước 4 trên Stepper đơn hàng).
-*   **Nhánh 2: Nếu phương thức thanh toán là Online (VNPAY/Ví/VietQR):**
-    *   Đơn hàng khởi tạo ở trạng thái tạm thời là `PENDING_PAYMENT` (Chờ thanh toán) và chuyển hướng người dùng đến cổng thanh toán trực tuyến.
-    *   Nếu thanh toán thành công, trạng thái đơn chuyển sang `PENDING` (Chờ giao hàng) để Admin duyệt đóng gói và đánh dấu mốc đã thanh toán tức thì ở bước thứ 2 trên Stepper đơn hàng.
-    *   Nếu thất bại, đơn hàng được giữ lại ở trạng thái chờ thanh toán để người dùng có thể thực hiện thanh toán lại.
 
 ---
 
-### 3. Luồng Tương Tác Đánh Giá & Phản Hồi (Interactive Review & Nested Reply Workflow)
+## 🛠 V. Triển Khai Thực Tế (Deployment)
 
-```mermaid
-sequenceDiagram
-  autonumber
-  actor User as Khách Hàng
-  actor Admin as Quản Trị Viên
-  participant FE as Frontend (React)
-  participant BE as Backend (Spring Boot)
-  participant DB as Database (SQL Server)
+Dự án đã được cấu hình tối ưu để triển khai mượt mà (Zero-Downtime) trên các dịch vụ Cloud miễn phí:
 
-  User->>FE: Gửi Đánh giá mới (Sao, nhận xét, hình ảnh)
-  FE->>BE: POST /api/reviews
-  BE->>DB: Lưu Đánh giá mới vào bảng REVIEWS (status = APPROVED)
-  DB-->>BE: Thành công
-  BE-->>FE: Trả về Đánh giá vừa tạo
-  FE-->>User: Hiển thị đánh giá lên trang chi tiết sách
-
-  Note over User,FE: Người dùng khác vào tương tác với Đánh giá
-  User->>FE: Nhấp nút 'Thả Tim' yêu thích Đánh giá
-  FE->>BE: PUT /api/reviews/{id}/like
-  BE->>DB: Tăng trường 'likesCount' lên 1
-  BE-->>FE: Trả về số lượt thích mới
-  FE-->>User: Cập nhật icon trái tim sáng màu & tăng số đếm
-
-  Note over User,FE: Người dùng thực hiện phản hồi (Reply)
-  User->>FE: Nhập nội dung phản hồi đánh giá
-  FE->>BE: POST /api/reviews/{id}/replies
-  BE->>DB: Lưu bản ghi phản hồi vào bảng REPLIES (gắn khóa ngoại review_id)
-  BE-->>FE: Trả về danh sách phản hồi cập nhật
-  FE-->>User: Hiển thị phản hồi thụt lề dưới đánh giá gốc
-
-  Note over Admin,BE: Phân hệ quản trị của Admin
-  Admin->>FE: Vào trang quản lý Review, phát hiện nội dung tiêu cực
-  Admin->>FE: Nhấp nút 'Xóa Đánh Giá' hoặc 'Xóa Phản Hồi'
-  FE->>BE: DELETE /api/admin/reviews/{id} hoặc /api/admin/replies/{id}
-  BE->>DB: Xóa bản ghi trong database (xóa cascade các replies liên quan)
-  BE-->>FE: Trả về HTTP 200 OK
-  FE-->>Admin: Xóa dòng tương ứng trên giao diện quản trị
-```
-
-**🔍 Giải thích chi tiết các bước vận hành:**
-*   **Bước 1 - 6 (Đánh giá sách):** Khách hàng sau khi nhận sách có thể viết đánh giá kèm số sao và đăng tải hình ảnh. Đơn hàng được lưu vào database và lập tức cập nhật lên trang chi tiết sản phẩm.
-*   **Bước 7 - 10 (Thả tim tương tác):** Người dùng khác khi duyệt qua có thể thực hiện tương tác "Thả Tim" yêu thích đánh giá. Hệ thống ghi nhận tăng lượt thích trực tiếp trong cơ sở dữ liệu.
-*   **Bước 11 - 14 (Phản hồi đa cấp):** Khách hàng hoặc Admin có thể nhập nội dung phản hồi trực tiếp dưới các đánh giá gốc. Hệ thống tự động thiết lập liên kết khóa ngoại đa tầng trong bảng `REPLIES` và hiển thị dạng cây thụt lề cấp dưới.
-*   **Bước 15 - 18 (Kiểm duyệt phản hồi):** Admin có toàn quyền giám sát. Nếu phát hiện đánh giá hoặc phản hồi vi phạm chính sách nội dung, Admin thực hiện xóa bỏ và hệ thống sẽ tự động dọn dẹp các phản hồi liên quan trong database.
+*   **Frontend (Vercel):** Triển khai tự động mỗi khi có thay đổi trên branch `main`. Tốc độ phản hồi cực nhanh nhờ CDN toàn cầu.
+*   **Backend (Render):** Sử dụng Web Service trên Render với Java 17. Đã điều chỉnh `HikariCP Pool Size = 2` để cho phép khởi chạy song song 2 container trong lúc Deploy (vượt qua giới hạn 5 Connections của Database free tier).
+*   **Database (Clever Cloud MySQL):** Cơ sở dữ liệu đám mây bảo mật, đáp ứng nhu cầu dữ liệu thời gian thực.
+*   **Email Service (Resend API):** Thay thế SMTP truyền thống giúp vượt qua các bộ lọc Spam của Gmail khi gửi mã OTP.
 
 ---
 
-## 🗄 V. Thiết Kế Cơ Sở Dữ Liệu Chi Tiết (Entity-Relationship Details)
-
-Cơ sở dữ liệu của hệ thống được chuẩn hóa tối ưu để lưu trữ dữ liệu mua bán, tích điểm, tương tác đánh giá, và quản lý banner quảng cáo:
-
-```
-                  ┌──────────────────────────────┐
-                  │           CATEGORY           │
-                  ├──────────────────────────────┤
-                  │ PK  id (BIGINT)              │
-                  │     name (VARCHAR)           │
-                  │     image_url (VARCHAR)      │
-                  │     is_featured (BIT)        │
-                  └──────────────┬───────────────┘
-                                 │ 1
-                                 │
-                                 │ N
- ┌───────────────────────────┐   │┌──────────────────────────────┐
- │           ORDER           ├───┼┤             BOOK             │
- ├───────────────────────────┤   │├──────────────────────────────┤
- │ PK  id (BIGINT)           │   ││ PK  id (BIGINT)              │
- │ FK  user_id (BIGINT)      │   ││ FK  category_id (BIGINT)     │
- │     status (VARCHAR)      │   ││     title (VARCHAR)          │
- │     shipping_status (VAR) │   ││     price (DECIMAL)          │
- │     total_amount (DECIMAL)│   ││     stock_quantity (INT)     │
- │     payment_method (VAR)  │   ││     average_rating (DOUBLE)  │
- └─────────────┬─────────────┘   │└──────────────┬───────────────┘
-               │ 1               │               │ 1
-               │                 │               │
-               │ N               │               │ N
- ┌─────────────┴─────────────┐   │┌──────────────┴───────────────┐
- │        ORDER_ITEM         ├───┼┤            REVIEW            │
- ├───────────────────────────┤   │├──────────────────────────────┤
- │ PK  id (BIGINT)           │   ││ PK  id (BIGINT)              │
- │ FK  order_id (BIGINT)     │   ││ FK  book_id (BIGINT)         │
- │ FK  book_id (BIGINT)      │   ││ FK  user_id (BIGINT)         │
- │     quantity (INT)        │   ││     rating (INT)             │
- │     price (DECIMAL)       │   ││     comment (TEXT)           │
- └───────────────────────────┘   │└──────────────┬───────────────┘
-                                 │               │ 1
-                                 │               │
-                                 │               │ N
-                                 │┌──────────────┴───────────────┐
-                                 ││            REPLY             │
-                                 │├──────────────────────────────┤
-                                 ││ PK  id (BIGINT)              │
-                                 ││ FK  review_id (BIGINT)       │
-                                 ││ FK  user_id (BIGINT)         │
-                                 ││     content (TEXT)           │
-                                 │└──────────────────────────────┘
-                                 │
- ┌───────────────────────────┐   │
- │           USER            ├───┘
- ├───────────────────────────┤
- │ PK  id (BIGINT)           │
- │     username (VARCHAR)    │
- │     accumulated_points(INT│
- │     rank (VARCHAR)        │
- └───────────────────────────┘
-```
-
-### Các bảng cấu trúc bổ sung hỗ trợ tính năng phụ:
-*   **Wishlist (Danh sách yêu thích):** Bảng liên kết trung gian lưu trữ mối quan hệ nhiều-nhiều (Many-to-Many) giữa `User` và `Book`.
-*   **Banner (Banner quảng cáo):** Lưu trữ hình ảnh quảng cáo, tiêu đề, vị trí hiển thị (`MAIN` ở trang chủ, `SIDE_TOP`/`SIDE_BOTTOM` ở góc) và liên kết (`linkUrl`).
-*   **Coupon (Mã giảm giá):** Lưu trữ mã giảm giá (`code`), mức giảm giá, ngày bắt đầu, ngày hết hạn và số lượt dùng tối đa.
-*   **Notification (Thông báo):** Lưu thông báo hệ thống, trạng thái đã đọc (`is_read`), tiêu đề, nội dung và đường dẫn liên quan.
-
----
-
-## 💻 VI. Chi Tiết Thiết Giao Diện & Các Module Chức Năng (UI/UX Modules)
-
-### 1. Module Trang Chủ (Homepage UI)
-*   **Bố cục phân bổ chuẩn thương mại điện tử:** Header chứa logo thương hiệu, thanh tìm kiếm sách thông minh, nút giỏ hàng nổi bật kèm số lượng sản phẩm cập nhật động, và avatar người dùng điều hướng nhanh đến trang cá nhân.
-*   **Hiệu ứng Banner Slider:** Banners lớn tự động lướt chuyển tiếp, góc phải trang trí bằng hai banners dạng carousel xoay chuyển liên tục tạo hiệu ứng sinh động và tăng không gian quảng cáo.
-*   **Trải nghiệm cuộn và bảng xếp hạng:** Bảng xếp hạng bán chạy tự động chuyển đổi tab (Văn học, Manga, Kỹ năng sống...) và nhảy hiển thị sách top 1-5 tự động giúp giao diện luôn chuyển động, thu hút người xem tìm tòi khám phá.
-
-### 2. Module Chi Tiết Sách (Product Detail UI)
-*   **Trình chiếu hình ảnh sản phẩm:** Thư viện ảnh cho phép nhấn để xem ảnh lớn, hiển thị nhãn giảm giá đỏ nổi bật nếu sách có chương trình ưu đãi.
-*   **Thông tin sách & Số lượng kho:** Hiển thị chi tiết tác giả, định dạng bìa, nhà xuất bản. Bên cạnh nút mua hàng có bộ đếm tăng giảm số lượng sản phẩm, tự động khóa tăng nếu chạm ngưỡng tồn kho thực tế của hệ thống.
-*   **Hệ thống Đánh giá/Phản hồi (Interactive Review UI):**
-    *   Tỷ lệ đánh giá sao trung bình được tính toán và hiển thị trực quan dưới dạng biểu đồ cột phần trăm số sao (5 sao, 4 sao...).
-    *   Khung viết đánh giá tích hợp chọn số sao bằng chuột, cho phép kéo thả ảnh để tải lên làm hình ảnh minh họa cho đánh giá.
-    *   Dưới mỗi đánh giá hiển thị nút "Phản hồi". Khi bấm vào, một hộp văn bản nhỏ sẽ hiện ra ngay tại đó, cho phép viết phản hồi thụt lề cấp dưới (nested comments).
-
-### 3. Module Giỏ Hàng & Đặt Hàng (Cart & Checkout UI)
-*   **Giỏ Hàng:**
-    *   Thiết kế dạng bảng hiển thị rõ ràng hình ảnh sách, tiêu đề, đơn giá gốc, đơn giá đã giảm, tổng tiền mỗi dòng.
-    *   Người dùng có thể chọn hoặc bỏ chọn từng sản phẩm (Checkbox) để tiến hành thanh toán cho những sản phẩm mong muốn thay vì thanh toán toàn bộ giỏ hàng.
-*   **Giao diện Đặt Hàng (Checkout):**
-    *   **Quản lý địa chỉ thông minh:** Tích hợp hộp thoại (Modal) hiển thị danh sách địa chỉ đã lưu của người dùng. Cho phép thêm nhanh địa chỉ mới hoặc chọn địa chỉ mặc định để tự điền thông tin người nhận.
-    *   **Áp dụng mã giảm giá:** Nút chọn coupon sẽ hiển thị danh sách các coupon khả dụng, người dùng chỉ cần nhấp chọn để áp dụng thay vì phải nhập thủ công.
-    *   **Tính năng Điểm thưởng:** Cho phép nhập số điểm muốn dùng để quy đổi thành tiền giảm giá trực tiếp, hiển thị số điểm tích lũy hiện có để người dùng tham chiếu.
-    *   **Thanh toán VietQR động:** Khi người dùng chọn thanh toán qua chuyển khoản ngân hàng, hệ thống sẽ tự động sinh mã VietQR chứa đầy đủ số tài khoản, tên chủ tài khoản, số tiền cần thanh toán chính xác đến từng đồng và nội dung chuyển khoản để người dùng quét mã thanh toán ngay tức thì.
-
-### 4. Module Quản Trị Admin (Admin Panel UI)
-*   **Dashboard Biểu Đồ Thống Kê:** Biểu đồ doanh thu dạng đường cột chạy trực quan hiển thị sự biến động doanh thu theo tuần/tháng. Các thẻ đếm số lượng người dùng, đơn hàng, sách được thiết kế hiện đại với màu sắc tương phản nổi bật.
-*   **Bảng quản lý dữ liệu (Data Tables):**
-    *   Tất cả các bảng dữ liệu (Sách, Đơn hàng, Đánh giá, Người dùng...) đều tích hợp các tính năng lọc nhanh theo trạng thái, tìm kiếm và phân trang mượt mà.
-    *   Trang quản lý đơn hàng có các nút thao tác nhanh: Duyệt giao hàng, Hủy đơn, Xem thông tin hóa đơn VAT, hỗ trợ admin vận hành hiệu quả nhất.
-
----
-
-## 🛠 VII. Hướng Dẫn Cài Đặt (Chạy Local)
+## 💻 VI. Hướng Dẫn Cài Đặt (Chạy Local)
 
 ### 1. Yêu Cầu Chuẩn Bị
 *   **Java Development Kit (JDK):** Phiên bản 17 hoặc cao hơn.
 *   **Node.js:** Phiên bản 18.x trở lên.
-*   **Database:** Microsoft SQL Server (đã được cấu hình trong `application.properties`).
+*   **Database:** Microsoft SQL Server (hoặc MySQL) đã được cấu hình trong `application.properties`.
 
 ### 2. Khởi Chạy Backend (Spring Boot)
 1.  Di chuyển vào thư mục backend:
     ```bash
     cd backend
     ```
-2.  Chạy ứng dụng bằng Maven Wrapper:
+2.  Cập nhật file `application.properties` (Database URL, Username, Password, Resend API Key).
+3.  Chạy ứng dụng bằng Maven:
     ```bash
     ./mvnw spring-boot:run
     ```
@@ -368,20 +184,20 @@ Cơ sở dữ liệu của hệ thống được chuẩn hóa tối ưu để l�
     ```bash
     cd ../frontend
     ```
-2.  Cài đặt các gói phụ thuộc (Dependencies):
+2.  Cài đặt các gói phụ thuộc:
     ```bash
     npm install
     ```
-3.  Bắt đầu chạy server phát triển (Development server):
+3.  Bắt đầu chạy server phát triển:
     ```bash
     npm run dev
     ```
-    *Cổng chạy mặc định của Frontend: `http://localhost:5173`* (hoặc cổng được hiển thị trên console).
+    *Cổng chạy mặc định của Frontend: `http://localhost:5173`*
 
 ---
 
-## 📝 VIII. Kết Luận
+## 📝 VII. Lời Kết
 
-Dự án **YiYi Book** là giải pháp hoàn chỉnh cho một website bán sách trực tuyến hiện đại, ứng dụng hiệu quả mô hình tách biệt Frontend và Backend. Bằng việc áp dụng các công nghệ hiện đại như **Spring Boot** cho backend và **ReactJS** cho frontend, hệ thống đảm bảo được tính linh hoạt, bảo mật tốt thông qua JWT, và tốc độ xử lý tối ưu.
+Dự án **YiYi Book** là giải pháp hoàn chỉnh cho một website bán sách trực tuyến hiện đại. Bằng việc áp dụng **Spring Boot 3** cho backend và **ReactJS** cho frontend, hệ thống đảm bảo được tính linh hoạt, bảo mật tốt thông qua JWT, đăng nhập mạng xã hội, đa ngôn ngữ, và tốc độ xử lý tối ưu.
 
-Các tính năng gia tăng giá trị như **tích điểm đổi quà Y-Point**, **phân hạng thành viên**, **thanh toán trực tuyến**, kết hợp với giao diện UI mượt mà mang lại trải nghiệm tiện lợi, hiện đại tiệm cận các sàn thương mại điện tử lớn hiện nay. Dự án là nguồn tham khảo lý tưởng cho việc tiếp cận mô hình phát triển phần mềm Full-Stack hiện đại.
+Đây là bộ mã nguồn hoàn chỉnh với chuẩn cấu trúc công nghiệp, thích hợp để tham khảo hoặc phát triển lên các hệ thống quy mô lớn.
