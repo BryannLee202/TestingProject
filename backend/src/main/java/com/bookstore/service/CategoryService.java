@@ -4,11 +4,13 @@ import com.bookstore.entity.Category;
 import com.bookstore.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
@@ -23,11 +25,13 @@ public class CategoryService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục với ID: " + id));
     }
 
+    @Transactional
     @org.springframework.cache.annotation.CacheEvict(value = "categories", allEntries = true)
     public Category createCategory(Category category) {
         return categoryRepository.save(category);
     }
 
+    @Transactional
     @org.springframework.cache.annotation.CacheEvict(value = "categories", allEntries = true)
     public Category updateCategory(Long id, Category updatedCategory) {
         Category category = getCategoryById(id);
@@ -38,6 +42,7 @@ public class CategoryService {
         return categoryRepository.save(category);
     }
 
+    @Transactional
     @org.springframework.cache.annotation.CacheEvict(value = "categories", allEntries = true)
     public void deleteCategory(Long id) {
         categoryRepository.deleteById(id);

@@ -5,6 +5,7 @@ import com.bookstore.repository.BookRepository;
 import com.bookstore.utils.ExcelHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 
@@ -12,6 +13,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BookService {
 
     private final BookRepository bookRepository;
@@ -25,6 +27,7 @@ public class BookService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sách với ID: " + id));
     }
 
+    @Transactional
     @org.springframework.cache.annotation.CacheEvict(value = {"books_bestsellers", "books_latest", "books_discounted", "books_featured", "books_combos"}, allEntries = true)
     public Book createBook(Book book) {
         if (bookRepository.findFirstByTitle(book.getTitle().trim()).isPresent()) {
@@ -73,6 +76,7 @@ public class BookService {
         return bookRepository.findByIsFeaturedTrue();
     }
 
+    @Transactional
     @org.springframework.cache.annotation.CacheEvict(value = {"books_bestsellers", "books_latest", "books_discounted", "books_featured", "books_combos"}, allEntries = true)
     public Book toggleFeaturedStatus(Long id, boolean isFeatured) {
         Book book = getBookById(id);
@@ -80,6 +84,7 @@ public class BookService {
         return bookRepository.save(book);
     }
 
+    @Transactional
     @org.springframework.cache.annotation.CacheEvict(value = {"books_bestsellers", "books_latest", "books_discounted", "books_featured", "books_combos"}, allEntries = true)
     public Book updateBook(Long id, Book updatedBook) {
         Book book = getBookById(id);
@@ -101,6 +106,7 @@ public class BookService {
         return bookRepository.save(book);
     }
 
+    @Transactional
     @org.springframework.cache.annotation.CacheEvict(value = {"books_bestsellers", "books_latest", "books_discounted", "books_featured", "books_combos"}, allEntries = true)
     public void deleteBook(Long id) {
         bookRepository.deleteById(id);
@@ -131,6 +137,8 @@ public class BookService {
         return bookRepository.searchBooksByKeyword(cleanKeyword);
     }
 
+    @Transactional
+    @org.springframework.cache.annotation.CacheEvict(value = {"books_bestsellers", "books_latest", "books_discounted", "books_featured", "books_combos"}, allEntries = true)
     public void importBooksFromExcel(MultipartFile file) {
         try {
             List<Book> books = ExcelHelper.excelToBooks(file.getInputStream());
