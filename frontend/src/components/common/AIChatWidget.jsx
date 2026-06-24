@@ -47,8 +47,14 @@ export default function AIChatWidget() {
 
     try {
       // Chuẩn bị lịch sử chat cho Gemini
-      // Lọc bỏ tin nhắn chào đầu tiên của bot (vì Gemini yêu cầu history phải bắt đầu bằng 'user')
-      const geminiHistory = newMessages.slice(1).map(msg => ({
+      // TỐI ƯU HÓA TOKEN: Chỉ gửi tối đa 4 tin nhắn gần nhất lên máy chủ
+      // Đồng thời đảm bảo lịch sử luôn bắt đầu bằng tin nhắn của người dùng ('user')
+      let recentMessages = newMessages.slice(-4);
+      if (recentMessages.length > 0 && recentMessages[0].role === 'model') {
+        recentMessages = recentMessages.slice(1);
+      }
+
+      const geminiHistory = recentMessages.map(msg => ({
         role: msg.role === 'model' ? 'model' : 'user',
         parts: [{ text: msg.content }]
       }));
@@ -61,9 +67,12 @@ export default function AIChatWidget() {
         },
         body: JSON.stringify({
           system_instruction: {
-            parts: [{ text: "Từ bây giờ, bạn là trợ lý tư vấn của nhà sách YiYi Book. Bạn luôn trả lời lịch sự, ngắn gọn và nhiệt tình bằng tiếng Việt." }]
+            parts: [{ text: "Từ bây giờ, bạn là trợ lý tư vấn của nhà sách YiYi Book. Bạn luôn trả lời lịch sự, ngắn gọn (tối đa 2-3 câu) và nhiệt tình bằng tiếng Việt." }]
           },
-          contents: geminiHistory
+          contents: geminiHistory,
+          generationConfig: {
+            maxOutputTokens: 200 // Giới hạn bot chỉ trả lời tối đa 200 token (~150 chữ) để tiết kiệm
+          }
         })
       });
 
