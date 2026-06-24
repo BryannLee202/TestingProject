@@ -282,17 +282,85 @@ npm run dev
 
 ---
 
-## 🆕 VII. Lịch Sử Cập Nhật Gần Nhất
+## 🆕 VII. Lịch Sử Cập Nhật Toàn Bộ
 
-| Phiên bản | Tính năng |
-|---|---|
-| **v2.5** | 🤖 AI Chatbot với Groq API (Llama 3.3), Streaming response, RAG kho hàng |
-| **v2.6** | 🧠 Persistent Memory (localStorage), nhận biết thời gian thực |
-| **v2.7** | 👤 Bộ nhớ tách riêng theo từng tài khoản người dùng |
-| **v2.8** | 🎓 Tab "Huấn Luyện AI" trong Profile - cá nhân hóa Bot |
-| **v2.9** | 📊 RAG toàn diện: thống kê kho, phân bổ danh mục, keyword search thông minh |
-| **v3.0** | 🎯 Intent Detection Engine: nhận diện 8 loại ý định mua hàng |
-| **v3.0** | ⤢ Nút Expand/Collapse fullscreen cho cửa sổ chat |
+### 🤖 Phase 5 — AI Chatbot & Personalization (2026)
+
+| Commit | Tính năng |
+|--------|-----------|
+| `74a7fd6` | 📝 docs: cập nhật README toàn diện với kiến trúc AI |
+| `5b38815` | 🎯 Intent Detection Engine — nhận diện 8 loại ý định mua hàng |
+| `a46684d` | 📊 RAG toàn diện: thống kê kho, phân bổ danh mục, keyword search thông minh |
+| `1fcaf1a` | ⤢ Nút Expand/Collapse — mở rộng cửa sổ chat fullscreen |
+| `836b2fd` | 👤 Bộ nhớ tách riêng theo từng tài khoản (`yiyi_chat_history_{userId}`) |
+| `836b2fd` | 🎓 Tab "Huấn Luyện AI" trong Profile — người dùng tự cá nhân hóa Bot |
+| `836b2fd` | 🗄️ Backend: thêm trường `aiPreferences` vào entity `User` |
+| `bf47ccb` | 🧠 Persistent Memory (localStorage), nhận biết thời gian thực (múi giờ VN) |
+| `bf47ccb` | 🔍 Fuzzy search RAG — tìm sách theo từ khóa từ câu hỏi dài |
+| `bf47ccb` | 🤖 AI Chatbot với Groq API (Llama 3.3 70B), Streaming SSE response |
+
+### 🛒 Phase 4 — Advanced E-Commerce Features (2025–2026)
+
+| Commit | Tính năng |
+|--------|-----------|
+| `00d97f8` | 🔐 Fix: thêm auth token cho admin user API |
+| `0cd07c9` | 🗑️ Force delete user kèm toàn bộ dữ liệu liên quan |
+| `17e3359` | 🔒 Lưu OTP vào DB (sống sót qua server restart), hết hạn sau 5 phút |
+| `9b5c0ac` | 📧 Tích hợp Resend API để gửi email OTP |
+| `19043b2` | 🎁 Voucher freeship đơn hàng đầu tiên + dynamic voucher badge |
+| `f3330a4` | 🔧 Load Firebase credentials từ biến môi trường (production) |
+| `63620b4` | 🕐 Enforce múi giờ Việt Nam cho payment gateway |
+| `e1006b4` | ⏰ Scheduled job: tự động duyệt đơn hoàn thành sau 7 ngày |
+| `a6514d4` | 🎫 Partner coupons & ví voucher |
+| `05244b4` | 💳 Tích hợp ZaloPay & cập nhật giỏ hàng |
+| `1a6d1f4` | 📰 Fix: email đăng ký newsletter không được trùng |
+| `4d911b9` | 🛍️ Di chuyển gợi ý sản phẩm sang dạng 2 hàng grid trong ProductDetail |
+| `82388c5` | ⚙️ Nâng cao trang Admin Site Settings với visual list editors |
+| `a31a30c` | 🚫 Phân loại đơn online bị hủy vào tab "Đã Hủy" thay vì "Trả Hàng" |
+| `b7b8c18` | ↩️ Cho phép hủy đơn trước khi ship, tự động hoàn tiền online |
+| `9d5651c-dc2d057` | 🗂️ Mega menu Fahasa-style với danh mục động, sidebar mobile |
+| `3be23c7` | 🔍 Mobile search bar khớp layout Fahasa với lịch sử & gợi ý |
+| `bb551eb` | 📱 Orders page responsive toàn bộ thiết bị |
+| `5c9b981` | 🚀 Spring Caching + JVM tuning tối ưu hiệu năng |
+| `ca37dcb` | 💓 Endpoint `/api/ping` giữ server Render không ngủ |
+
+### 🎨 Phase 3 — UI/UX & Payment Integration (2025)
+
+| Commit | Tính năng |
+|--------|-----------|
+| `2440fca` | 📋 Thêm trang chính sách, nâng cao profile, review, coupon |
+| `485695e` | 📚 Quản lý sách với tự tính giá và upload nhiều ảnh |
+| `4550ef5` | 📰 Quản lý Newsletter & cài đặt website (Admin) |
+| `3704f99` | 💎 Redesign trang chủ theo chuẩn Luxury, slider/navigation |
+| `d4b4182` | 💳 Tích hợp cổng thanh toán VNPay & cải tiến checkout |
+| `d16e307` | ⭐ Quản lý review, upload ảnh review, thay logo ngang |
+| `facaf82` | 🏅 Hệ thống Y-Point reward & Member Rules Modal |
+| `18ebd55` | 👨‍💼 Thêm admin users, email OTP, Firebase Auth |
+| `fd21a4b` | 🗺️ Cập nhật dữ liệu tỉnh/thành 2026 (34 tỉnh mới) |
+| `af4cead` | 📍 Dropdown tìm kiếm địa chỉ với react-select |
+| `23d8a7b` | 🚚 Khôi phục logic giao hàng nhanh HCM & Hà Nội |
+
+### ⚙️ Phase 2 — Core Backend & Features (2024–2025)
+
+| Commit | Tính năng |
+|--------|-----------|
+| `6e7436c` | ✅ Review, Flash Sale, Coupon, tìm kiếm nâng cao, VietQR |
+| `800e5b7` | 🛒 Nút thêm vào giỏ hàng, dynamic logic, styling |
+| `85d7b06` | 🔧 Backend Spring Boot Phase 1,2,3: Security, Category, Cart, Order |
+| `611fa5a` | 🔄 Migrate từ Node.js sang Spring Boot |
+| `e199d71` | 🌱 DataSeeder: tự động khởi tạo dữ liệu mẫu |
+| `c7d60af` | 💜 Tích hợp thanh toán MoMo |
+
+### 🏗️ Phase 1 — Khởi Tạo Dự Án (2024)
+
+| Commit | Tính năng |
+|--------|-----------|
+| `b67397c` | 🎨 Giao diện cơ bản ban đầu |
+| `85b320f` | 🔌 Xây dựng các API đầu tiên |
+| `e1cc74c` | 📁 Routes & Controllers cho Books, Categories |
+| `77c1c04` | 🗃️ Tạo Models |
+| `2b0c4ff` | 🔗 Kết nối Database |
+| `4337097` | 🎉 **Initial commit** |
 
 ---
 
