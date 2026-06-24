@@ -8,6 +8,7 @@ export default function AIChatWidget() {
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const messagesEndRef = useRef(null);
   
   // ==========================================
@@ -62,7 +63,7 @@ export default function AIChatWidget() {
         content: "Từ bây giờ, bạn là trợ lý tư vấn của nhà sách YiYi Book. Bạn luôn trả lời lịch sự, ngắn gọn (tối đa 2-3 câu) và nhiệt tình bằng tiếng Việt."
       });
 
-      // Dùng model miễn phí từ OpenRouter (Gemma 2 9B IT cực kỳ thông minh và hỗ trợ tiếng Việt tốt)
+      // Dùng model tốc độ cao Llama 3.2 3B Instruct để phản hồi nhanh nhất
       const response = await fetch(`https://openrouter.ai/api/v1/chat/completions`, {
         method: 'POST',
         headers: { 
@@ -70,7 +71,7 @@ export default function AIChatWidget() {
           'Authorization': `Bearer ${OPENROUTER_API_KEY}`
         },
         body: JSON.stringify({
-          model: "openrouter/free",
+          model: "meta-llama/llama-3.2-3b-instruct:free",
           messages: openRouterHistory,
           stream: true
         })
@@ -87,6 +88,7 @@ export default function AIChatWidget() {
       // Tạo một tin nhắn rỗng của bot để stream dữ liệu vào
       setMessages(prev => [...prev, { role: 'model', content: '' }]);
       setIsTyping(false); // Tắt hiệu ứng typing vì chữ bắt đầu hiện ra
+      setIsStreaming(true); // Khóa form nhập liệu cho đến khi stream xong
 
       let done = false;
       let buffer = "";
@@ -123,10 +125,11 @@ export default function AIChatWidget() {
         }
       }
     } catch (error) {
-      console.error("Gemini API Error:", error);
+      console.error("OpenRouter API Error:", error);
       setMessages(prev => [...prev, { role: 'model', content: `Lỗi kết nối: ${error.message}` }]);
     } finally {
       setIsTyping(false);
+      setIsStreaming(false);
     }
   };
 
@@ -214,11 +217,11 @@ export default function AIChatWidget() {
               onChange={(e) => setInputMessage(e.target.value)}
               placeholder="Nhập tin nhắn..." 
               className="flex-1 bg-gray-100 border-none rounded-full px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#C92127]/20"
-              disabled={isTyping}
+              disabled={isTyping || isStreaming}
             />
             <button 
               type="submit" 
-              disabled={!inputMessage.trim() || isTyping}
+              disabled={!inputMessage.trim() || isTyping || isStreaming}
               className="w-11 h-11 bg-[#C92127] hover:bg-[#a81a20] disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-full flex items-center justify-center transition-colors absolute right-1 top-0.5"
             >
               <FaPaperPlane size={14} className="-ml-0.5" />
