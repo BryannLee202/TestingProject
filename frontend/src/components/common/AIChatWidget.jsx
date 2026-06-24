@@ -77,12 +77,14 @@ export default function AIChatWidget() {
         content: msg.content
       }));
 
-      // --- TÍCH HỢP ĐỌC DỮ LIỆU KHO HÀNG (Mini RAG - Fuzzy Search) ---
+      // --- TÍCH HỢP ĐỌC DỮ LIỆU KHO HÀNG (Mini RAG - Fuzzy Search Context-Aware) ---
       let storeContext = "Hiện không có thông tin tồn kho.";
       try {
+        // Gom 2 tin nhắn gần nhất của user để giữ ngữ cảnh (tránh lỗi khi khách hỏi trống không như "sao lại ko có")
+        const recentUserMsgs = newMessages.filter(m => m.role === 'user').slice(-2);
+        const searchInput = recentUserMsgs.map(m => m.content).join(" ").toLowerCase();
+
         if (allBooks.length > 0) {
-          const lowerInput = inputMessage.toLowerCase();
-          
           // Lọc sách: nếu tên sách xuất hiện trong câu hỏi (hoặc ngược lại)
           // hoặc tác giả xuất hiện trong câu hỏi
           const matchedBooks = allBooks.filter(b => {
@@ -90,11 +92,11 @@ export default function AIChatWidget() {
              const author = b.author ? b.author.toLowerCase() : "";
              
              // Nếu user gõ chỉ 1 chữ cái thì bỏ qua (tránh filter sai)
-             if (lowerInput.length < 2) return false;
+             if (searchInput.length < 2) return false;
 
-             return (title && lowerInput.includes(title)) || 
-                    (title && title.includes(lowerInput)) ||
-                    (author && lowerInput.includes(author));
+             return (title && searchInput.includes(title)) || 
+                    (title && title.includes(searchInput)) ||
+                    (author && searchInput.includes(author));
           });
           
           if (matchedBooks.length > 0) {
