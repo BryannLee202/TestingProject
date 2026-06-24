@@ -147,6 +147,34 @@ flowchart TD
   L3 --> M3[Cộng điểm tích lũy Y-Point] --> N3([Kết thúc])
 ```
 
+### 3. Luồng Tối Ưu Hóa Tốc Độ Tải (Maximum Smoothness Workflow)
+
+Để giải quyết vấn đề nghẽn cổ chai (bottleneck) khi trình duyệt giới hạn số lượng kết nối đồng thời và giảm thiểu độ trễ mạng, hệ thống áp dụng cơ chế Cache 2 lớp (BFF Pattern kết hợp Client-Side Caching):
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor User as Khách Hàng
+  participant Browser as Browser (Network Layer)
+  participant FE as Frontend (Axios Interceptor)
+  participant BE as Backend (Spring Boot Filter)
+  
+  User->>FE: Truy cập Trang chủ (Home)
+  
+  alt Lần truy cập đầu tiên (Chưa có Cache)
+    FE->>Browser: Gửi HTTP GET (/api/books, /api/banners)
+    Browser->>BE: Chuyển tiếp Request tới Server
+    BE-->>Browser: Trả về JSON + Header "Cache-Control: public, max-age=300"
+    Browser-->>FE: Chuyển tiếp Response
+    FE->>FE: Axios Interceptor lưu JSON vào sessionStorage
+    FE-->>User: Hiển thị giao diện (Mất ~1s)
+  else Lần truy cập thứ 2 (Hoặc F5 tải lại trang)
+    FE->>FE: Axios Interceptor tìm thấy dữ liệu trong sessionStorage (còn hạn 5 phút)
+    FE-->>User: Trả về dữ liệu ngay lập tức (Mất 1ms, Không tốn băng thông)
+  end
+```
+*Cơ chế này giúp giảm tải 90% số lượng request lên Server, đem lại trải nghiệm tải trang tức thì (Instant Load) ngay cả trên mạng di động 3G.*
+
 ---
 
 ## 🛠 V. Triển Khai Thực Tế (Deployment)
