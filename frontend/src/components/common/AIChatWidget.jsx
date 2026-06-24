@@ -58,10 +58,28 @@ export default function AIChatWidget() {
         content: msg.content
       }));
 
+      // --- TÍCH HỢP ĐỌC DỮ LIỆU KHO HÀNG (Mini RAG) ---
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
+      let storeContext = "Hiện không có thông tin tồn kho.";
+      try {
+        const searchRes = await fetch(`${API_BASE_URL}/books/search?keyword=${encodeURIComponent(inputMessage)}`);
+        if (searchRes.ok) {
+          const booksFound = await searchRes.json();
+          if (booksFound && booksFound.length > 0) {
+             const topBooks = booksFound.slice(0, 3).map(b => `- ${b.title} (Giá: ${b.price.toLocaleString('vi-VN')}đ)`).join("\n");
+             storeContext = `Kết quả tra cứu kho hàng cho từ khóa của khách:\n${topBooks}`;
+          } else {
+             storeContext = "Thông báo từ hệ thống: Cửa hàng KHÔNG CÓ cuốn sách nào khớp với câu hỏi của khách.";
+          }
+        }
+      } catch (err) {
+        console.error("Lỗi tra cứu kho sách:", err);
+      }
+
       // Chèn System Prompt vào đầu danh sách
       groqHistory.unshift({
         role: 'system',
-        content: "Từ bây giờ, bạn là trợ lý tư vấn của nhà sách YiYi Book. Bạn luôn trả lời lịch sự, ngắn gọn (tối đa 2-3 câu) và nhiệt tình bằng tiếng Việt."
+        content: `Bạn là trợ lý tư vấn của nhà sách YiYi Book. Bạn luôn trả lời lịch sự, ngắn gọn (tối đa 2-3 câu) bằng tiếng Việt.\n\n[DỮ LIỆU KHO HÀNG THỰC TẾ]\n${storeContext}\n\nHƯỚNG DẪN: Nếu dữ liệu báo KHÔNG CÓ sách, tuyệt đối không được nói dối là có. Hãy xin lỗi khách và gợi ý họ tìm sách khác.`
       });
 
       // Dùng model tốc độ ánh sáng Llama 3.3 70B Versatile của Groq
