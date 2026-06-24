@@ -71,7 +71,7 @@ export default function AIChatWidget() {
           'Authorization': `Bearer ${OPENROUTER_API_KEY}`
         },
         body: JSON.stringify({
-          model: "meta-llama/llama-3.2-3b-instruct:free",
+          model: "openrouter/free",
           messages: openRouterHistory,
           stream: true
         })
