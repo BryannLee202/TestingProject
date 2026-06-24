@@ -82,13 +82,7 @@ export default function Orders({ embedded = false }) {
 
     return tabMatch && searchMatch;
   }).sort((a, b) => {
-    // Ưu tiên đơn hàng vừa thanh toán xong (PROCESSING) lên đầu
-    const aIsNew = a.status === 'PROCESSING' && a.shippingStatus !== 'SHIPPING';
-    const bIsNew = b.status === 'PROCESSING' && b.shippingStatus !== 'SHIPPING';
-    if (aIsNew && !bIsNew) return -1;
-    if (!aIsNew && bIsNew) return 1;
-    // Còn lại sắp xếp theo ID mới nhất
-    return b.id - a.id;
+    return new Date(b.createdAt) - new Date(a.createdAt);
   });
 
   const handleCancel = async (order) => {
@@ -482,6 +476,9 @@ export default function Orders({ embedded = false }) {
                   <div className="flex items-center gap-2">
                     <span className="bg-primary text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-sm uppercase">Yêu thích</span>
                     <span className="font-bold text-gray-800 text-sm">YiYi Book</span>
+                    <span className="text-xs text-gray-500 border-l border-gray-300 pl-2 ml-1">
+                      {new Date(order.createdAt).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2 text-xs sm:text-sm">
                     {order.shippingStatus === 'DELIVERED' && (
