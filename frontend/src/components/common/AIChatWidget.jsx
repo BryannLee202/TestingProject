@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { FaCommentDots, FaTimes, FaPaperPlane, FaRobot, FaUser, FaKey, FaExpand, FaCompress } from 'react-icons/fa';
+import { FaCommentDots, FaTimes, FaPaperPlane, FaRobot, FaUser, FaKey, FaExpand, FaCompress, FaTrash } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 
 export default function AIChatWidget() {
@@ -396,6 +396,13 @@ ${intentSummary || '(Chưa phát hiện tín hiệu đặc biệt - hãy hỏi t
               onClick={handleClearHistory}
               className="text-white/70 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10"
               title="Xóa lịch sử trò chuyện"
+            >
+              <FaTrash size={12} />
+            </button>
+            <button 
+              onClick={() => setIsOpen(false)}
+              className="text-white/70 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10"
+              title="Đóng chat"
             >
               <FaTimes size={14} />
             </button>
