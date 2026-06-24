@@ -95,27 +95,28 @@ export default function AIChatWidget() {
         done = readerDone;
         if (value) {
           buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          // Giữ lại phần tử cuối cùng vì có thể nó chưa tải xong một dòng hoàn chỉnh
-          buffer = lines.pop() || "";
+          // SSE events are separated by double newlines
+          const events = buffer.split(/\r?\n\r?\n/);
+          // Giữ lại phần tử cuối cùng vì có thể nó chưa tải xong một event hoàn chỉnh
+          buffer = events.pop() || "";
           
-          for (const line of lines) {
-            if (line.startsWith("data: ")) {
-              const dataStr = line.replace("data: ", "").trim();
-              if (!dataStr || dataStr === "[DONE]") continue;
-              try {
-                const data = JSON.parse(dataStr);
-                const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                if (text) {
-                  setMessages(prev => {
-                    const newMsgs = [...prev];
-                    newMsgs[newMsgs.length - 1].content += text;
-                    return newMsgs;
-                  });
-                }
-              } catch (e) {
-                console.error("Lỗi parse chunk:", e, dataStr);
+          for (const event of events) {
+            // Loại bỏ chữ "data: " ở đầu event
+            const dataStr = event.replace(/^data:\s*/, "").trim();
+            if (!dataStr || dataStr === "[DONE]") continue;
+            
+            try {
+              const data = JSON.parse(dataStr);
+              const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+              if (text) {
+                setMessages(prev => {
+                  const newMsgs = [...prev];
+                  newMsgs[newMsgs.length - 1].content += text;
+                  return newMsgs;
+                });
               }
+            } catch (e) {
+              console.error("Lỗi parse chunk:", e, "Data:", dataStr);
             }
           }
         }
