@@ -69,10 +69,7 @@ export default function AIChatWidget() {
           system_instruction: {
             parts: [{ text: "Từ bây giờ, bạn là trợ lý tư vấn của nhà sách YiYi Book. Bạn luôn trả lời lịch sự, ngắn gọn (tối đa 2-3 câu) và nhiệt tình bằng tiếng Việt." }]
           },
-          contents: geminiHistory,
-          generationConfig: {
-            maxOutputTokens: 200 // Giới hạn bot chỉ trả lời tối đa 200 token (~150 chữ) để tiết kiệm
-          }
+          contents: geminiHistory
         })
       });
 
