@@ -229,7 +229,7 @@ export default function AIChatWidget() {
             </button>
           </form>
           <div className="text-center mt-2">
-            <span className="text-[10px] text-gray-400">Powered by Groq Llama 3.3 70B</span>
+            <span className="text-[10px] text-gray-400">Chatbot được huấn luyện bởi Graperu</span>
           </div>
         </div>
       </div>
