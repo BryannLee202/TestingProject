@@ -67,7 +67,7 @@ export default function AdminLayout() {
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar for desktop */}
-      <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-gray-900 text-white transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:flex-shrink-0 flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-0 hidden lg:flex'}`}>
+      <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-gray-900 text-white transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:top-0 lg:h-screen lg:flex-shrink-0 flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-0 hidden lg:flex'}`}>
         {/* Brand */}
         <div className="h-16 flex items-center justify-between px-6 border-b border-gray-800 bg-gray-950">
           <div className="flex items-center gap-2 font-bold text-lg text-primary-light">
