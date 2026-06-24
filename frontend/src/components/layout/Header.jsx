@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import logoImg from '../../assets/logo_ngang_thay_chu.png';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -221,9 +222,11 @@ export default function Header() {
     <header className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 text-2xl font-bold text-primary mr-4">
-          <img src={logoImg} alt="YiYi Book" className="h-10 object-contain" />
-        </Link>
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <Link to="/" className="flex items-center gap-2 text-2xl font-bold text-primary mr-4">
+            <img src={logoImg} alt="YiYi Book" className="h-10 object-contain" />
+          </Link>
+        </motion.div>
 
         {/* Search */}
         <div className="flex-1 max-w-xl mx-8 relative hidden lg:flex items-center gap-3" ref={searchRef}>
@@ -532,20 +535,22 @@ export default function Header() {
           </div>
 
           {/* Cart */}
-          <Link to="/cart" className="flex flex-col items-center text-gray-600 hover:text-primary transition-colors relative">
-            <div className="relative">
-              <FaShoppingCart className="text-2xl" />
-              {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border-2 border-white">
-                  {cartCount}
-                </span>
-              )}
-            </div>
-            <span className="text-[11px] font-medium mt-1">{t('cart.title')}</span>
-          </Link>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Link to="/cart" className="flex flex-col items-center text-gray-600 hover:text-primary transition-colors relative">
+              <div className="relative">
+                <FaShoppingCart className="text-2xl" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border-2 border-white">
+                    {cartCount}
+                  </span>
+                )}
+              </div>
+              <span className="text-[11px] font-medium mt-1">{t('cart.title')}</span>
+            </Link>
+          </motion.div>
 
           {/* User */}
-          <div ref={userMenuRef} className="relative cursor-pointer" onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}>
+          <motion.div ref={userMenuRef} className="relative cursor-pointer" onClick={() => setIsUserMenuOpen(!isUserMenuOpen)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <div className="flex items-center gap-2 text-gray-600 hover:text-primary transition-colors">
               <FaRegUser className="text-2xl" />
               <div className="hidden sm:flex flex-col">
@@ -605,7 +610,7 @@ export default function Header() {
                 )}
               </div>
             )}
-          </div>
+          </motion.div>
         </div>
       </div>
 
