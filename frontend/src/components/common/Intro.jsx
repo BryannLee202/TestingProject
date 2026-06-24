@@ -100,10 +100,10 @@ export default function Intro({ onComplete }) {
         <button 
           onClick={handleEnter}
           translate="no"
-          className="notranslate group flex flex-col items-center justify-center gap-4 hover:scale-110 transition-transform duration-300"
+          className="notranslate group flex flex-col items-center justify-center gap-4 hover:scale-110 transition-transform duration-300 animate-bounce cursor-pointer"
         >
           <div className="w-12 h-12 rounded-full border border-[#C92127]/40 bg-[#C92127]/10 flex items-center justify-center text-[#C92127] group-hover:border-[#C92127] group-hover:bg-[#C92127]/30 transition-all shadow-[0_0_15px_rgba(201,33,39,0.3)]">
-            <FaChevronDown className="animate-bounce mt-1 text-sm" />
+            <FaChevronDown className="mt-1 text-sm" />
           </div>
           <span className="text-[#C92127] text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase">ENTER SITE</span>
         </button>
