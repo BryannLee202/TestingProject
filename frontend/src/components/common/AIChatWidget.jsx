@@ -76,10 +76,21 @@ export default function AIChatWidget() {
         console.error("Lỗi tra cứu kho sách:", err);
       }
 
+      // --- TÍCH HỢP KIẾN THỨC NỀN CỦA WEBSITE ---
+      const KNOWLEDGE_BASE = `
+[THÔNG TIN CHUNG YIYI BOOK]
+- Địa chỉ: 123 Đường Sách, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh.
+- Điện thoại/Hotline: 1900 1234
+- Email: cskh@yiyibook.com
+- Chính sách vận chuyển: Có hỗ trợ Giao hàng Hỏa tốc tại TP.HCM và Hà Nội.
+- Chính sách bảo hành & Đổi trả: Có áp dụng chính sách đổi trả/bảo hành nếu sách bị lỗi từ nhà sản xuất/nhà xuất bản hoặc lỗi vận chuyển.
+- Quy định khác: Cửa hàng có đầy đủ Điều khoản sử dụng, Bảo mật thông tin, Bảo mật thanh toán. Có chương trình tích lũy Điểm thưởng YiYi Book.
+`;
+
       // Chèn System Prompt vào đầu danh sách
       groqHistory.unshift({
         role: 'system',
-        content: `Bạn là trợ lý tư vấn của nhà sách YiYi Book. Bạn luôn trả lời lịch sự, ngắn gọn (tối đa 2-3 câu) bằng tiếng Việt.\n\n[DỮ LIỆU KHO HÀNG THỰC TẾ]\n${storeContext}\n\nHƯỚNG DẪN: Nếu dữ liệu báo KHÔNG CÓ sách, tuyệt đối không được nói dối là có. Hãy xin lỗi khách và gợi ý họ tìm sách khác.`
+        content: `Bạn là trợ lý tư vấn của nhà sách YiYi Book. Bạn luôn trả lời lịch sự, thân thiện và CỰC KỲ NGẮN GỌN (tối đa 2-3 câu) bằng tiếng Việt.\n\n${KNOWLEDGE_BASE}\n\n[DỮ LIỆU KHO HÀNG THỰC TẾ]\n${storeContext}\n\nHƯỚNG DẪN: Nếu khách hỏi sách mà kho hàng báo KHÔNG CÓ, tuyệt đối không được nói dối là có. Hãy dựa vào toàn bộ kiến thức được cung cấp ở trên để trả lời khách một cách chuẩn xác nhất.`
       });
 
       // Dùng model tốc độ ánh sáng Llama 3.3 70B Versatile của Groq
