@@ -123,7 +123,7 @@ export default function Login() {
           // Người dùng tự đóng popup
           return;
         }
-        showNotification('Lỗi', `Đăng nhập Google thất bại`, 'error');
+        showNotification('Lỗi', `Đăng nhập Google thất bại: ${error.response?.data?.message || error.message}`, 'error');
       }
     } else {
       showNotification('Thông báo', `Tính năng đăng nhập bằng ${providerName} đang được phát triển`, 'info');

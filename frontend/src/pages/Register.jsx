@@ -45,7 +45,7 @@ export default function Register() {
           navigate('/');
         }
       } catch (error) {
-        showNotification('Lỗi', 'Đăng nhập Google thất bại', 'error');
+        showNotification('Lỗi', `Đăng nhập Google thất bại: ${error.response?.data?.message || error.message}`, 'error');
       }
     } else {
       showNotification('Thông báo', `Tính năng đăng nhập bằng ${providerName} đang phát triển!`, 'info');

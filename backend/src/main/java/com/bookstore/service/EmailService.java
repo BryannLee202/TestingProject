@@ -21,7 +21,6 @@ public class EmailService {
     @Value("${spring.mail.username:noreply@yiyibook.vn}")
     private String fromEmail;
 
-    @Async
     public void sendOtpEmail(String toEmail, String otp) {
         // Ưu tiên Resend API (hoạt động trên mọi cloud)
         if (resendApiKey != null && !resendApiKey.isBlank()) {
@@ -30,6 +29,7 @@ public class EmailService {
             sendViaSMTP(toEmail, otp);
         } else {
             System.err.println("Không có cấu hình gửi email! OTP dự phòng: " + otp);
+            throw new RuntimeException("Chưa cấu hình dịch vụ gửi email trên Server!");
         }
     }
 
@@ -78,6 +78,8 @@ public class EmailService {
             if (mailSender != null) {
                 System.out.println("Fallback sang SMTP...");
                 sendViaSMTP(toEmail, otp);
+            } else {
+                throw new RuntimeException("Gửi Email thất bại. Hệ thống chưa cấu hình SMTP fallback.");
             }
         }
     }
@@ -94,6 +96,7 @@ public class EmailService {
             System.out.println("SMTP: Đã gửi OTP tới " + toEmail);
         } catch (Exception e) {
             System.err.println("SMTP lỗi: " + e.getMessage());
+            throw new RuntimeException("Gửi Email thất bại. Vui lòng kiểm tra lại địa chỉ email hoặc thử lại sau.");
         }
     }
 }
