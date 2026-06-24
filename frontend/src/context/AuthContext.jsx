@@ -30,11 +30,19 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }
 
-    // Set up axios interceptor to always attach token if available
+    // Set up axios interceptor to always attach token if available and disable cache
     const reqInterceptor = axios.interceptors.request.use(config => {
       const currentToken = localStorage.getItem('token');
       if (currentToken) {
         config.headers.Authorization = `Bearer ${currentToken}`;
+      }
+      // Prevent browser caching globally for all API requests
+      if (config.method === 'get') {
+        config.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+        config.headers['Pragma'] = 'no-cache';
+        config.headers['Expires'] = '0';
+        // Thêm timestamp để vô hiệu hóa hoàn toàn cache của trình duyệt (đặc biệt là Safari/Chrome cũ)
+        config.params = { ...config.params, _t: Date.now() };
       }
       return config;
     }, error => Promise.reject(error));
