@@ -143,6 +143,7 @@ export default function AdminUsers() {
                   <th className="p-4 font-semibold">ID</th>
                   <th className="p-4 font-semibold">Họ Tên</th>
                   <th className="p-4 font-semibold">Liên hệ</th>
+                  <th className="p-4 font-semibold">Ngày tạo</th>
                   <th className="p-4 font-semibold">Chi tiêu & Điểm</th>
                   <th className="p-4 font-semibold">Quyền</th>
                   <th className="p-4 font-semibold text-right">Thao tác</th>
@@ -159,6 +160,9 @@ export default function AdminUsers() {
                     <td className="p-4 space-y-1">
                       <div className="text-gray-600">{user.email || 'Chưa có'}</div>
                       <div className="text-gray-500 text-xs">{user.phone || 'Chưa có SĐT'}</div>
+                    </td>
+                    <td className="p-4 text-xs text-gray-500 font-medium">
+                      {user.createdAt ? new Date(user.createdAt).toLocaleString('vi-VN') : 'Không rõ'}
                     </td>
                     <td className="p-4 space-y-1">
                       <div className="text-xs">
