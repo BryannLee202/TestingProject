@@ -43,22 +43,20 @@ export default function AIChatWidget() {
 
     try {
       // Chuẩn bị lịch sử chat cho Gemini
-      const geminiHistory = newMessages.map(msg => ({
+      // Lọc bỏ tin nhắn chào đầu tiên của bot (vì Gemini yêu cầu history phải bắt đầu bằng 'user')
+      const geminiHistory = newMessages.slice(1).map(msg => ({
         role: msg.role === 'model' ? 'model' : 'user',
         parts: [{ text: msg.content }]
       }));
 
-      // Bơm thêm System Prompt để định hướng AI
-      const systemPrompt = {
-        role: 'user',
-        parts: [{ text: "Từ bây giờ, bạn là trợ lý tư vấn của nhà sách YiYi Book. Bạn luôn trả lời lịch sự, ngắn gọn và nhiệt tình bằng tiếng Việt." }]
-      };
-      
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [systemPrompt, ...geminiHistory]
+          system_instruction: {
+            parts: [{ text: "Từ bây giờ, bạn là trợ lý tư vấn của nhà sách YiYi Book. Bạn luôn trả lời lịch sự, ngắn gọn và nhiệt tình bằng tiếng Việt." }]
+          },
+          contents: geminiHistory
         })
       });
 
