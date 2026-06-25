@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaBook, FaBookOpen, FaBookmark } from 'react-icons/fa';
+import { FaChevronDown, FaBook, FaBookOpen, FaBookmark } from 'react-icons/fa';
 
 export default function Intro({ onComplete }) {
   const [isVisible, setIsVisible] = useState(true);
@@ -18,8 +18,8 @@ export default function Intro({ onComplete }) {
     // Prevent scrolling when intro is visible
     document.body.style.overflow = 'hidden';
 
-    // Simulate loading progress
-    const loadingDuration = 2500; // 2.5 seconds loading
+    // 10 seconds loading for the bottom progress bar
+    const loadingDuration = 10000; 
     const intervalTime = 50;
     const steps = loadingDuration / intervalTime;
     let currentStep = 0;
@@ -31,9 +31,7 @@ export default function Intro({ onComplete }) {
       
       if (currentStep >= steps) {
         clearInterval(progressInterval);
-        setTimeout(() => {
-          handleEnter();
-        }, 300); // Wait a tiny bit after 100%
+        handleEnter();
       }
     }, intervalTime);
 
@@ -93,34 +91,58 @@ export default function Intro({ onComplete }) {
         ))}
       </div>
 
-      <div className="relative z-10 flex flex-col items-center mt-[-5vh]">
-        {/* Main Logo */}
-        <div className="flex items-center gap-2 mb-4 animate-[fadeInUp_1s_ease-out_forwards]">
-          <span className="text-5xl md:text-7xl lg:text-8xl font-black text-gray-100 tracking-tight drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">YiYi</span>
-          <span className="text-5xl md:text-7xl lg:text-8xl font-black text-[#C92127] tracking-tight drop-shadow-[0_0_25px_rgba(201,33,39,0.6)]">Book</span>
+      <div className="relative z-10 flex flex-col items-center justify-center w-full mt-[-10vh]">
+        
+        {/* Top small text with lines */}
+        <div className="flex flex-col items-center gap-4 opacity-0 animate-[fadeInDown_1s_ease-out_forwards]">
+          <div className="w-16 h-[1px] bg-gray-500/50"></div>
+          <div className="text-gray-400 text-[10px] md:text-xs tracking-[0.4em] uppercase font-light">
+            Y I Y I · B O O K S T O R E
+          </div>
         </div>
 
-        {/* Subtitle / Slogan */}
-        <div className="text-gray-400 tracking-[0.4em] font-light text-xs md:text-lg uppercase opacity-0 animate-[fadeInUp_1.2s_ease-out_0.5s_forwards]">
-          Đọc để Yêu thương
+        {/* Main Logo (Serif font) */}
+        <div className="mt-8 mb-6 flex items-center opacity-0 animate-[fadeInUp_1.2s_ease-out_0.3s_forwards]">
+          <span className="text-5xl md:text-7xl lg:text-8xl font-serif font-bold text-gray-100 tracking-wider drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">YiYi</span>
+          <span className="text-5xl md:text-7xl lg:text-8xl font-serif font-bold text-[#C92127] tracking-wider drop-shadow-[0_0_25px_rgba(201,33,39,0.6)] ml-3">Book</span>
+        </div>
+
+        {/* Subtitles */}
+        <div className="flex flex-col items-center gap-3 opacity-0 animate-[fadeInUp_1s_ease-out_0.6s_forwards]">
+          <div className="text-gray-300 tracking-[0.2em] font-medium text-sm md:text-base uppercase text-center">
+            Nhà sách & Văn phòng phẩm
+          </div>
+          <div className="text-gray-500 tracking-widest font-light text-xs md:text-sm text-center">
+            Đọc để yêu thương
+          </div>
+          <div className="w-16 h-[1px] bg-gray-500/50 mt-4"></div>
         </div>
       </div>
 
-      {/* Progress Bar Section */}
-      <div className="absolute bottom-24 flex flex-col items-center justify-center w-full px-12 md:px-32 opacity-0 animate-[fadeIn_1s_ease-out_1s_forwards]">
-        {/* Loading percentage */}
-        <div className="text-gray-400 text-xs tracking-widest font-mono mb-4">
-          LOADING... {Math.round(progress)}%
-        </div>
+      {/* Enter Site Section with Button */}
+      <div className="absolute bottom-16 flex flex-col items-center justify-center opacity-0 animate-[fadeIn_1s_ease-out_1.5s_forwards] z-20">
+        {/* Vertical animated line */}
+        <div className="h-16 w-[1px] bg-gradient-to-b from-transparent via-[#C92127] to-transparent mb-6 animate-pulse"></div>
         
-        {/* Progress Bar Track */}
-        <div className="w-64 md:w-96 h-[2px] bg-gray-800 rounded-full overflow-hidden">
-          {/* Progress Bar Fill */}
-          <div 
-            className="h-full bg-gradient-to-r from-[#C92127] to-red-400 transition-all duration-75 ease-linear"
-            style={{ width: `${progress}%` }}
-          ></div>
-        </div>
+        {/* Circle Button */}
+        <button 
+          onClick={handleEnter}
+          translate="no"
+          className="notranslate group flex flex-col items-center justify-center gap-4 hover:scale-110 transition-transform duration-300 cursor-pointer"
+        >
+          <div className="w-12 h-12 rounded-full border border-[#C92127]/40 bg-[#C92127]/10 flex items-center justify-center text-[#C92127] group-hover:border-[#C92127] group-hover:bg-[#C92127]/30 transition-all shadow-[0_0_15px_rgba(201,33,39,0.3)] animate-bounce">
+            <FaChevronDown className="mt-1 text-sm" />
+          </div>
+          <span className="text-[#C92127] text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase">ENTER SITE</span>
+        </button>
+      </div>
+
+      {/* Full-width Bottom Progress Bar */}
+      <div className="absolute bottom-0 left-0 w-full h-[3px] bg-gray-900 z-30">
+        <div 
+          className="h-full bg-gradient-to-r from-[#C92127] to-red-500 transition-all duration-75 ease-linear shadow-[0_0_10px_rgba(201,33,39,0.5)]"
+          style={{ width: `${progress}%` }}
+        ></div>
       </div>
     </div>
   );
