@@ -1,6 +1,0 @@
-[build]
-builder = "nixpacks"
-buildCommand = "cd backend && ./mvnw clean package -DskipTests"
-
-[deploy]
-startCommand = "cd backend && java -jar target/*.jar"
