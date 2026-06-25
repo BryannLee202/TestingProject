@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { FaCommentDots, FaTimes, FaPaperPlane, FaRobot, FaUser, FaKey, FaExpand, FaCompress, FaTrash } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
+import { useCart } from '../../context/CartContext';
+import axios from 'axios';
 
 export default function AIChatWidget() {
   const { user } = useAuth();
@@ -15,6 +17,35 @@ export default function AIChatWidget() {
   const [isStreaming, setIsStreaming] = useState(false);
   const messagesEndRef = useRef(null);
   const [allBooks, setAllBooks] = useState([]);
+  const { cart } = useCart();
+  const [userOrders, setUserOrders] = useState([]);
+  const [userWishlist, setUserWishlist] = useState([]);
+
+  // Fetch dữ liệu cá nhân hóa (Đơn hàng, Wishlist) khi mở Chatbot
+  useEffect(() => {
+    if (isOpen && user) {
+      const fetchPersonalContext = async () => {
+        try {
+          const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
+          const token = localStorage.getItem('token');
+          const headers = { Authorization: `Bearer ${token}` };
+
+          // 1. Lấy 5 đơn hàng gần nhất
+          axios.get(`${API_BASE_URL}/orders/user`, { headers }).then(res => {
+            if (res.data) setUserOrders(res.data.slice(0, 5));
+          }).catch(() => {});
+
+          // 2. Lấy wishlist
+          axios.get(`${API_BASE_URL}/wishlist`, { headers }).then(res => {
+            if (res.data) setUserWishlist(res.data.slice(0, 5));
+          }).catch(() => {});
+        } catch (e) {
+          console.error("Lỗi fetch context AI", e);
+        }
+      };
+      fetchPersonalContext();
+    }
+  }, [isOpen, user]);
   
   // Fetch toàn bộ sản phẩm 1 lần duy nhất khi load (Client-side RAG)
   useEffect(() => {
@@ -243,9 +274,25 @@ Bạn là "YiYi" - Trợ lý AI thông minh của nhà sách YiYi Book. Bạn kh
 - Giao hàng Hỏa tốc (2-4h) tại TP.HCM & Hà Nội. Toàn quốc 1-3 ngày.
 - Đổi trả 1-1 trong 7 ngày nếu sách lỗi.
 
-[THÔNG TIN & SỞ THÍCH CỦA KHÁCH HÀNG]
-${user?.fullName ? `- Tên: ${user.fullName}` : '- Khách Vãng Lai (chưa đăng nhập)'}
+[HỒ SƠ KHÁCH HÀNG (DỮ LIỆU CÁ NHÂN HÓA)]
+${user?.fullName ? `- Tên khách hàng: ${user.fullName}` : '- Khách Vãng Lai (chưa đăng nhập)'}
+${user?.yPoints ? `- Điểm thưởng Y-Point hiện có: ${user.yPoints} điểm` : ''}
 ${user?.aiPreferences ? `- Dặn dò cá nhân (BẮT BUỘC tuân thủ): ${user.aiPreferences}` : ''}
+
+[TRẠNG THÁI GIỎ HÀNG HIỆN TẠI CỦA KHÁCH]
+${cart?.length > 0 
+  ? `- Khách ĐANG CÓ ${cart.length} cuốn sách trong giỏ hàng.\n- Chi tiết: ${cart.map(i => `${i.title} (Số lượng: ${i.quantity})`).join(', ')}.\n- Nếu khách chưa thanh toán, hãy khéo léo nhắc họ thanh toán hoặc hỏi họ có cần tư vấn thêm gì trước khi thanh toán không.` 
+  : '- Giỏ hàng đang trống.'}
+
+[LỊCH SỬ ĐƠN HÀNG GẦN NHẤT CỦA KHÁCH]
+${userOrders?.length > 0
+  ? userOrders.map(o => `- Đơn #${o.id} | Ngày đặt: ${new Date(o.orderDate).toLocaleDateString('vi-VN')} | Trạng thái: ${o.status} | Tổng tiền: ${o.totalAmount.toLocaleString('vi-VN')}đ`).join('\n')
+  : '- Chưa có đơn hàng nào.'}
+
+[SÁCH YÊU THÍCH (WISHLIST) CỦA KHÁCH]
+${userWishlist?.length > 0
+  ? `- Khách đã thả tim các sách: ${userWishlist.map(w => w.book?.title).filter(Boolean).join(', ')}.\n- Có thể dùng thông tin này để gợi ý mua hàng nếu phù hợp.`
+  : '- Chưa có sách yêu thích.'}
 
 [TÍN HIỆU Ý ĐỊNH PHÁT HIỆN TRONG CUỘC TRÒ CHUYỆN NÀY]
 ${intentSummary || '(Chưa phát hiện tín hiệu đặc biệt - hãy hỏi thêm để hiểu nhu cầu khách)'}
