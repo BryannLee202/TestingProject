@@ -69,7 +69,9 @@ export default function AdminBanners() {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await axios.delete(`${API_BASE_URL}/banners/${id}`);
+          await axios.delete(`${API_BASE_URL}/banners/${id}`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          });
           setBanners(prev => prev.filter(b => b.id !== id));
           Swal.fire({
             icon: 'success',
@@ -109,7 +111,9 @@ export default function AdminBanners() {
 
     try {
       if (editingBanner) {
-        await axios.put(`${API_BASE_URL}/banners/${editingBanner.id}`, payload);
+        await axios.put(`${API_BASE_URL}/banners/${editingBanner.id}`, payload, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
         Swal.fire({
           icon: 'success',
           title: 'Cập nhật thành công',
@@ -118,7 +122,9 @@ export default function AdminBanners() {
           showConfirmButton: false
         });
       } else {
-        await axios.post(`${API_BASE_URL}/banners`, payload);
+        await axios.post(`${API_BASE_URL}/banners`, payload, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
         Swal.fire({
           icon: 'success',
           title: 'Thêm mới thành công',
