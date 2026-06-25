@@ -287,33 +287,8 @@ public class OrderService {
             }
 
         } else {
-            order.setStatus("CANCELLED");
-            orderRepository.save(order);
-            
-            // Hoàn điểm
-            if (order.getPointsUsed() != null && order.getPointsUsed() > 0) {
-                user.setYPoints(user.getYPoints() + order.getPointsUsed());
-                userRepository.save(user);
-                
-                PointTransaction pt = PointTransaction.builder()
-                        .user(user)
-                        .action("REFUND_ORDER")
-                        .description("Hoàn điểm do huỷ thanh toán VNPAY")
-                        .previousBalance(user.getYPoints() - order.getPointsUsed())
-                        .transactionValue(order.getPointsUsed())
-                        .newBalance(user.getYPoints())
-                        .createdAt(java.time.LocalDateTime.now())
-                        .build();
-                pointTransactionRepository.save(pt);
-            }
-            
-            // Hoàn tồn kho
-            for (com.bookstore.entity.OrderItem item : order.getItems()) {
-                com.bookstore.entity.Book book = item.getBook();
-                book.setStockQuantity(book.getStockQuantity() + item.getQuantity());
-                book.setSalesCount(Math.max(0, (book.getSalesCount() == null ? 0 : book.getSalesCount()) - item.getQuantity()));
-                bookRepository.save(book);
-            }
+            // Keep the order in PENDING_PAYMENT status
+            // The user can pay again from the Orders page or cancel it manually
         }
     }
 

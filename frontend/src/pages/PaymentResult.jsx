@@ -106,7 +106,7 @@ export default function PaymentResult() {
             </p>
             <div className="space-y-3">
               <Link
-                to="/checkout"
+                to="/orders"
                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none transition-colors"
               >
                 Thử thanh toán lại
