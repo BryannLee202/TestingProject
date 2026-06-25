@@ -3,6 +3,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, Autoplay } from 'swiper/modules';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { useWebSocket } from '../../context/WebSocketContext';
 import SwiperNavButtons from '../common/SwiperNavButtons';
 import 'swiper/css';
 import 'swiper/css/pagination';
@@ -23,38 +24,50 @@ export default function HeroBanner() {
   ]);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
+  const { lastUpdate } = useWebSocket();
+
+  const fetchBanners = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/banners`);
+      if (res.data) {
+        const main = res.data.filter(b => b.position === 'MAIN');
+        const topSide = res.data.filter(b => b.position === 'SIDE_TOP');
+        const bottomSide = res.data.filter(b => b.position === 'SIDE_BOTTOM');
+        
+        const oldSide = res.data.filter(b => b.position === 'SIDE');
+        if (oldSide.length > 0) {
+          oldSide.forEach((b, idx) => {
+            if (idx % 2 === 0) topSide.push(b);
+            else bottomSide.push(b);
+          });
+        }
+
+        setMainBanners(main.length > 0 ? main : [
+          { imageUrl: 'https://placehold.co/840x320/007bff/ffffff?text=Banner+Chinh+1', linkUrl: '' }
+        ]);
+        setTopSideBanners(topSide.length > 0 ? topSide : [
+          { imageUrl: 'https://placehold.co/392x156/ffc107/000000?text=Banner+Phu+1', linkUrl: '' }
+        ]);
+        setBottomSideBanners(bottomSide.length > 0 ? bottomSide : [
+          { imageUrl: 'https://placehold.co/392x156/17a2b8/ffffff?text=Banner+Phu+2', linkUrl: '' }
+        ]);
+      }
+    } catch (error) {
+      console.error('Error fetching banners:', error);
+    }
+  };
 
   useEffect(() => {
-    const fetchBanners = async () => {
-      try {
-        const res = await axios.get(`${API_BASE_URL}/banners`);
-        if (res.data && res.data.length > 0) {
-          const main = res.data.filter(b => b.position === 'MAIN');
-          const topSide = res.data.filter(b => b.position === 'SIDE_TOP');
-          const bottomSide = res.data.filter(b => b.position === 'SIDE_BOTTOM');
-          
-          // Tự động phân chia các banner cũ mang vị trí 'SIDE'
-          const oldSide = res.data.filter(b => b.position === 'SIDE');
-          if (oldSide.length > 0) {
-            oldSide.forEach((b, idx) => {
-              if (idx % 2 === 0) {
-                topSide.push(b);
-              } else {
-                bottomSide.push(b);
-              }
-            });
-          }
-
-          if (main.length > 0) setMainBanners(main);
-          if (topSide.length > 0) setTopSideBanners(topSide);
-          if (bottomSide.length > 0) setBottomSideBanners(bottomSide);
-        }
-      } catch (error) {
-        console.error('Error fetching banners:', error);
-      }
-    };
+    // Initial fetch
     fetchBanners();
   }, []);
+
+  // WebSocket Listener
+  useEffect(() => {
+    if (lastUpdate && lastUpdate.entity === 'BANNER') {
+      fetchBanners();
+    }
+  }, [lastUpdate]);
 
   const renderBannerImage = (banner, className) => {
     const img = (

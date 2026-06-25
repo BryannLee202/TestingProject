@@ -22,6 +22,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { lastUpdate } = useWebSocket();
 
   const [activeBookTab, setActiveBookTab] = useState('Tất cả');
   const [bookProducts, setBookProducts] = useState([]);
