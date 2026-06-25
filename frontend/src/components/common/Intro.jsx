@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { FaChevronDown, FaBook, FaBookOpen, FaBookmark } from 'react-icons/fa';
+import { FaBook, FaBookOpen, FaBookmark } from 'react-icons/fa';
 
 export default function Intro({ onComplete }) {
   const [isVisible, setIsVisible] = useState(true);
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     // Check if user already saw intro in this session
@@ -14,16 +15,30 @@ export default function Intro({ onComplete }) {
       return;
     }
     
-    // Auto remove after 10s as a fallback
-    const timer = setTimeout(() => {
-      handleEnter();
-    }, 10000);
-    
     // Prevent scrolling when intro is visible
     document.body.style.overflow = 'hidden';
 
+    // Simulate loading progress
+    const loadingDuration = 2500; // 2.5 seconds loading
+    const intervalTime = 50;
+    const steps = loadingDuration / intervalTime;
+    let currentStep = 0;
+
+    const progressInterval = setInterval(() => {
+      currentStep++;
+      const newProgress = Math.min((currentStep / steps) * 100, 100);
+      setProgress(newProgress);
+      
+      if (currentStep >= steps) {
+        clearInterval(progressInterval);
+        setTimeout(() => {
+          handleEnter();
+        }, 300); // Wait a tiny bit after 100%
+      }
+    }, intervalTime);
+
     return () => {
-      clearTimeout(timer);
+      clearInterval(progressInterval);
       document.body.style.overflow = 'auto';
     };
   }, []);
@@ -78,7 +93,7 @@ export default function Intro({ onComplete }) {
         ))}
       </div>
 
-      <div className="relative z-10 flex flex-col items-center mt-[-10vh]">
+      <div className="relative z-10 flex flex-col items-center mt-[-5vh]">
         {/* Main Logo */}
         <div className="flex items-center gap-2 mb-4 animate-[fadeInUp_1s_ease-out_forwards]">
           <span className="text-5xl md:text-7xl lg:text-8xl font-black text-gray-100 tracking-tight drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">YiYi</span>
@@ -91,22 +106,21 @@ export default function Intro({ onComplete }) {
         </div>
       </div>
 
-      {/* Enter Site Section */}
-      <div className="absolute bottom-16 flex flex-col items-center justify-center opacity-0 animate-[fadeIn_1s_ease-out_1.5s_forwards]">
-        {/* Vertical animated line */}
-        <div className="h-20 w-[1px] bg-gradient-to-b from-transparent via-[#C92127] to-transparent mb-6 animate-pulse"></div>
+      {/* Progress Bar Section */}
+      <div className="absolute bottom-24 flex flex-col items-center justify-center w-full px-12 md:px-32 opacity-0 animate-[fadeIn_1s_ease-out_1s_forwards]">
+        {/* Loading percentage */}
+        <div className="text-gray-400 text-xs tracking-widest font-mono mb-4">
+          LOADING... {Math.round(progress)}%
+        </div>
         
-        {/* Circle Button */}
-        <button 
-          onClick={handleEnter}
-          translate="no"
-          className="notranslate group flex flex-col items-center justify-center gap-4 hover:scale-110 transition-transform duration-300 animate-bounce cursor-pointer"
-        >
-          <div className="w-12 h-12 rounded-full border border-[#C92127]/40 bg-[#C92127]/10 flex items-center justify-center text-[#C92127] group-hover:border-[#C92127] group-hover:bg-[#C92127]/30 transition-all shadow-[0_0_15px_rgba(201,33,39,0.3)]">
-            <FaChevronDown className="mt-1 text-sm" />
-          </div>
-          <span className="text-[#C92127] text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase">ENTER SITE</span>
-        </button>
+        {/* Progress Bar Track */}
+        <div className="w-64 md:w-96 h-[2px] bg-gray-800 rounded-full overflow-hidden">
+          {/* Progress Bar Fill */}
+          <div 
+            className="h-full bg-gradient-to-r from-[#C92127] to-red-400 transition-all duration-75 ease-linear"
+            style={{ width: `${progress}%` }}
+          ></div>
+        </div>
       </div>
     </div>
   );
