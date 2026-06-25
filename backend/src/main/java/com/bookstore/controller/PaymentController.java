@@ -292,7 +292,7 @@ public class PaymentController {
             for (Enumeration<String> params = request.getParameterNames(); params.hasMoreElements();) {
                 String fieldName = params.nextElement();
                 String fieldValue = request.getParameter(fieldName);
-                if ((fieldValue != null) && (fieldValue.length() > 0)) {
+                if ((fieldValue != null) && (fieldValue.length() > 0) && fieldName.startsWith("vnp_")) {
                     fields.put(fieldName, fieldValue);
                 }
             }
