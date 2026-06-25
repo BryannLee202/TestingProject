@@ -396,7 +396,7 @@ export default function AdminOrders() {
                       {order.items && order.items.length > 0 ? (
                         <div className="flex items-center gap-3">
                           <img 
-                            src={order.items[0].book?.images?.[0] || 'https://via.placeholder.com/40'} 
+                            src={order.items[0].book?.imageUrl || 'https://placehold.co/40x48/e2e8f0/64748b?text=Book'} 
                             alt={order.items[0].book?.title || 'No title'} 
                             className="w-10 h-12 object-cover rounded shadow-sm border border-gray-200 shrink-0" 
                           />
