@@ -70,6 +70,23 @@ export default function Intro({ onComplete }) {
     <div 
       className={`fixed inset-0 z-[9999] bg-[#080202] flex flex-col items-center justify-center transition-transform duration-1000 ease-[cubic-bezier(0.7,0,0.3,1)] ${isAnimatingOut ? '-translate-y-full' : 'translate-y-0'}`}
     >
+      <style>{`
+        @keyframes expandLine {
+          0% { width: 0; opacity: 0; }
+          100% { width: 4rem; opacity: 1; }
+        }
+        .animate-expand-line {
+          animation: expandLine 1.5s cubic-bezier(0.7,0,0.3,1) forwards;
+        }
+        @keyframes expandLineDelayed {
+          0% { width: 0; opacity: 0; }
+          100% { width: 4rem; opacity: 1; }
+        }
+        .animate-expand-line-delayed {
+          animation: expandLineDelayed 1.5s cubic-bezier(0.7,0,0.3,1) 1s forwards;
+        }
+      `}</style>
+
       {/* Background pattern / subtle glow */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Glow in the center */}
@@ -94,9 +111,9 @@ export default function Intro({ onComplete }) {
       <div className="relative z-10 flex flex-col items-center justify-center w-full mt-[-10vh]">
         
         {/* Top small text with lines */}
-        <div className="flex flex-col items-center gap-4 opacity-0 animate-[fadeInDown_1s_ease-out_forwards]">
-          <div className="w-16 h-[1px] bg-gray-500/50"></div>
-          <div className="text-gray-400 text-[10px] md:text-xs tracking-[0.4em] uppercase font-light">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-[1px] bg-gray-500/50 w-0 animate-expand-line"></div>
+          <div className="text-gray-400 text-[10px] md:text-xs tracking-[0.4em] uppercase font-light opacity-0 animate-[fadeInDown_1s_ease-out_0.5s_forwards]">
             Y I Y I · B O O K S T O R E
           </div>
         </div>
@@ -115,7 +132,7 @@ export default function Intro({ onComplete }) {
           <div className="text-gray-500 tracking-widest font-light text-xs md:text-sm text-center">
             Đọc để yêu thương
           </div>
-          <div className="w-16 h-[1px] bg-gray-500/50 mt-4"></div>
+          <div className="h-[1px] bg-gray-500/50 mt-4 w-0 animate-expand-line-delayed"></div>
         </div>
       </div>
 
