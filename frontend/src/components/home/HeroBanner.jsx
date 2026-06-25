@@ -28,7 +28,7 @@ export default function HeroBanner() {
 
   const fetchBanners = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/banners`);
+      const res = await axios.get(`${API_BASE_URL}/banners?t=${new Date().getTime()}`);
       if (res.data) {
         const main = res.data.filter(b => b.position === 'MAIN');
         const topSide = res.data.filter(b => b.position === 'SIDE_TOP');

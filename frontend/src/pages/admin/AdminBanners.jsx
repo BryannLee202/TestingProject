@@ -20,7 +20,7 @@ export default function AdminBanners() {
   const fetchBanners = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API_BASE_URL}/banners`);
+      const res = await axios.get(`${API_BASE_URL}/banners?t=${new Date().getTime()}`);
       setBanners(res.data || []);
     } catch (error) {
       console.error('Error fetching banners:', error);
