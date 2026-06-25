@@ -1394,6 +1394,7 @@ function MemberRulesModal({ onClose }) {
 
 // Subcomponent for My Vouchers
 function MyVouchersTab() {
+  const { user } = useAuth();
   const [coupons, setCoupons] = useState([]);
   const [partnerCouponsList, setPartnerCouponsList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1409,7 +1410,13 @@ function MyVouchersTab() {
         const allCoupons = res.data || [];
         
         // Filter only saved coupons
-        const saved = JSON.parse(localStorage.getItem('savedCoupons') || '[]');
+        const savedKey = user?.username ? `savedCoupons_${user.username}` : 'savedCoupons';
+        let saved = [];
+        try {
+          saved = JSON.parse(localStorage.getItem(savedKey) || '[]');
+        } catch (e) {
+          saved = [];
+        }
         
         // Separating into myCoupons (not partner) and partnerCoupons
         const myCoupons = allCoupons.filter(c => saved.includes(c.code) && !c.isPartner);
@@ -1478,12 +1485,12 @@ function MyVouchersTab() {
                   <div className="pr-16">
                     <h3 className="font-semibold text-gray-800 text-sm leading-tight line-clamp-1">
                       {coupon.discountType === 'PERCENTAGE' 
-                        ? `Giảm ${coupon.discountValue}% đơn hàng`
-                        : `Giảm ${coupon.discountValue.toLocaleString('vi-VN')} đ`
+                        ? `Giảm ${coupon.discountValue || 0}% đơn hàng`
+                        : `Giảm ${(coupon.discountValue || 0).toLocaleString('vi-VN')} đ`
                       }
                     </h3>
                     <p className="text-[11px] text-gray-500 mt-1 line-clamp-2 leading-tight">
-                      Đơn tối thiểu {coupon.minOrderAmount.toLocaleString('vi-VN')} đ. Không bao gồm giá trị của các sản phẩm sau Manga, Ngoại Văn, Phiếu Quà Tặng,...
+                      Đơn tối thiểu {(coupon.minOrderAmount || 0).toLocaleString('vi-VN')} đ. Không bao gồm giá trị của các sản phẩm sau Manga, Ngoại Văn, Phiếu Quà Tặng,...
                     </p>
                   </div>
                   
@@ -1536,12 +1543,12 @@ function MyVouchersTab() {
                   <div className="pr-16">
                     <h3 className="font-semibold text-gray-800 text-sm leading-tight line-clamp-1">
                       {coupon.discountType === 'PERCENTAGE' 
-                        ? `Giảm ${coupon.discountValue}% đơn hàng`
-                        : `Giảm ${coupon.discountValue.toLocaleString('vi-VN')} đ`
+                        ? `Giảm ${coupon.discountValue || 0}% đơn hàng`
+                        : `Giảm ${(coupon.discountValue || 0).toLocaleString('vi-VN')} đ`
                       }
                     </h3>
                     <p className="text-[11px] text-gray-500 mt-1 line-clamp-2 leading-tight">
-                      Đơn tối thiểu {coupon.minOrderAmount.toLocaleString('vi-VN')} đ. Không bao gồm giá trị của các sản phẩm sau Manga, Ngoại Văn, Phiếu Quà Tặng,...
+                      Đơn tối thiểu {(coupon.minOrderAmount || 0).toLocaleString('vi-VN')} đ. Không bao gồm giá trị của các sản phẩm sau Manga, Ngoại Văn, Phiếu Quà Tặng,...
                     </p>
                   </div>
                   
@@ -1610,14 +1617,14 @@ function MyVouchersTab() {
                 <span className="font-medium text-gray-500">Mức ưu đãi:</span>
                 <span className="font-bold text-green-600 text-right">
                   {selectedCoupon.discountType === 'PERCENTAGE' 
-                    ? `Giảm ${selectedCoupon.discountValue}% (Tối đa ${selectedCoupon.maxDiscountAmount ? selectedCoupon.maxDiscountAmount.toLocaleString('vi-VN') + ' đ' : 'Không giới hạn'})`
-                    : `Giảm ${selectedCoupon.discountValue.toLocaleString('vi-VN')} đ`
+                    ? `Giảm ${selectedCoupon.discountValue || 0}% (Tối đa ${selectedCoupon.maxDiscountAmount ? selectedCoupon.maxDiscountAmount.toLocaleString('vi-VN') + ' đ' : 'Không giới hạn'})`
+                    : `Giảm ${(selectedCoupon.discountValue || 0).toLocaleString('vi-VN')} đ`
                   }
                 </span>
               </div>
               <div className="flex justify-between items-start border-b border-gray-50 pb-3">
                 <span className="font-medium text-gray-500">Đơn tối thiểu:</span>
-                <span className="font-semibold text-gray-800">{selectedCoupon.minOrderAmount.toLocaleString('vi-VN')} đ</span>
+                <span className="font-semibold text-gray-800">{(selectedCoupon.minOrderAmount || 0).toLocaleString('vi-VN')} đ</span>
               </div>
               <div className="flex justify-between items-start border-b border-gray-50 pb-3">
                 <span className="font-medium text-gray-500">Hạn sử dụng:</span>

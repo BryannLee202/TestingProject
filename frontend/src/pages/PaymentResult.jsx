@@ -14,7 +14,12 @@ export default function PaymentResult() {
   const [result, setResult] = useState(null);
   const { refreshCart } = useCart();
 
+  const processedRef = React.useRef(false);
+
   useEffect(() => {
+    if (processedRef.current) return;
+    processedRef.current = true;
+
     const processPaymentReturn = async () => {
       try {
         const searchParams = location.search; // ?vnp_Amount=...&vnp_BankCode=...

@@ -1,25 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { FaTicketAlt, FaCopy, FaCheck } from 'react-icons/fa';
 import { showNotification } from '../utils/alert';
+import { useAuth } from '../context/AuthContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
 export default function Coupons() {
+  const { user } = useAuth();
   const [coupons, setCoupons] = useState([]);
   const [couponHistory, setCouponHistory] = useState([]);
   const [activeTab, setActiveTab] = useState('available');
   const [loading, setLoading] = useState(true);
   const [copiedCode, setCopiedCode] = useState('');
-  const [savedCoupons, setSavedCoupons] = useState([]);
   const [selectedCoupon, setSelectedCoupon] = useState(null); // For detail modal
-  const navigate = useNavigate();
+  const savedKey = user?.username ? `savedCoupons_${user.username}` : 'savedCoupons';
+  
+  const [savedCoupons, setSavedCoupons] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem(savedKey) || '[]');
+    } catch (error) {
+      console.error('Failed to parse savedCoupons from localStorage:', error);
+      return [];
+    }
+  });
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem('savedCoupons') || '[]');
-    setSavedCoupons(saved);
-    
     const fetchCoupons = async () => {
       try {
         setLoading(true);
@@ -50,10 +57,16 @@ export default function Coupons() {
     localStorage.setItem('autoApplyCoupon', code);
 
     // Add to savedCoupons array
-    let saved = JSON.parse(localStorage.getItem('savedCoupons') || '[]');
+    let saved;
+    try {
+      saved = JSON.parse(localStorage.getItem(savedKey) || '[]');
+    } catch {
+      saved = [];
+    }
+    
     if (!saved.includes(code)) {
       saved.push(code);
-      localStorage.setItem('savedCoupons', JSON.stringify(saved));
+      localStorage.setItem(savedKey, JSON.stringify(saved));
       setSavedCoupons(saved);
     }
     
@@ -137,12 +150,12 @@ export default function Coupons() {
                     <div>
                       <h3 className="font-bold text-gray-800 text-base leading-snug">
                         {coupon.discountType === 'PERCENTAGE' 
-                          ? `Giảm ${coupon.discountValue}% tổng đơn hàng${coupon.maxDiscountAmount > 0 ? ` (Tối đa ${coupon.maxDiscountAmount.toLocaleString('vi-VN')}đ)` : ''}`
-                          : `Giảm ${coupon.discountValue.toLocaleString('vi-VN')} đ`
+                          ? `Giảm ${coupon.discountValue || 0}% tổng đơn hàng${coupon.maxDiscountAmount > 0 ? ` (Tối đa ${coupon.maxDiscountAmount.toLocaleString('vi-VN')}đ)` : ''}`
+                          : `Giảm ${(coupon.discountValue || 0).toLocaleString('vi-VN')} đ`
                         }
                       </h3>
                       <p className="text-xs text-gray-500 mt-1">
-                        Đơn hàng tối thiểu: <span className="font-semibold text-gray-700">{coupon.minOrderAmount.toLocaleString('vi-VN')} đ</span>
+                        Đơn hàng tối thiểu: <span className="font-semibold text-gray-700">{(coupon.minOrderAmount || 0).toLocaleString('vi-VN')} đ</span>
                       </p>
                       <button 
                         onClick={() => setSelectedCoupon(coupon)}
@@ -265,14 +278,14 @@ export default function Coupons() {
                 <span className="font-medium text-gray-500">Mức ưu đãi:</span>
                 <span className="font-bold text-green-600 text-right">
                   {selectedCoupon.discountType === 'PERCENTAGE' 
-                    ? `Giảm ${selectedCoupon.discountValue}% (Tối đa ${selectedCoupon.maxDiscountAmount ? selectedCoupon.maxDiscountAmount.toLocaleString('vi-VN') + ' đ' : 'Không giới hạn'})`
-                    : `Giảm ${selectedCoupon.discountValue.toLocaleString('vi-VN')} đ`
+                    ? `Giảm ${selectedCoupon.discountValue || 0}% (Tối đa ${selectedCoupon.maxDiscountAmount ? selectedCoupon.maxDiscountAmount.toLocaleString('vi-VN') + ' đ' : 'Không giới hạn'})`
+                    : `Giảm ${(selectedCoupon.discountValue || 0).toLocaleString('vi-VN')} đ`
                   }
                 </span>
               </div>
               <div className="flex justify-between items-start border-b border-gray-50 pb-3">
                 <span className="font-medium text-gray-500">Đơn tối thiểu:</span>
-                <span className="font-semibold text-gray-800">{selectedCoupon.minOrderAmount.toLocaleString('vi-VN')} đ</span>
+                <span className="font-semibold text-gray-800">{(selectedCoupon.minOrderAmount || 0).toLocaleString('vi-VN')} đ</span>
               </div>
               <div className="flex justify-between items-start border-b border-gray-50 pb-3">
                 <span className="font-medium text-gray-500">Hạn sử dụng:</span>
