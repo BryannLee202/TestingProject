@@ -31,5 +31,6 @@ public class RewardVoucher {
     private LocalDateTime expirationDate;
 
     @Column(name = "is_active", nullable = false)
+    @Builder.Default
     private Boolean isActive = true;
 }

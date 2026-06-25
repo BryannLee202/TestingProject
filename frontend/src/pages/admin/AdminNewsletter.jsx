@@ -14,13 +14,7 @@ export default function AdminNewsletter() {
   const [subscribers, setSubscribers] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  React.useEffect(() => {
-    if (activeTab === 'manage') {
-      fetchSubscribers();
-    }
-  }, [activeTab]);
-
-  const fetchSubscribers = async () => {
+  const fetchSubscribers = React.useCallback(async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
@@ -34,7 +28,13 @@ export default function AdminNewsletter() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [API_BASE_URL]);
+
+  React.useEffect(() => {
+    if (activeTab === 'manage') {
+      fetchSubscribers();
+    }
+  }, [activeTab, fetchSubscribers]);
 
   const handleDelete = async (id) => {
     if (!window.confirm('Bạn có chắc chắn muốn xóa email này khỏi danh sách nhận bản tin?')) return;

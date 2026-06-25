@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { FaTrash, FaSearch, FaPlus, FaCheckCircle, FaSpinner } from 'react-icons/fa';
@@ -12,11 +12,7 @@ export default function AdminFeaturedBooks() {
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
-  useEffect(() => {
-    fetchFeaturedBooks();
-  }, []);
-
-  const fetchFeaturedBooks = async () => {
+  const fetchFeaturedBooks = useCallback(async () => {
     setLoading(true);
     try {
       const res = await axios.get(`${API_BASE_URL}/books/featured`);
@@ -27,7 +23,11 @@ export default function AdminFeaturedBooks() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [API_BASE_URL]);
+
+  useEffect(() => {
+    fetchFeaturedBooks();
+  }, [fetchFeaturedBooks]);
 
   const handleSearch = async (e) => {
     e.preventDefault();

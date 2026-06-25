@@ -61,5 +61,6 @@ public class Review {
         inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     @com.fasterxml.jackson.annotation.JsonIgnore
+    @Builder.Default
     private java.util.Set<User> likedByUsers = new java.util.HashSet<>();
 }

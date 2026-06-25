@@ -30,12 +30,14 @@ public class Coupon {
     private Double discountValue;
 
     @Column(name = "min_order_amount")
+    @Builder.Default
     private Double minOrderAmount = 0.0;
 
     @Column(name = "expiration_date")
     private LocalDateTime expirationDate;
 
     @Column(name = "is_active", nullable = false)
+    @Builder.Default
     private Boolean isActive = true;
 
     @Column(name = "max_discount_amount")
@@ -50,5 +52,6 @@ public class Coupon {
     private Integer usageLimit;
 
     @Column(name = "is_partner")
+    @Builder.Default
     private Boolean isPartner = false;
 }

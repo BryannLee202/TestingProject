@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { FaPlus, FaEdit, FaTrash, FaTimes, FaGift } from 'react-icons/fa';
 import Swal from 'sweetalert2';
@@ -18,11 +18,7 @@ export default function AdminRewardVouchers() {
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
-  useEffect(() => {
-    fetchVouchers();
-  }, []);
-
-  const fetchVouchers = async () => {
+  const fetchVouchers = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const res = await axios.get(`${API_BASE_URL}/admin/rewards`, {
@@ -33,7 +29,11 @@ export default function AdminRewardVouchers() {
       console.error('Error fetching vouchers:', error);
       showNotification('Lỗi', 'Không thể tải danh sách mã sự kiện.', 'error');
     }
-  };
+  }, [API_BASE_URL]);
+
+  useEffect(() => {
+    fetchVouchers();
+  }, [fetchVouchers]);
 
   const handleOpenModal = (voucher = null) => {
     if (voucher) {

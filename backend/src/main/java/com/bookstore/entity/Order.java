@@ -46,6 +46,7 @@ public class Order {
     private String paymentMethod;
 
     @Column(name = "shipping_fee")
+    @Builder.Default
     private Double shippingFee = 0.0;
 
     @Column(name = "customer_note", length = 500)
@@ -63,6 +64,7 @@ public class Order {
     private String trackingNumber;
 
     @Column(name = "discount_amount")
+    @Builder.Default
     private Double discountAmount = 0.0;
 
     @Column(name = "points_used")

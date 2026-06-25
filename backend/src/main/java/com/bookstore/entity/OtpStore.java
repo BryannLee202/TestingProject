@@ -26,5 +26,6 @@ public class OtpStore {
     private LocalDateTime expiresAt;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean used = false;
 }
