@@ -9,25 +9,17 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 
 export default function HeroBanner() {
-  const [mainBanners, setMainBanners] = useState([
-    { imageUrl: 'https://placehold.co/840x320/007bff/ffffff?text=Banner+Chinh+1', linkUrl: '' },
-    { imageUrl: 'https://placehold.co/840x320/28a745/ffffff?text=Banner+Chinh+2', linkUrl: '' },
-    { imageUrl: 'https://placehold.co/840x320/dc3545/ffffff?text=Banner+Chinh+3', linkUrl: '' },
-  ]);
-
-  const [topSideBanners, setTopSideBanners] = useState([
-    { imageUrl: 'https://placehold.co/392x156/ffc107/000000?text=Banner+Phu+1', linkUrl: '' },
-  ]);
-
-  const [bottomSideBanners, setBottomSideBanners] = useState([
-    { imageUrl: 'https://placehold.co/392x156/17a2b8/ffffff?text=Banner+Phu+2', linkUrl: '' },
-  ]);
+  const [mainBanners, setMainBanners] = useState([]);
+  const [topSideBanners, setTopSideBanners] = useState([]);
+  const [bottomSideBanners, setBottomSideBanners] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
   const { lastUpdate } = useWebSocket();
 
   const fetchBanners = async () => {
     try {
+      setIsLoading(true);
       const res = await axios.get(`${API_BASE_URL}/banners?t=${new Date().getTime()}`);
       if (res.data) {
         const main = res.data.filter(b => b.position === 'MAIN');
@@ -42,18 +34,14 @@ export default function HeroBanner() {
           });
         }
 
-        setMainBanners(main.length > 0 ? main : [
-          { imageUrl: 'https://placehold.co/840x320/007bff/ffffff?text=Banner+Chinh+1', linkUrl: '' }
-        ]);
-        setTopSideBanners(topSide.length > 0 ? topSide : [
-          { imageUrl: 'https://placehold.co/392x156/ffc107/000000?text=Banner+Phu+1', linkUrl: '' }
-        ]);
-        setBottomSideBanners(bottomSide.length > 0 ? bottomSide : [
-          { imageUrl: 'https://placehold.co/392x156/17a2b8/ffffff?text=Banner+Phu+2', linkUrl: '' }
-        ]);
+        setMainBanners(main);
+        setTopSideBanners(topSide);
+        setBottomSideBanners(bottomSide);
       }
     } catch (error) {
       console.error('Error fetching banners:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -97,7 +85,17 @@ export default function HeroBanner() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4 h-auto lg:h-[440px]">
+    <>
+      {isLoading ? (
+        <div className="flex flex-col lg:flex-row gap-4 h-auto lg:h-[440px]">
+          <div className="w-full lg:w-[70%] h-64 sm:h-80 lg:h-full rounded-xl overflow-hidden shadow-sm bg-gray-200 animate-pulse relative"></div>
+          <div className="w-full lg:w-[30%] flex flex-row lg:flex-col gap-4 h-32 sm:h-44 lg:h-full">
+            <div className="flex-1 rounded-xl overflow-hidden shadow-sm bg-gray-200 animate-pulse relative h-full"></div>
+            <div className="flex-1 rounded-xl overflow-hidden shadow-sm bg-gray-200 animate-pulse relative h-full"></div>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-col lg:flex-row gap-4 h-auto lg:h-[440px]">
       <div className="w-full lg:w-[70%] h-64 sm:h-80 lg:h-full rounded-xl overflow-hidden shadow-sm bg-white relative">
         <Swiper
           modules={[Pagination, Autoplay]}
@@ -151,6 +149,7 @@ export default function HeroBanner() {
           </Swiper>
         </div>
       </div>
-    </div>
+      )}
+    </>
   );
 }
