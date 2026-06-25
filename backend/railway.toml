@@ -3,4 +3,4 @@ builder = "nixpacks"
 buildCommand = "./mvnw clean package -DskipTests"
 
 [deploy]
-startCommand = "bash -c 'java -jar target/*.jar'"
+startCommand = "java -jar target/bookstore-backend-0.0.1-SNAPSHOT.jar"
