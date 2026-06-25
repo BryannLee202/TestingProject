@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Entity
 @Table(name = "banners")
+@EntityListeners(com.bookstore.listener.WebSocketEntityListener.class)
 public class Banner {
 
     @Id

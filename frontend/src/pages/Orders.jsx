@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useWebSocket } from '../context/WebSocketContext';
 import Swal from 'sweetalert2';
 import { FaStore, FaCommentDots, FaBoxOpen, FaSearch } from 'react-icons/fa';
 
@@ -16,6 +17,8 @@ export default function Orders({ embedded = false }) {
   const navigate = useNavigate();
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
+
+  const { lastUpdate } = useWebSocket();
 
   const fetchOrders = async (isBackground = false) => {
     try {
@@ -43,14 +46,14 @@ export default function Orders({ embedded = false }) {
       return;
     }
     fetchOrders();
-
-    // Thực hiện realtime update ngầm mỗi 5 giây
-    const interval = setInterval(() => {
-      fetchOrders(true);
-    }, 5000);
-
-    return () => clearInterval(interval);
   }, [user, navigate]);
+
+  // Lắng nghe WebSocket
+  useEffect(() => {
+    if (lastUpdate && lastUpdate.entity === 'ORDER') {
+      fetchOrders(true); // Fetch background
+    }
+  }, [lastUpdate]);
 
   const getStatusText = (status, shippingStatus, paymentMethod) => {
     if (status === 'RETURNED') return 'YÊU CẦU TRẢ HÀNG';

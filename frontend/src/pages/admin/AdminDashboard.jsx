@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useWebSocket } from '../../context/WebSocketContext';
 import { 
   FaDollarSign, 
   FaShoppingBag, 
@@ -28,62 +29,64 @@ export default function AdminDashboard() {
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
+  const { lastUpdate } = useWebSocket();
+
+  const fetchDashboardData = async (isBackground = false) => {
+    try {
+      if (!isBackground) setLoading(true);
+      const [ordersRes, booksRes, categoriesRes] = await Promise.all([
+        axios.get(`${API_BASE_URL}/orders/all`),
+        axios.get(`${API_BASE_URL}/books`),
+        axios.get(`${API_BASE_URL}/categories`)
+      ]);
+
+      const allOrders = ordersRes.data || [];
+      const allBooks = booksRes.data || [];
+      const allCategories = categoriesRes.data || [];
+
+      // Tính doanh thu (chỉ tính khi đã giao hàng thành công và đã thanh toán)
+      const revenue = allOrders
+        .filter(o => o.shippingStatus === 'DELIVERED')
+        .reduce((sum, o) => sum + o.totalAmount, 0);
+
+      const outOfStockCount = allBooks.filter(b => b.stockQuantity <= 0).length;
+      const pendingOrdersCount = allOrders.filter(o => o.status === 'PENDING').length;
+
+      setStats({
+        revenue,
+        totalOrders: allOrders.length,
+        totalBooks: allBooks.length,
+        totalCategories: allCategories.length,
+        outOfStockCount,
+        pendingOrdersCount
+      });
+
+      // Sắp xếp đơn hàng mới nhất
+      const sortedOrders = [...allOrders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setRecentOrders(sortedOrders.slice(0, 5));
+
+      // Bán chạy (Dựa vào salesCount hoặc sắp xếp salesCount giảm dần nếu có)
+      // Nếu không có, lấy top sách giá cao nhất hoặc demo
+      const sortedBooks = [...allBooks].sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0));
+      setBestsellers(sortedBooks.slice(0, 5));
+
+    } catch (error) {
+      if (!isBackground) console.error('Error fetching dashboard statistics:', error);
+    } finally {
+      if (!isBackground) setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchDashboardData = async (isBackground = false) => {
-      try {
-        if (!isBackground) setLoading(true);
-        const [ordersRes, booksRes, categoriesRes] = await Promise.all([
-          axios.get(`${API_BASE_URL}/orders/all`),
-          axios.get(`${API_BASE_URL}/books`),
-          axios.get(`${API_BASE_URL}/categories`)
-        ]);
-
-        const allOrders = ordersRes.data || [];
-        const allBooks = booksRes.data || [];
-        const allCategories = categoriesRes.data || [];
-
-        // Tính doanh thu (chỉ tính khi đã giao hàng thành công và đã thanh toán)
-        const revenue = allOrders
-          .filter(o => o.shippingStatus === 'DELIVERED')
-          .reduce((sum, o) => sum + o.totalAmount, 0);
-
-        const outOfStockCount = allBooks.filter(b => b.stockQuantity <= 0).length;
-        const pendingOrdersCount = allOrders.filter(o => o.status === 'PENDING').length;
-
-        setStats({
-          revenue,
-          totalOrders: allOrders.length,
-          totalBooks: allBooks.length,
-          totalCategories: allCategories.length,
-          outOfStockCount,
-          pendingOrdersCount
-        });
-
-        // Sắp xếp đơn hàng mới nhất
-        const sortedOrders = [...allOrders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        setRecentOrders(sortedOrders.slice(0, 5));
-
-        // Bán chạy (Dựa vào salesCount hoặc sắp xếp salesCount giảm dần nếu có)
-        // Nếu không có, lấy top sách giá cao nhất hoặc demo
-        const sortedBooks = [...allBooks].sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0));
-        setBestsellers(sortedBooks.slice(0, 5));
-
-      } catch (error) {
-        if (!isBackground) console.error('Error fetching dashboard statistics:', error);
-      } finally {
-        if (!isBackground) setLoading(false);
-      }
-    };
-
     fetchDashboardData();
-
-    // Thực hiện realtime update ngầm mỗi 5 giây
-    const interval = setInterval(() => {
-      fetchDashboardData(true);
-    }, 5000);
-
-    return () => clearInterval(interval);
   }, []);
+
+  // Lắng nghe WebSocket: Cập nhật nếu Sách, Danh mục, hoặc Đơn hàng có sự thay đổi
+  useEffect(() => {
+    if (lastUpdate && ['ORDER', 'BOOK', 'CATEGORY'].includes(lastUpdate.entity)) {
+      fetchDashboardData(true);
+    }
+  }, [lastUpdate]);
 
   if (loading) {
     return (

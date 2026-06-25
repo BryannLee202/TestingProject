@@ -1,10 +1,11 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ClientLayout from './layouts/ClientLayout';
 import AdminLayout from './layouts/AdminLayout';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
+import { WebSocketProvider } from './context/WebSocketContext';
 import ScrollToTop from './components/common/ScrollToTop';
 import ScrollToTopButton from './components/common/ScrollToTopButton';
 import AIChatWidget from './components/common/AIChatWidget';
@@ -65,12 +66,14 @@ const PageLoader = () => (
 );
 
 function App() {
+  const [showIntro, setShowIntro] = useState(true);
   return (
     <LanguageProvider>
       <AuthProvider>
       <CartProvider>
+        <WebSocketProvider>
         <BrowserRouter>
-          <Intro />
+          {showIntro && <Intro onComplete={() => setShowIntro(false)} />}
           <ScrollToTop />
           <Suspense fallback={<PageLoader />}>
             <Routes>
@@ -126,8 +129,10 @@ function App() {
           <AIChatWidget />
           <ScrollToTopButton />
         </BrowserRouter>
+        </WebSocketProvider>
       </CartProvider>
     </AuthProvider>
+
     </LanguageProvider>
   );
 }

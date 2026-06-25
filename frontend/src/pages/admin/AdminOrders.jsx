@@ -12,9 +12,11 @@ import {
   FaTimes,
   FaCheck,
   FaPrint,
+  FaEdit,
   FaTrash
 } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import { useWebSocket } from '../../context/WebSocketContext';
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
@@ -34,6 +36,8 @@ export default function AdminOrders() {
   const [updating, setUpdating] = useState(false);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
+
+  const { lastUpdate } = useWebSocket();
 
   const fetchOrders = async (isBackground = false) => {
     try {
@@ -56,14 +60,14 @@ export default function AdminOrders() {
 
   useEffect(() => {
     fetchOrders();
-
-    // Thực hiện realtime update ngầm mỗi 5 giây
-    const interval = setInterval(() => {
-      fetchOrders(true);
-    }, 5000);
-
-    return () => clearInterval(interval);
   }, []);
+
+  // Lắng nghe WebSocket
+  useEffect(() => {
+    if (lastUpdate && lastUpdate.entity === 'ORDER') {
+      fetchOrders(true); // Fetch background
+    }
+  }, [lastUpdate]);
 
   const openDetailModal = (order) => {
     setSelectedOrder(order);

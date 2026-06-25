@@ -11,6 +11,7 @@ import ComboTrending from '../components/home/ComboTrending';
 import PersonalizedSuggestions from '../components/home/PersonalizedSuggestions';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useWebSocket } from '../context/WebSocketContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
@@ -72,8 +73,16 @@ export default function Home() {
       }
     };
 
-    fetchHomeData();
-  }, [user]);
+    // If it's a websocket update, check if we care about it
+    if (lastUpdate && lastUpdate.entity) {
+      if (['BOOK', 'CATEGORY', 'BANNER'].includes(lastUpdate.entity)) {
+        fetchHomeData();
+      }
+    } else {
+      // Initial load or user change
+      fetchHomeData();
+    }
+  }, [user, lastUpdate]);
 
   useEffect(() => {
     const fetchBookProducts = async () => {

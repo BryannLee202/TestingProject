@@ -25,6 +25,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(org.springframework.security.config.Customizer.withDefaults())
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/ws/**").permitAll() // Cho phép WebSocket
                 .requestMatchers("/api/auth/**").permitAll() // Cho phép truy cập không cần login
                 .requestMatchers("/api/ping").permitAll() // Ping endpoint để chống ngủ đông
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/books/**").permitAll() // Xem sách thoải mái

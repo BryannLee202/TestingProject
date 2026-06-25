@@ -16,6 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 @Table(name = "orders")
+@EntityListeners(com.bookstore.listener.WebSocketEntityListener.class)
 public class Order {
 
     @Id
