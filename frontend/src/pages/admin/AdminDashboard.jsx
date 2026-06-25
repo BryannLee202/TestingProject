@@ -29,9 +29,9 @@ export default function AdminDashboard() {
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
+    const fetchDashboardData = async (isBackground = false) => {
       try {
-        setLoading(true);
+        if (!isBackground) setLoading(true);
         const [ordersRes, booksRes, categoriesRes] = await Promise.all([
           axios.get(`${API_BASE_URL}/orders/all`),
           axios.get(`${API_BASE_URL}/books`),
@@ -69,13 +69,20 @@ export default function AdminDashboard() {
         setBestsellers(sortedBooks.slice(0, 5));
 
       } catch (error) {
-        console.error('Error fetching dashboard statistics:', error);
+        if (!isBackground) console.error('Error fetching dashboard statistics:', error);
       } finally {
-        setLoading(false);
+        if (!isBackground) setLoading(false);
       }
     };
 
     fetchDashboardData();
+
+    // Thực hiện realtime update ngầm mỗi 5 giây
+    const interval = setInterval(() => {
+      fetchDashboardData(true);
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
   if (loading) {

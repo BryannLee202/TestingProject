@@ -17,21 +17,23 @@ export default function Orders({ embedded = false }) {
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (isBackground = false) => {
     try {
-      setLoading(true);
+      if (!isBackground) setLoading(true);
       const res = await axios.get(`${API_BASE_URL}/orders`);
       setOrders(res.data);
     } catch (error) {
-      console.error('Error fetching orders:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Lỗi tải đơn hàng',
-        text: 'Không thể kết nối đến máy chủ. Vui lòng thử lại sau.',
-        confirmButtonColor: '#EF4444'
-      });
+      if (!isBackground) {
+        console.error('Error fetching orders:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Lỗi tải đơn hàng',
+          text: 'Không thể kết nối đến máy chủ. Vui lòng thử lại sau.',
+          confirmButtonColor: '#EF4444'
+        });
+      }
     } finally {
-      setLoading(false);
+      if (!isBackground) setLoading(false);
     }
   };
 
@@ -41,6 +43,13 @@ export default function Orders({ embedded = false }) {
       return;
     }
     fetchOrders();
+
+    // Thực hiện realtime update ngầm mỗi 5 giây
+    const interval = setInterval(() => {
+      fetchOrders(true);
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, [user, navigate]);
 
   const getStatusText = (status, shippingStatus, paymentMethod) => {
