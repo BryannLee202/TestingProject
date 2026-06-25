@@ -241,10 +241,30 @@ public class PaymentController {
             ResponseEntity<Map> response = restTemplate.postForEntity(ZaloPayConfig.QUERY_ORDER_URL, request, Map.class);
             
             if (response.getBody() != null && response.getBody().get("return_code").toString().equals("1")) {
-                orderService.confirmVNPayPayment(orderId, true);
+                try {
+                    orderService.confirmVNPayPayment(orderId, true);
+                } catch (org.springframework.orm.ObjectOptimisticLockingFailureException e) {
+                    // Ignore concurrent modification exception (already processed by another thread)
+                } catch (Exception e) {
+                    if (e.getCause() != null && e.getCause() instanceof org.hibernate.StaleObjectStateException) {
+                         // Ignore
+                    } else {
+                         throw e;
+                    }
+                }
                 return ResponseEntity.ok(Map.of("status", "success", "message", "Payment success", "orderId", orderId));
             } else {
-                orderService.confirmVNPayPayment(orderId, false);
+                try {
+                    orderService.confirmVNPayPayment(orderId, false);
+                } catch (org.springframework.orm.ObjectOptimisticLockingFailureException e) {
+                    // Ignore
+                } catch (Exception e) {
+                    if (e.getCause() != null && e.getCause() instanceof org.hibernate.StaleObjectStateException) {
+                         // Ignore
+                    } else {
+                         throw e;
+                    }
+                }
                 return ResponseEntity.badRequest().body(Map.of("status", "failed", "message", "Payment failed or cancelled"));
             }
         } catch (Exception e) {
@@ -311,11 +331,15 @@ public class PaymentController {
 
                 if ("00".equals(vnp_ResponseCode)) {
                     // Payment success
-                    orderService.confirmVNPayPayment(orderId, true);
+                    try {
+                        orderService.confirmVNPayPayment(orderId, true);
+                    } catch (org.springframework.orm.ObjectOptimisticLockingFailureException e) {} catch (Exception e) { if (e.getCause() != null && e.getCause() instanceof org.hibernate.StaleObjectStateException) {} else { throw e; } }
                     return ResponseEntity.ok(Map.of("status", "success", "message", "Payment success", "orderId", orderId));
                 } else {
                     // Payment failed
-                    orderService.confirmVNPayPayment(orderId, false);
+                    try {
+                        orderService.confirmVNPayPayment(orderId, false);
+                    } catch (org.springframework.orm.ObjectOptimisticLockingFailureException e) {} catch (Exception e) { if (e.getCause() != null && e.getCause() instanceof org.hibernate.StaleObjectStateException) {} else { throw e; } }
                     return ResponseEntity.badRequest().body(Map.of("status", "failed", "message", "Payment failed or cancelled"));
                 }
             } else {
@@ -364,10 +388,14 @@ public class PaymentController {
                 Long orderId = Long.parseLong(realOrderIdStr);
 
                 if ("0".equals(resultCode)) {
-                    orderService.confirmVNPayPayment(orderId, true);
+                    try {
+                        orderService.confirmVNPayPayment(orderId, true);
+                    } catch (org.springframework.orm.ObjectOptimisticLockingFailureException e) {} catch (Exception e) { if (e.getCause() != null && e.getCause() instanceof org.hibernate.StaleObjectStateException) {} else { throw e; } }
                     return ResponseEntity.ok(Map.of("status", "success", "message", "Payment success", "orderId", orderId));
                 } else {
-                    orderService.confirmVNPayPayment(orderId, false);
+                    try {
+                        orderService.confirmVNPayPayment(orderId, false);
+                    } catch (org.springframework.orm.ObjectOptimisticLockingFailureException e) {} catch (Exception e) { if (e.getCause() != null && e.getCause() instanceof org.hibernate.StaleObjectStateException) {} else { throw e; } }
                     return ResponseEntity.badRequest().body(Map.of("status", "failed", "message", message));
                 }
             } else {
@@ -417,9 +445,13 @@ public class PaymentController {
                 Long orderId = Long.parseLong(realOrderIdStr);
 
                 if ("0".equals(resultCode)) {
-                    orderService.confirmVNPayPayment(orderId, true);
+                    try {
+                        orderService.confirmVNPayPayment(orderId, true);
+                    } catch (org.springframework.orm.ObjectOptimisticLockingFailureException e) {} catch (Exception e) { if (e.getCause() != null && e.getCause() instanceof org.hibernate.StaleObjectStateException) {} else { throw e; } }
                 } else {
-                    orderService.confirmVNPayPayment(orderId, false);
+                    try {
+                        orderService.confirmVNPayPayment(orderId, false);
+                    } catch (org.springframework.orm.ObjectOptimisticLockingFailureException e) {} catch (Exception e) { if (e.getCause() != null && e.getCause() instanceof org.hibernate.StaleObjectStateException) {} else { throw e; } }
                 }
                 return ResponseEntity.ok().build();
             } else {

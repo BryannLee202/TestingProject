@@ -515,4 +515,16 @@ public class OrderService {
     public void deleteMultipleOrders(List<Long> ids) {
         orderRepository.deleteAllById(ids);
     }
+    @org.springframework.scheduling.annotation.Scheduled(fixedRate = 60000)
+    public void cancelExpiredPendingPaymentOrders() {
+        java.time.LocalDateTime threshold = java.time.LocalDateTime.now().minusMinutes(15);
+        List<Order> expiredOrders = orderRepository.findByStatusAndCreatedAtBefore("PENDING_PAYMENT", threshold);
+        for (Order order : expiredOrders) {
+            try {
+                confirmVNPayPayment(order.getId(), false);
+            } catch (Exception e) {
+                // Ignore exception to continue cancelling other orders
+            }
+        }
+    }
 }

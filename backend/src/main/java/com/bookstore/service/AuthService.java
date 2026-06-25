@@ -4,7 +4,12 @@ import com.bookstore.dto.*;
 import com.bookstore.entity.AuthProvider;
 import com.bookstore.entity.Role;
 import com.bookstore.entity.User;
+import com.bookstore.entity.Coupon;
+import com.bookstore.entity.DiscountType;
+import com.bookstore.entity.PointTransaction;
 import com.bookstore.repository.UserRepository;
+import com.bookstore.repository.CouponRepository;
+import com.bookstore.repository.PointTransactionRepository;
 import com.bookstore.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,6 +32,36 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final OtpService otpService;
+    private final CouponRepository couponRepository;
+    private final PointTransactionRepository pointTransactionRepository;
+
+    private void applyRegistrationGift(User user) {
+        user.setYPoints(20000);
+        user.setAccumulatedPoints(20000);
+        userRepository.save(user);
+
+        pointTransactionRepository.save(PointTransaction.builder()
+                .user(user)
+                .action("REGISTER_GIFT")
+                .description("Tặng điểm chào mừng thành viên mới")
+                .previousBalance(0)
+                .transactionValue(20000)
+                .newBalance(20000)
+                .createdAt(java.time.LocalDateTime.now())
+                .build());
+
+        couponRepository.save(Coupon.builder()
+                .code("FREESHIP_" + user.getId() + "_" + (System.currentTimeMillis() % 10000))
+                .discountType(DiscountType.FIXED)
+                .discountValue(30000.0)
+                .category("SHIPPING")
+                .userId(user.getId())
+                .usageLimit(1)
+                .isActive(true)
+                .isPartner(false)
+                .expirationDate(java.time.LocalDateTime.now().plusDays(30))
+                .build());
+    }
 
     public void sendOtp(String phone, String email) {
         // Nếu không truyền email (ví dụ từ trang Quên mật khẩu), thì tìm user theo số điện thoại để lấy email
@@ -79,6 +114,8 @@ public class AuthService {
                 .provider(AuthProvider.LOCAL)
                 .build();
         userRepository.save(user);
+
+        applyRegistrationGift(user);
 
         var jwtToken = jwtService.generateToken(user);
         return AuthResponse.builder()
@@ -155,6 +192,7 @@ public class AuthService {
                     .providerId(request.getProviderId())
                     .build();
             user = userRepository.save(user);
+            applyRegistrationGift(user);
         }
 
         var jwtToken = jwtService.generateToken(user);
