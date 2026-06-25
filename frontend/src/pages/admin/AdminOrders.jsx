@@ -371,6 +371,7 @@ export default function AdminOrders() {
                     />
                   </th>
                   <th className="px-6 py-4">Mã đơn</th>
+                  <th className="px-6 py-4 w-64">Sản phẩm</th>
                   <th className="px-6 py-4">Khách hàng</th>
                   <th className="px-6 py-4">Ngày tạo</th>
                   <th className="px-6 py-4">Tổng cộng</th>
@@ -391,6 +392,29 @@ export default function AdminOrders() {
                       />
                     </td>
                     <td className="px-6 py-4 font-bold text-gray-800">#{order.id}</td>
+                    <td className="px-6 py-4">
+                      {order.items && order.items.length > 0 ? (
+                        <div className="flex items-center gap-3">
+                          <img 
+                            src={order.items[0].book?.images?.[0] || 'https://via.placeholder.com/40'} 
+                            alt={order.items[0].book?.title || 'No title'} 
+                            className="w-10 h-12 object-cover rounded shadow-sm border border-gray-200 shrink-0" 
+                          />
+                          <div className="flex flex-col">
+                            <span className="text-sm font-semibold text-gray-800 line-clamp-2 leading-tight" title={order.items[0].book?.title}>
+                              {order.items[0].book?.title || 'Sản phẩm đã gỡ'}
+                            </span>
+                            {order.items.length > 1 && (
+                              <span className="text-xs text-primary font-medium mt-0.5">
+                                + {order.items.length - 1} sản phẩm khác
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400 text-xs italic">Không có sp</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4">
                       <div className="font-semibold text-gray-900">{order.user?.fullName || 'Khách vãng lai'}</div>
                       <div className="text-xs text-gray-450 mt-0.5">{order.phoneNumber}</div>
