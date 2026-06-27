@@ -400,18 +400,23 @@ export default function AdminOrders() {
                               (() => {
                                 const b = order.items[0].book;
                                 if (!b) return 'https://via.placeholder.com/40';
-                                if (b.imageUrl) return b.imageUrl;
-                                if (b.img) return b.img;
-                                if (Array.isArray(b.images) && b.images.length > 0) return b.images[0];
-                                if (typeof b.images === 'string') {
+                                let targetUrl = null;
+                                if (b.imageUrl) targetUrl = b.imageUrl;
+                                else if (b.img) targetUrl = b.img;
+                                else if (Array.isArray(b.images) && b.images.length > 0) targetUrl = b.images[0];
+                                else if (typeof b.images === 'string') {
                                   try {
                                     const p = JSON.parse(b.images);
-                                    if (Array.isArray(p) && p.length > 0) return p[0];
+                                    if (Array.isArray(p) && p.length > 0) targetUrl = p[0];
                                   } catch (e) {
-                                    if (b.images.startsWith('http')) return b.images;
+                                    if (b.images.startsWith('http') || b.images.startsWith('/')) targetUrl = b.images;
                                   }
                                 }
-                                return 'https://via.placeholder.com/40';
+                                
+                                if (!targetUrl) return 'https://via.placeholder.com/40';
+                                if (targetUrl.startsWith('http') || targetUrl.startsWith('data:')) return targetUrl;
+                                const baseUrl = API_BASE_URL.replace('/api', '');
+                                return `${baseUrl}${targetUrl.startsWith('/') ? '' : '/'}${targetUrl}`;
                               })()
                             } 
                             alt={order.items[0].book?.title || 'No title'} 
