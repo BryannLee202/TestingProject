@@ -23,7 +23,8 @@ public interface BookRepository extends JpaRepository<Book, Long> {
 
     List<Book> findByIsFeaturedTrue();
 
-    List<Book> findByDiscountGreaterThanOrderByDiscountDesc(Integer minDiscount);
+    @Query("SELECT b FROM Book b WHERE b.discount > 0 OR (b.oldPrice IS NOT NULL AND b.oldPrice > b.price) ORDER BY b.discount DESC, b.id DESC")
+    List<Book> findDiscountedBooks();
 
     List<Book> findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCase(String title, String author);
 

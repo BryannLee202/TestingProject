@@ -68,7 +68,7 @@ public class BookService {
 
     @org.springframework.cache.annotation.Cacheable("books_discounted")
     public List<Book> getDiscountedBooks() {
-        return bookRepository.findByDiscountGreaterThanOrderByDiscountDesc(0);
+        return bookRepository.findDiscountedBooks();
     }
 
     @org.springframework.cache.annotation.Cacheable("books_featured")
