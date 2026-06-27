@@ -8,6 +8,22 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chống Inspect, F12, Chuột phải -->
+    <script>
+      document.addEventListener('contextmenu', event => event.preventDefault());
+      document.onkeydown = function(e) {
+        if(e.keyCode == 123) { return false; } // F12
+        if(e.ctrlKey && e.shiftKey && e.keyCode == 73) { return false; } // Ctrl+Shift+I
+        if(e.ctrlKey && e.shiftKey && e.keyCode == 74) { return false; } // Ctrl+Shift+J
+        if(e.ctrlKey && e.keyCode == 85) { return false; } // Ctrl+U
+        if(e.ctrlKey && e.keyCode == 67) { return false; } // Ctrl+C
+      };
+      document.addEventListener('copy', event => {
+        event.preventDefault();
+        return false;
+      });
+    </script>
   </head>
   <body>
     <div id="google_translate_element" style="display: none;"></div>
