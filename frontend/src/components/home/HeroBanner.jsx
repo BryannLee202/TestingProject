@@ -149,6 +149,7 @@ export default function HeroBanner() {
           </Swiper>
         </div>
       </div>
+      </div>
       )}
     </>
   );
