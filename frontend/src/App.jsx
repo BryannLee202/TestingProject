@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useState } from 'react';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ClientLayout from './layouts/ClientLayout';
 import AdminLayout from './layouts/AdminLayout';
@@ -67,6 +67,43 @@ const PageLoader = () => (
 
 function App() {
   const [showIntro, setShowIntro] = useState(true);
+
+  // --- Chống copy và F12 (Bảo vệ đồ án) ---
+  useEffect(() => {
+    // Chặn chuột phải
+    const handleContextMenu = (e) => e.preventDefault();
+
+    // Chặn F12, Ctrl+Shift+I, Ctrl+U, Ctrl+C
+    const handleKeyDown = (e) => {
+      if (
+        e.key === 'F12' || 
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) ||
+        (e.ctrlKey && (e.key === 'U' || e.key === 'u' || e.key === 'C' || e.key === 'c'))
+      ) {
+        e.preventDefault();
+      }
+    };
+    
+    // Chặn sự kiện Copy
+    const handleCopy = (e) => {
+      e.preventDefault();
+      // Optional: alert('Không được copy code bạn nhé!');
+    };
+
+    // Đăng ký các bộ lắng nghe sự kiện
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('copy', handleCopy);
+
+    // Dọn dẹp khi unmount (thực tế App ít khi unmount nhưng cứ để cho chuẩn React)
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('copy', handleCopy);
+    };
+  }, []);
+  // ------------------------------------------
+
   return (
     <LanguageProvider>
       <AuthProvider>
