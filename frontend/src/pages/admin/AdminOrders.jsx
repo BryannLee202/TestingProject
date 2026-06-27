@@ -254,38 +254,38 @@ export default function AdminOrders() {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'PENDING':
-        return <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-850">Chờ duyệt</span>;
+        return <span className="px-2.5 py-1 text-xs font-semibold whitespace-nowrap rounded-full bg-yellow-100 text-yellow-850">Chờ duyệt</span>;
       case 'PROCESSING':
-        return <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-850">Đang xử lý</span>;
+        return <span className="px-2.5 py-1 text-xs font-semibold whitespace-nowrap rounded-full bg-blue-100 text-blue-850">Đang xử lý</span>;
       case 'SHIPPING':
-        return <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-850">Đang giao</span>;
+        return <span className="px-2.5 py-1 text-xs font-semibold whitespace-nowrap rounded-full bg-purple-100 text-purple-850">Đang giao</span>;
       case 'COMPLETED':
-        return <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-850">Đã giao</span>;
+        return <span className="px-2.5 py-1 text-xs font-semibold whitespace-nowrap rounded-full bg-green-100 text-green-850">Đã giao</span>;
       case 'RETURNED':
-        return <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800 border border-orange-200">Khách yêu cầu trả hàng</span>;
+        return <span className="px-2.5 py-1 text-xs font-semibold whitespace-nowrap rounded-full bg-orange-100 text-orange-800 border border-orange-200">Khách yêu cầu trả hàng</span>;
       case 'REFUNDED':
-        return <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-teal-100 text-teal-800 border border-teal-200">Đã hoàn tiền</span>;
+        return <span className="px-2.5 py-1 text-xs font-semibold whitespace-nowrap rounded-full bg-teal-100 text-teal-800 border border-teal-200">Đã hoàn tiền</span>;
       case 'CANCELLED':
-        return <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-850">Đã hủy</span>;
+        return <span className="px-2.5 py-1 text-xs font-semibold whitespace-nowrap rounded-full bg-red-100 text-red-850">Đã hủy</span>;
       default:
-        return <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-850">{status}</span>;
+        return <span className="px-2.5 py-1 text-xs font-semibold whitespace-nowrap rounded-full bg-gray-100 text-gray-850">{status}</span>;
     }
   };
 
   const getShippingStatusBadge = (shipStatus) => {
     switch (shipStatus) {
       case 'PENDING':
-        return <span className="px-2 py-0.5 text-xs font-medium rounded bg-amber-50 text-amber-700 border border-amber-250">Chờ chuẩn bị</span>;
+        return <span className="px-2 py-0.5 text-xs font-medium whitespace-nowrap rounded bg-amber-50 text-amber-700 border border-amber-250">Chờ chuẩn bị</span>;
       case 'PROCESSING':
-        return <span className="px-2 py-0.5 text-xs font-medium rounded bg-blue-50 text-blue-700 border border-blue-250">Đang đóng gói</span>;
+        return <span className="px-2 py-0.5 text-xs font-medium whitespace-nowrap rounded bg-blue-50 text-blue-700 border border-blue-250">Đang đóng gói</span>;
       case 'SHIPPING':
-        return <span className="px-2 py-0.5 text-xs font-medium rounded bg-purple-50 text-purple-700 border border-purple-250">Đang vận chuyển</span>;
+        return <span className="px-2 py-0.5 text-xs font-medium whitespace-nowrap rounded bg-purple-50 text-purple-700 border border-purple-250">Đang vận chuyển</span>;
       case 'DELIVERED':
-        return <span className="px-2 py-0.5 text-xs font-medium rounded bg-emerald-50 text-emerald-700 border border-emerald-250">Đã giao hàng</span>;
+        return <span className="px-2 py-0.5 text-xs font-medium whitespace-nowrap rounded bg-emerald-50 text-emerald-700 border border-emerald-250">Đã giao hàng</span>;
       case 'CANCELLED':
-        return <span className="px-2 py-0.5 text-xs font-medium rounded bg-rose-50 text-rose-700 border border-rose-250">Đã hủy giao</span>;
+        return <span className="px-2 py-0.5 text-xs font-medium whitespace-nowrap rounded bg-rose-50 text-rose-700 border border-rose-250">Đã hủy giao</span>;
       default:
-        return <span className="px-2 py-0.5 text-xs font-medium rounded bg-gray-50 text-gray-700 border border-gray-250">{shipStatus}</span>;
+        return <span className="px-2 py-0.5 text-xs font-medium whitespace-nowrap rounded bg-gray-50 text-gray-700 border border-gray-250">{shipStatus}</span>;
     }
   };
 
@@ -396,7 +396,24 @@ export default function AdminOrders() {
                       {order.items && order.items.length > 0 ? (
                         <div className="flex items-center gap-3">
                           <img 
-                            src={order.items[0].book?.images?.[0] || 'https://via.placeholder.com/40'} 
+                            src={
+                              (() => {
+                                const b = order.items[0].book;
+                                if (!b) return 'https://via.placeholder.com/40';
+                                if (b.imageUrl) return b.imageUrl;
+                                if (b.img) return b.img;
+                                if (Array.isArray(b.images) && b.images.length > 0) return b.images[0];
+                                if (typeof b.images === 'string') {
+                                  try {
+                                    const p = JSON.parse(b.images);
+                                    if (Array.isArray(p) && p.length > 0) return p[0];
+                                  } catch (e) {
+                                    if (b.images.startsWith('http')) return b.images;
+                                  }
+                                }
+                                return 'https://via.placeholder.com/40';
+                              })()
+                            } 
                             alt={order.items[0].book?.title || 'No title'} 
                             className="w-10 h-12 object-cover rounded shadow-sm border border-gray-200 shrink-0" 
                           />
