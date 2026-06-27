@@ -167,9 +167,9 @@ export default function Footer() {
       {/* Bottom Section: Copyright */}
       <div className="bg-gray-50 border-t border-gray-200 py-6">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left text-xs text-gray-500">
-          <p>&copy; {new Date().getFullYear()} Công Ty Cổ Phần Phát Hành Sách YiYi Book. Tất cả các quyền được bảo lưu. Designed by graperu.</p>
+          <p>&copy; {new Date().getFullYear()} Công Ty Sách YiYi Book. Website chỉ mang tính chất học tập. Designed by GRAPERU.</p>
           <div className="flex flex-col items-center md:items-end">
-            <p className="mb-1">Giấy chứng nhận ĐKKD số: 123456789 do Sở KH & ĐT TP.HCM cấp</p>
+            <p className="mb-1">Giấy chứng nhận ĐKKD số: 123456789 do Sở 123 TP.HCM cấp</p>
             {/* Fake Bo Cong Thuong logo */}
             <a 
               href="http://online.gov.vn/" 
