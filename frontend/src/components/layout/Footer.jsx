@@ -84,10 +84,10 @@ export default function Footer() {
             <Link to="/" className="flex items-center text-primary font-bold text-2xl gap-2 mb-4">
               <img src={logoImg} alt="YiYi Book" className="h-10 object-contain" />
             </Link>
-            <ul className="space-y-3 text-sm text-gray-600">
+            <ul className="space-y-3 text-sm text-gray-600 mb-6">
               <li className="flex items-start gap-3">
                 <FaMapMarkerAlt className="mt-1 text-gray-400 shrink-0" />
-                <span>123 Đường Sách, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh</span>
+                <span>Số 2 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh</span>
               </li>
               <li className="flex items-center gap-3">
                 <FaEnvelope className="text-gray-400 shrink-0" />
@@ -98,6 +98,19 @@ export default function Footer() {
                 <span>1900 1234</span>
               </li>
             </ul>
+            {/* Google Map Embed */}
+            <div className="w-full h-40 rounded-lg overflow-hidden shadow-sm border border-gray-200">
+              <iframe 
+                title="Google Map"
+                src="https://maps.google.com/maps?q=Đại học Giao thông Vận tải Thành phố Hồ Chí Minh, số 2 Võ Oanh&t=&z=15&ie=UTF8&iwloc=&output=embed" 
+                width="100%" 
+                height="100%" 
+                style={{ border: 0 }} 
+                allowFullScreen="" 
+                loading="lazy" 
+                referrerPolicy="no-referrer-when-downgrade"
+              ></iframe>
+            </div>
           </div>
 
           {/* Col 2: Customer Service */}

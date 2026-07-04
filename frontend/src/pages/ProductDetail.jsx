@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { FaStar, FaShoppingCart, FaMinus, FaPlus, FaChevronRight, FaRegThumbsUp, FaThumbsUp, FaExclamationCircle, FaHeart, FaRegHeart, FaComment, FaRegComment, FaImage, FaTimes } from 'react-icons/fa';
+import { Helmet } from 'react-helmet-async';
+import { FaStar, FaShoppingCart, FaMinus, FaPlus, FaChevronRight, FaRegThumbsUp, FaThumbsUp, FaExclamationCircle, FaHeart, FaRegHeart, FaComment, FaRegComment, FaImage, FaTimes, FaFacebook, FaTwitter, FaLink } from 'react-icons/fa';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { showNotification } from '../utils/alert';
@@ -452,6 +453,14 @@ export default function ProductDetail() {
 
   return (
     <div className="bg-[#f0f0f0] min-h-screen pb-10 font-sans">
+      <Helmet>
+        <title>{book.title} | YiYi Book</title>
+        <meta name="description" content={book.description?.substring(0, 160) || "Mua sách online tại YiYi Book"} />
+        <meta property="og:title" content={book.title} />
+        <meta property="og:description" content={book.description?.substring(0, 160) || "Mua sách online tại YiYi Book"} />
+        <meta property="og:image" content={allImages[0] || 'https://placehold.co/400'} />
+        <meta property="og:type" content="product" />
+      </Helmet>
       <div className="max-w-[1440px] mx-auto px-4 pt-4">
         
         {/* Breadcrumb */}
@@ -517,6 +526,22 @@ export default function ProductDetail() {
                 {isWishlisted ? <FaHeart className="text-red-500" /> : <FaRegHeart />}
                 {isWishlisted ? 'Đã thêm vào yêu thích' : 'Thêm vào yêu thích'}
               </button>
+            </div>
+            
+            {/* Social Share Buttons (Chương 8) */}
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <span className="text-sm text-gray-600 mb-2 block font-medium">Chia sẻ sản phẩm này:</span>
+              <div className="flex gap-2">
+                <button onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${window.location.href}`, '_blank')} className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition-colors">
+                  <FaFacebook size={18} />
+                </button>
+                <button onClick={() => window.open(`https://twitter.com/intent/tweet?url=${window.location.href}&text=${book.title}`, '_blank')} className="w-10 h-10 rounded-full bg-sky-500 text-white flex items-center justify-center hover:bg-sky-600 transition-colors">
+                  <FaTwitter size={18} />
+                </button>
+                <button onClick={() => { navigator.clipboard.writeText(window.location.href); alert('Đã copy link!'); }} className="w-10 h-10 rounded-full bg-gray-500 text-white flex items-center justify-center hover:bg-gray-600 transition-colors">
+                  <FaLink size={18} />
+                </button>
+              </div>
             </div>
           </div>
 
