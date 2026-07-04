@@ -39,6 +39,8 @@ const PaymentPrivacy = lazy(() => import('./pages/policies/PaymentPrivacy'));
 const Returns = lazy(() => import('./pages/policies/Returns'));
 const Warranty = lazy(() => import('./pages/policies/Warranty'));
 const Shipping = lazy(() => import('./pages/policies/Shipping'));
+const FAQ = lazy(() => import('./pages/policies/FAQ'));
+const Contact = lazy(() => import('./pages/policies/Contact'));
 
 // Admin pages - lazy load toàn bộ (chỉ admin mới vào)
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
@@ -139,6 +141,8 @@ function App() {
                 <Route path="returns" element={<Returns />} />
                 <Route path="warranty" element={<Warranty />} />
                 <Route path="shipping" element={<Shipping />} />
+                <Route path="faq" element={<FAQ />} />
+                <Route path="contact" element={<Contact />} />
               </Route>
 
               {/* Admin Routes */}

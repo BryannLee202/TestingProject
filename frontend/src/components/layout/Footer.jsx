@@ -141,8 +141,8 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li><Link to="/profile" className="text-gray-600 hover:text-primary transition-colors">Cập nhật tài khoản</Link></li>
               <li><Link to="/orders" className="text-gray-600 hover:text-primary transition-colors">Lịch sử mua hàng</Link></li>
-              <li><Link to="/wishlist" className="text-gray-600 hover:text-primary transition-colors">Danh sách yêu thích</Link></li>
-              <li><Link to="/points" className="text-gray-600 hover:text-primary transition-colors">Điểm thưởng YiYi Book</Link></li>
+              <li><Link to="/profile" state={{ tab: 'wishlist' }} className="text-gray-600 hover:text-primary transition-colors">Danh sách yêu thích</Link></li>
+              <li><Link to="/profile" state={{ tab: 'ypoint' }} className="text-gray-600 hover:text-primary transition-colors">Điểm thưởng YiYi Book</Link></li>
             </ul>
           </div>
 
