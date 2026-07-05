@@ -9,7 +9,7 @@ const mysqlConfig = {
   database: 'bjf8ihu44kqfbqwzs1iv'
 };
 
-const BASE_URL = 'https://yiyibook.store';
+const BASE_URL = 'https://www.yiyibook.store';
 const SITEMAP_PATH = path.join(__dirname, '..', 'public', 'sitemap.xml');
 
 function formatURL(loc, priority, changefreq, lastmod = new Date().toISOString().split('T')[0]) {
