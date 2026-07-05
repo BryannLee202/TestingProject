@@ -73,6 +73,11 @@ export default function ProductDetail() {
   };
 
   useEffect(() => {
+    if (id === '1') {
+      navigate('/book/5', { replace: true });
+      return;
+    }
+
     const fetchBookDetail = async () => {
       try {
         setLoading(true);
