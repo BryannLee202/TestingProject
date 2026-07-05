@@ -129,6 +129,7 @@ export default function Footer() {
           <div>
             <h3 className="font-bold text-gray-800 text-base uppercase mb-4">Chính sách & Quy định</h3>
             <ul className="space-y-2 text-sm">
+              <li><Link to="/about" className="text-gray-600 hover:text-primary transition-colors">Giới thiệu về YiYi Book</Link></li>
               <li><Link to="/terms" className="text-gray-600 hover:text-primary transition-colors">Điều khoản sử dụng</Link></li>
               <li><Link to="/privacy" className="text-gray-600 hover:text-primary transition-colors">Bảo mật dữ liệu cá nhân</Link></li>
               <li><Link to="/payment-privacy" className="text-gray-600 hover:text-primary transition-colors">Bảo mật thanh toán</Link></li>

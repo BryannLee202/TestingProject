@@ -11,7 +11,9 @@ import {
   FaBaby, 
   FaGlobeAmericas,
   FaGift,
-  FaShoppingBag
+  FaShoppingBag,
+  FaPlus,
+  FaRecycle
 } from 'react-icons/fa';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
@@ -39,19 +41,21 @@ export default function QuickLinks() {
   const links = [
     { icon: <FaBolt className="text-[#FBA617]" />, label: 'Flash Sale', path: '/flash-sale' },
     { icon: <FaTicketAlt className="text-[#F04438]" />, label: 'Mã Giảm Giá', path: '/coupons' },
+    { icon: <FaPlus className="text-[#10B981]" />, label: 'Sách Mới', path: '/new-books' },
+    { icon: <FaRecycle className="text-[#D97706]" />, label: 'Sách Cũ', path: '/used-books' },
+    { icon: <FaGift className="text-[#EF4444]" />, label: 'Khuyến Mãi', path: '/promotions' },
     { icon: <FaFire className="text-[#FF7020]" />, label: 'Sách Bán Chạy', path: '/search?tab=bestsellers' },
-    { icon: <FaPencilAlt className="text-[#1C64F2]" />, label: 'Văn Phòng Phẩm', path: getCategoryPath('văn phòng', 1) },
+    { icon: <FaPencilAlt className="text-[#1C64F2]" />, label: 'Văn Phòng Phầm', path: getCategoryPath('văn phòng', 1) },
     { icon: <FaGamepad className="text-[#16BD6D]" />, label: 'Đồ Chơi', path: getCategoryPath('đồ chơi', 2) },
     { icon: <FaBookOpen className="text-[#AC4BEE]" />, label: 'Manga - Comic', path: getCategoryPath('manga', 3) },
     { icon: <FaBaby className="text-[#F02F93]" />, label: 'Thiếu Nhi', path: getCategoryPath('thiếu nhi', 4) },
     { icon: <FaGlobeAmericas className="text-[#0E9F6E]" />, label: 'Sách Ngoại Văn', path: getCategoryPath('ngoại văn', 5) },
-    { icon: <FaGift className="text-[#F93A57]" />, label: 'Quà Lưu Niệm', path: getCategoryPath('lưu niệm', 6) },
     { icon: <FaShoppingBag className="text-[#5A63EC]" />, label: 'Bách Hóa', path: getCategoryPath('bách hóa', 7) },
   ];
 
   return (
     <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 overflow-hidden">
-      <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-2 md:gap-4 md:grid md:grid-cols-10 md:overflow-visible">
+      <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-2 md:gap-4 md:grid md:grid-cols-12 md:overflow-visible">
         {links.map((item, index) => (
           <Link 
             key={index} 

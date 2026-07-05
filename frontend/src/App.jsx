@@ -31,6 +31,10 @@ const Search = lazy(() => import('./pages/Search'));
 const Coupons = lazy(() => import('./pages/Coupons'));
 const FlashSale = lazy(() => import('./pages/FlashSale'));
 const MockPaymentGateway = lazy(() => import('./pages/MockPaymentGateway'));
+const About = lazy(() => import('./pages/About'));
+const NewBooks = lazy(() => import('./pages/NewBooks'));
+const UsedBooks = lazy(() => import('./pages/UsedBooks'));
+const Promotions = lazy(() => import('./pages/Promotions'));
 
 // Policy pages - lazy load
 const Terms = lazy(() => import('./pages/policies/Terms'));
@@ -56,6 +60,7 @@ const AdminCoupons = lazy(() => import('./pages/admin/AdminCoupons'));
 const AdminRewardVouchers = lazy(() => import('./pages/admin/AdminRewardVouchers'));
 const AdminNotifications = lazy(() => import('./pages/admin/AdminNotifications'));
 const AdminReviews = lazy(() => import('./pages/admin/AdminReviews'));
+const AdminContacts = lazy(() => import('./pages/admin/AdminContacts'));
 
 // Loading spinner hiển thị khi trang đang tải
 const PageLoader = () => (
@@ -135,6 +140,10 @@ function App() {
                 <Route path="search" element={<Search />} />
                 <Route path="coupons" element={<Coupons />} />
                 <Route path="flash-sale" element={<FlashSale />} />
+                <Route path="about" element={<About />} />
+                <Route path="new-books" element={<NewBooks />} />
+                <Route path="used-books" element={<UsedBooks />} />
+                <Route path="promotions" element={<Promotions />} />
                 <Route path="terms" element={<Terms />} />
                 <Route path="privacy" element={<Privacy />} />
                 <Route path="payment-privacy" element={<PaymentPrivacy />} />
@@ -161,6 +170,7 @@ function App() {
                 <Route path="rewards" element={<AdminRewardVouchers />} />
                 <Route path="notifications" element={<AdminNotifications />} />
                 <Route path="reviews" element={<AdminReviews />} />
+                <Route path="contacts" element={<AdminContacts />} />
               </Route>
 
               {/* Fallback */}

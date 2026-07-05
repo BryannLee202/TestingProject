@@ -28,6 +28,7 @@ public class SecurityConfig {
                 .requestMatchers("/ws/**").permitAll() // Cho phép WebSocket
                 .requestMatchers("/api/auth/**").permitAll() // Cho phép truy cập không cần login
                 .requestMatchers("/api/ping").permitAll() // Ping endpoint để chống ngủ đông
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/contacts").permitAll() // Cho phép gửi liên hệ không cần login
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/books/**").permitAll() // Xem sách thoải mái
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/categories/**").permitAll() // Xem danh mục thoải mái
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/banners/**").permitAll() // Xem banner thoải mái
@@ -51,6 +52,7 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/banners/**").hasRole("ADMIN")
                 .requestMatchers("/api/settings/**").hasRole("ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/contacts/**").hasRole("ADMIN") // Chỉ admin mới quản lý liên hệ
                 
                 .anyRequest().authenticated() // Bắt buộc đăng nhập với các API còn lại (giỏ hàng, đơn hàng)
             )

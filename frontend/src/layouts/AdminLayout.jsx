@@ -61,7 +61,8 @@ export default function AdminLayout() {
     { to: '/admin/coupons', icon: <FaTicketAlt />, label: 'Quản lý Voucher' },
     { to: '/admin/rewards', icon: <FaGift />, label: 'Quản lý Mã Sự Kiện' },
     { to: '/admin/notifications', icon: <FaBell />, label: 'Quản lý Thông Báo' },
-    { to: '/admin/reviews', icon: <FaCommentDots />, label: 'Quản lý Đánh Giá' }
+    { to: '/admin/reviews', icon: <FaCommentDots />, label: 'Quản lý Đánh Giá' },
+    { to: '/admin/contacts', icon: <FaCommentDots />, label: 'Quản lý Góp Ý/Liên Hệ' }
   ];
 
   return (

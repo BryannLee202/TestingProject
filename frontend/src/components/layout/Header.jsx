@@ -256,6 +256,30 @@ export default function Header() {
                             <FaChevronRight className="text-gray-300 group-hover:text-white text-[10px] shrink-0 ml-2" />
                          </Link>
                       ))}
+                      <Link 
+                         to="/new-books" 
+                         onClick={() => setIsDesktopCategoryOpen(false)} 
+                         className="px-4 py-3 bg-emerald-50/50 rounded-lg text-[13px] font-bold text-emerald-700 hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-between group shadow-sm hover:shadow border border-emerald-100"
+                       >
+                          <span className="line-clamp-2 leading-tight">🆕 Sách Mới Phát Hành</span>
+                          <FaChevronRight className="text-emerald-300 group-hover:text-white text-[10px] shrink-0 ml-2" />
+                       </Link>
+                       <Link 
+                         to="/used-books" 
+                         onClick={() => setIsDesktopCategoryOpen(false)} 
+                         className="px-4 py-3 bg-amber-50/50 rounded-lg text-[13px] font-bold text-amber-800 hover:bg-amber-700 hover:text-white transition-all flex items-center justify-between group shadow-sm hover:shadow border border-amber-100"
+                       >
+                          <span className="line-clamp-2 leading-tight">📚 Sách Cũ Ký Gửi</span>
+                          <FaChevronRight className="text-amber-300 group-hover:text-white text-[10px] shrink-0 ml-2" />
+                       </Link>
+                       <Link 
+                         to="/promotions" 
+                         onClick={() => setIsDesktopCategoryOpen(false)} 
+                         className="px-4 py-3 bg-rose-50/50 rounded-lg text-[13px] font-bold text-rose-700 hover:bg-rose-600 hover:text-white transition-all flex items-center justify-between group shadow-sm hover:shadow border border-rose-100"
+                       >
+                          <span className="line-clamp-2 leading-tight">🎁 Combo & Khuyến Mãi</span>
+                          <FaChevronRight className="text-rose-300 group-hover:text-white text-[10px] shrink-0 ml-2" />
+                       </Link>
                       {allCategories.length === 0 && (
                          <div className="col-span-full text-center text-gray-500 py-10">Đang tải danh mục...</div>
                       )}
@@ -961,6 +985,22 @@ export default function Header() {
                   </Link>
                   <Link to="/search?q=sale" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 border-b border-gray-50 ml-4">
                     <div className="flex items-center gap-3 uppercase text-red-500">Flash Sale</div>
+                    <FaChevronRight className="text-gray-300 text-xs" />
+                  </Link>
+                  <Link to="/new-books" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-between px-4 py-3 text-sm font-bold text-emerald-600 hover:bg-gray-50 border-b border-gray-50 ml-4">
+                    <div className="flex items-center gap-3 uppercase">🆕 Sách Mới</div>
+                    <FaChevronRight className="text-gray-300 text-xs" />
+                  </Link>
+                  <Link to="/used-books" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-between px-4 py-3 text-sm font-bold text-amber-700 hover:bg-gray-50 border-b border-gray-50 ml-4">
+                    <div className="flex items-center gap-3 uppercase">📚 Sách Cũ</div>
+                    <FaChevronRight className="text-gray-300 text-xs" />
+                  </Link>
+                  <Link to="/promotions" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-between px-4 py-3 text-sm font-bold text-rose-600 hover:bg-gray-50 border-b border-gray-50 ml-4">
+                    <div className="flex items-center gap-3 uppercase">🎁 Khuyến Mãi</div>
+                    <FaChevronRight className="text-gray-300 text-xs" />
+                  </Link>
+                  <Link to="/about" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 border-b border-gray-50 ml-4">
+                    <div className="flex items-center gap-3 uppercase">ℹ️ Giới thiệu</div>
                     <FaChevronRight className="text-gray-300 text-xs" />
                   </Link>
                 </div>
