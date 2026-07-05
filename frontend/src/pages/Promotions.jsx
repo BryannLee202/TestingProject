@@ -141,10 +141,10 @@ export default function Promotions() {
                       <div className="flex-1 p-5 flex flex-col justify-between">
                         <div>
                           <span className="bg-red-50 text-primary text-[10px] font-black px-2 py-0.5 rounded">
-                            {coupon.discountType === 'PERCENT' ? `Giảm ${coupon.discountValue}%` : `Giảm ${coupon.discountValue.toLocaleString('vi-VN')} đ`}
+                            {coupon.discountType === 'PERCENT' ? `Giảm ${coupon.discountValue}%` : `Giảm ${(coupon.discountValue || 0).toLocaleString('vi-VN')} đ`}
                           </span>
                           <h3 className="font-bold text-gray-800 text-base mt-2">{coupon.name || coupon.code}</h3>
-                          <p className="text-gray-400 text-xs mt-1">Đơn tối thiểu: {coupon.minOrderValue.toLocaleString('vi-VN')} đ</p>
+                          <p className="text-gray-400 text-xs mt-1">Đơn tối thiểu: {(coupon.minOrderAmount || 0).toLocaleString('vi-VN')} đ</p>
                         </div>
                         
                         <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-50">
