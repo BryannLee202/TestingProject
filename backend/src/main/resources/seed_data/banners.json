@@ -1,0 +1,44 @@
+[
+  {
+    "id": "117",
+    "position": "MAIN",
+    "image_url": "https://thietkelogo.edu.vn/uploads/images/thiet-ke-do-hoa-khac/banner-sach/1.png",
+    "link_url": "/book/178",
+    "title": "Giấc Mơ Mỹ - Đường Đến Stanford"
+  },
+  {
+    "id": "118",
+    "position": "MAIN",
+    "image_url": "https://thietkelogo.edu.vn/uploads/images/thiet-ke-do-hoa-khac/banner-sach/7.png",
+    "link_url": "/category/2",
+    "title": "Sách Ngoại Văn Ưu Đãi"
+  },
+  {
+    "id": "119",
+    "position": "MAIN",
+    "image_url": "https://thietkelogo.edu.vn/uploads/images/thiet-ke-do-hoa-khac/banner-sach/8.png",
+    "link_url": "/category/3",
+    "title": "Đồ Chơi Trẻ Em"
+  },
+  {
+    "id": "120",
+    "position": "SIDE",
+    "image_url": "https://thietkelogo.edu.vn/uploads/images/thiet-ke-do-hoa-khac/banner-sach/1.png",
+    "link_url": "http://localhost:5173/book/178",
+    "title": "Deal Hời Mỗi Ngày"
+  },
+  {
+    "id": "121",
+    "position": "SIDE",
+    "image_url": "https://thietkelogo.edu.vn/uploads/images/thiet-ke-do-hoa-khac/banner-sach/11.png",
+    "link_url": "/",
+    "title": "Thanh Toán VNPAY"
+  },
+  {
+    "id": "122",
+    "position": "MAIN",
+    "image_url": "https://thietkelogo.edu.vn/uploads/images/thiet-ke-do-hoa-khac/banner-sach/12.png",
+    "link_url": "",
+    "title": "banner 4"
+  }
+]

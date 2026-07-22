@@ -1,0 +1,8 @@
+target/
+serviceAccountKey.json
+.classpath
+.project
+.settings/
+*.log
+.env
+src/main/resources/application-local.properties

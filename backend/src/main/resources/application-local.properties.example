@@ -1,0 +1,46 @@
+# Copy this file to "application-local.properties" (same folder), fill in real
+# values, then run the app with the "local" profile active:
+#
+#   ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+#
+# Spring merges this on top of application.properties, so anything you don't
+# override here (mail, VNPay, etc.) still comes from application.properties.
+# application-local.properties is already git-ignored — never commit it.
+
+# --- MySQL running locally via your existing MySQL80 service / Workbench ---
+# Run backend/local-db-setup.sql once in Workbench first — it creates the
+# "bookstore" database and this "bookstore_user" account for you.
+spring.datasource.url=jdbc:mysql://localhost:3306/bookstore?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+spring.datasource.username=bookstore_user
+spring.datasource.password=bookstore_pass
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
+spring.jpa.hibernate.ddl-auto=update
+
+# Undo the tiny HikariCP pool size that application.properties sets for the
+# free-tier cloud DB — a local MySQL can handle a normal pool.
+spring.datasource.hikari.maximum-pool-size=10
+spring.datasource.hikari.minimum-idle=2
+
+# --- JWT ---
+# IMPORTANT: JwtService.java Base64-decodes this value (Decoders.BASE64.decode),
+# so it MUST be valid Base64 — NOT a hex string, NOT arbitrary text (e.g. any
+# "-" character breaks it with "Illegal base64 character"). Generate your own
+# with: openssl rand -base64 32   (the value below is a ready-to-use example,
+# fine for local dev, but generate your own for anything shared/deployed)
+application.security.jwt.secret-key=RuggnlTq6FX/AsZH00G51T/8FVRpk6JpXB2Sj0YG94M=
+application.security.jwt.expiration=86400000
+
+# --- Frontend URL used to build payment return links ---
+FRONTEND_URL=http://localhost:5173
+
+# --- Email OTP (optional — leave blank to skip; OTP emails just won't send) ---
+BREVO_API_KEY=
+spring.mail.username=noreply@yiyibook.vn
+
+# --- Firebase (optional — only needed for Google/Apple social login) ---
+# Either paste the full service-account JSON as one line here:
+FIREBASE_SERVICE_ACCOUNT_JSON=
+# ...or simply drop the downloaded file at:
+#   backend/src/main/resources/serviceAccountKey.json
+# (already .gitignore'd) and leave the line above blank.

@@ -1,0 +1,117 @@
+name: Backend API tests (Postman/Newman)
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "backend/**"
+  push:
+    branches: ["main"]
+    paths:
+      - "backend/**"
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: bookstore
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      SPRING_PROFILES_ACTIVE: prod
+      MYSQLHOST: 127.0.0.1
+      MYSQLPORT: 3306
+      MYSQLDATABASE: bookstore
+      MYSQLUSER: root
+      MYSQLPASSWORD: root
+      PORT: 8081
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('backend/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2-
+
+      - name: Build backend (skip tests)
+        working-directory: backend
+        run: ./mvnw -B package -DskipTests
+
+      - name: Start backend in background
+        working-directory: backend
+        run: |
+          nohup ./mvnw spring-boot:run > backend.log 2>&1 &
+          echo $! > backend.pid
+
+      - name: Wait for backend to become ready
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:8081/api/ping > /dev/null; then
+              echo "Backend is up."
+              exit 0
+            fi
+            echo "Waiting for backend... ($i/60)"
+            sleep 5
+          done
+          echo "Backend did not become ready in time."
+          cat backend/backend.log
+          exit 1
+
+      - name: Install Newman
+        run: npm install -g newman newman-reporter-htmlextra
+
+      - name: Run Postman collection with Newman
+        working-directory: backend/postman
+        run: |
+          newman run YiYi-Book-API.postman_collection.json \
+            --environment YiYi-Book-Local-Dev.postman_environment.json \
+            --insecure-file-read \
+            --reporters cli,htmlextra,junit \
+            --reporter-htmlextra-export report.html \
+            --reporter-junit-export report-junit.xml
+
+      - name: Upload Newman report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: newman-report
+          path: |
+            backend/postman/report.html
+            backend/postman/report-junit.xml
+
+      - name: Upload backend log (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-log
+          path: backend/backend.log
+
+      - name: Stop backend
+        if: always()
+        run: kill $(cat backend/backend.pid) || true
