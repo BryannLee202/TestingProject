@@ -4,7 +4,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import { FaChevronLeft, FaReceipt, FaMoneyBillWave, FaTruck, FaBoxOpen, FaStar, FaStore, FaCommentDots } from 'react-icons/fa';
+import { FaChevronLeft, FaReceipt, FaMoneyBillWave, FaTruck, FaBoxOpen, FaStar } from 'react-icons/fa';
 
 export default function OrderDetail() {
   const { id } = useParams();
@@ -42,9 +42,11 @@ export default function OrderDetail() {
       return;
     }
     fetchOrderDetail();
+    // fetchOrderDetail is stable for this component's lifetime; only re-run when id/user changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, user, navigate]);
 
-  const getStatusText = (status, shippingStatus, paymentMethod) => {
+  const getStatusText = (status, shippingStatus, _) => {
     if (status === 'RETURNED') return 'YÊU CẦU TRẢ HÀNG/HOÀN TIỀN';
     if (status === 'REFUNDED') return 'ĐÃ HOÀN TIỀN';
     if (status === 'COMPLETED') return 'ĐƠN HÀNG ĐÃ HOÀN THÀNH';
@@ -110,7 +112,7 @@ export default function OrderDetail() {
         const res = await axios.get(`${API_BASE_URL}/orders/${id}`);
         setOrder(res.data);
       }
-    } catch (error) {
+    } catch {
       Swal.fire('Lỗi', 'Không thể cập nhật trạng thái đơn hàng', 'error');
     } finally {
       setLoading(false);

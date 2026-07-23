@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaStar, FaLayerGroup } from 'react-icons/fa';
+import { FaStar } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { FaBolt, FaChevronRight, FaStar } from 'react-icons/fa';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 

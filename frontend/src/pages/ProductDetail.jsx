@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { Helmet } from 'react-helmet-async';
-import { FaStar, FaShoppingCart, FaMinus, FaPlus, FaChevronRight, FaRegThumbsUp, FaThumbsUp, FaExclamationCircle, FaHeart, FaRegHeart, FaComment, FaRegComment, FaImage, FaTimes, FaFacebook, FaTwitter, FaLink } from 'react-icons/fa';
+import { FaStar, FaShoppingCart, FaMinus, FaPlus, FaChevronRight, FaRegThumbsUp, FaHeart, FaRegHeart, FaRegComment, FaImage, FaTimes, FaFacebook, FaTwitter, FaLink } from 'react-icons/fa';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { showNotification } from '../utils/alert';
@@ -151,6 +151,8 @@ export default function ProductDetail() {
         window.scrollTo(0, 0);
       }
     }, 100);
+    // navigate is stable (react-router) and user is read fresh inside fetchRecommendations each run
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, location.hash]);
 
   useEffect(() => {
@@ -197,6 +199,8 @@ export default function ProductDetail() {
       setAddresses([]);
       setDeliveryAddress('Hà Nội');
     }
+    // fetchAddresses is stable for this component's lifetime; only re-run when user changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const getExpectedDeliveryDate = () => {
@@ -991,7 +995,7 @@ export default function ProductDetail() {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
               });
               setAddresses(addresses.filter(a => a.id !== id));
-            } catch (e) {
+            } catch {
               showNotification('Lỗi', 'Không thể xóa địa chỉ', 'error');
             }
           }}
@@ -1001,7 +1005,7 @@ export default function ProductDetail() {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
               });
               fetchAddresses();
-            } catch (e) {
+            } catch {
               showNotification('Lỗi', 'Không thể đặt mặc định', 'error');
             }
           }}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaStar, FaShoppingCart } from 'react-icons/fa';
+import { FaStar } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 

@@ -48,6 +48,8 @@ export default function HeroBanner() {
   useEffect(() => {
     // Initial fetch
     fetchBanners();
+    // Run once on mount only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // WebSocket Listener
@@ -55,6 +57,8 @@ export default function HeroBanner() {
     if (lastUpdate && lastUpdate.entity === 'BANNER') {
       fetchBanners();
     }
+    // fetchBanners is stable for this component's lifetime; only re-run on lastUpdate
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastUpdate]);
 
   const renderBannerImage = (banner, className) => {

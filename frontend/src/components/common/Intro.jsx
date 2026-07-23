@@ -49,6 +49,8 @@ export default function Intro({ onComplete }) {
       clearInterval(progressInterval);
       document.body.style.overflow = 'auto';
     };
+    // Intentionally run once on mount only (the auto-advance timer shouldn't restart if onComplete changes)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!isVisible) return null;

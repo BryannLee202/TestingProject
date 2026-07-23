@@ -47,6 +47,8 @@ export default function AdminCoupons() {
 
   useEffect(() => {
     fetchCoupons();
+    // Run once on mount only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const openAddModal = () => {

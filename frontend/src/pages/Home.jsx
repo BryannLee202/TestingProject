@@ -16,7 +16,7 @@ import { useWebSocket } from '../context/WebSocketContext';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
 export default function Home() {
-  const [bestSellers, setBestSellers] = useState([]);
+  const [, setBestSellers] = useState([]);
   const [combos, setCombos] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -110,6 +110,8 @@ export default function Home() {
     };
 
     fetchBookProducts();
+    // nonBookCategories is a stable constant and t's identity churn shouldn't retrigger the fetch
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeBookTab]);
 
   useEffect(() => {
@@ -137,6 +139,8 @@ export default function Home() {
     };
 
     fetchOtherProducts();
+    // nonBookCategories is a stable constant and t's identity churn shouldn't retrigger the fetch
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeOtherTab]);
 
   return (

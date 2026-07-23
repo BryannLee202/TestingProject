@@ -27,6 +27,8 @@ export default function FeaturedBooksSection() {
       }
     };
     fetchBooks();
+    // Run once on mount only; API_BASE_URL is a module-level constant, not reactive
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (loading || featuredBooks.length === 0) return null;

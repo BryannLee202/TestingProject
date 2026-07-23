@@ -6,8 +6,7 @@ import Swal from 'sweetalert2';
 import { 
   FaMapMarkerAlt, 
   FaEnvelope, 
-  FaPhone, 
-  FaBookOpen,
+  FaPhone,
   FaCcVisa,
   FaCcMastercard,
   FaApple,

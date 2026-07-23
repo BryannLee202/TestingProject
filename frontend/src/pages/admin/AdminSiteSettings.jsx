@@ -2,12 +2,10 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FaSave, FaClock, FaLink, FaImage } from 'react-icons/fa';
 import { showNotification } from '../../utils/alert';
-import { useAuth } from '../../context/AuthContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
 export default function AdminSiteSettings() {
-  const { user } = useAuth();
   const [settings, setSettings] = useState({
     flashSaleEndTime: '2', // default hours
     flashSaleTitle: 'Flash Sale',

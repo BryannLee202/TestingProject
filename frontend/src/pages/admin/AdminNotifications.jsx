@@ -59,6 +59,8 @@ export default function AdminNotifications() {
   useEffect(() => {
     fetchNotifications();
     fetchUsers();
+    // Run once on mount only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSend = async (e) => {
@@ -83,7 +85,7 @@ export default function AdminNotifications() {
       setForm({ title: '', content: '', type: 'SYSTEM', userId: null });
       setUserSearch('');
       fetchNotifications();
-    } catch (e) {
+    } catch {
       Swal.fire('Lỗi', 'Không thể gửi thông báo. Vui lòng thử lại.', 'error');
     } finally {
       setSending(false);
@@ -106,7 +108,7 @@ export default function AdminNotifications() {
         headers: { Authorization: `Bearer ${getToken()}` }
       });
       setNotifications(prev => prev.filter(n => n.id !== id));
-    } catch (e) {
+    } catch {
       Swal.fire('Lỗi', 'Không thể xóa thông báo.', 'error');
     }
   };

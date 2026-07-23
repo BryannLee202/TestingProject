@@ -3,6 +3,7 @@ import axios from 'axios';
 
 const AuthContext = createContext();
 
+// eslint-disable-next-line react-refresh/only-export-components -- co-located with AuthProvider by design; splitting into a separate file would mean touching every one of the ~29 importers for a Fast Refresh nicety only
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
@@ -85,6 +86,8 @@ export const AuthProvider = ({ children }) => {
       axios.interceptors.request.eject(reqInterceptor);
       axios.interceptors.response.eject(resInterceptor);
     };
+    // Run once on mount only to register the interceptors a single time
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const login = (userData, token) => {

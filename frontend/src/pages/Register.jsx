@@ -6,7 +6,6 @@ import { useAuth } from '../context/AuthContext';
 import { FaGoogle } from 'react-icons/fa';
 import { auth } from '../config/firebase';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import Swal from 'sweetalert2';
 
 export default function Register() {
   const [name, setName] = useState('');

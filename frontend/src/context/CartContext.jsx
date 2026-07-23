@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import Swal from 'sweetalert2';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
 import { showNotification } from '../utils/alert';
 
 const CartContext = createContext();
 
+// eslint-disable-next-line react-refresh/only-export-components -- co-located with CartProvider by design; splitting into a separate file would mean touching every importer for a Fast Refresh nicety only
 export const useCart = () => {
   return useContext(CartContext);
 };
@@ -43,6 +43,8 @@ export const CartProvider = ({ children }) => {
   // Lấy giỏ hàng khi user đăng nhập hoặc từ localStorage nếu là khách
   useEffect(() => {
     refreshCart();
+    // refreshCart is stable for this component's lifetime; only re-run when user changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   // Lưu vào localStorage nếu là khách

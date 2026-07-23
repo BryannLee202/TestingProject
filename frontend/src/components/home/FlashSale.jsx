@@ -38,6 +38,8 @@ export default function FlashSale() {
       }
     };
     fetchSettings();
+    // Run once on mount only; API_BASE_URL is a module-level constant, not reactive
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -81,6 +83,8 @@ export default function FlashSale() {
       }
     };
     fetchFlashSales();
+    // Run once on mount only; API_BASE_URL is a module-level constant, not reactive
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const formatTime = (time) => time.toString().padStart(2, '0');

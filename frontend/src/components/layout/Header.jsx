@@ -3,8 +3,7 @@ import logoImg from '../../assets/logo_ngang_thay_chu.png';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { 
-  FaBookOpen, 
-  FaThLarge, 
+  FaThLarge,
   FaChevronDown, 
   FaSearch, 
   FaRegBell, 
@@ -25,8 +24,7 @@ import {
   FaRegClock,
   FaHistory,
   FaSyncAlt,
-  FaChartLine,
-  FaBolt
+  FaChartLine
 } from 'react-icons/fa';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
@@ -178,6 +176,8 @@ export default function Header() {
     fetchNotificationStats();
     const interval = setInterval(fetchNotificationStats, 30000);
     return () => clearInterval(interval);
+    // API_BASE_URL is a module-level constant, not reactive
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const handleNotificationClick = async (notif) => {

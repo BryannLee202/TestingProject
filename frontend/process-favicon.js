@@ -1,5 +1,4 @@
 import sharp from 'sharp';
-import fs from 'fs';
 
 async function processImage() {
   const input = 'public/logoYiYi.png';

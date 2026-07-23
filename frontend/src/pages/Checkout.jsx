@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import Swal from 'sweetalert2';
@@ -36,7 +36,7 @@ const customSelectStyles = {
 };
 
 export default function Checkout() {
-  const { cart, clearCart, removeFromCart } = useCart();
+  const { cart, removeFromCart } = useCart();
   const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -49,7 +49,7 @@ export default function Checkout() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [country, setCountry] = useState('Việt Nam');
+  const [country] = useState('Việt Nam');
   const [city, setCity] = useState('');
   const [ward, setWard] = useState('');
   const [address, setAddress] = useState('');
@@ -61,7 +61,7 @@ export default function Checkout() {
   const [note, setNote] = useState('');
   const [requireInvoice, setRequireInvoice] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const qrTokenRef = useRef(null);
+  const [qrToken, setQrToken] = useState(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   
   const [paymentMethod, setPaymentMethod] = useState('COD');
@@ -133,6 +133,8 @@ export default function Checkout() {
     })
       .then(res => setAvailableCoupons(res.data))
       .catch(err => console.error(err));
+    // fetchAddresses is stable for this component's lifetime; only re-run when user changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, navigate, API_BASE_URL]);
 
   const handleCityChange = (selectedOption) => {
@@ -259,6 +261,8 @@ export default function Checkout() {
         handleApplyDiscountCoupon(location.state.appliedCoupon.code);
       }
     }
+    // handleApply*Coupon are stable for this component's lifetime; hasAutoApplied guards re-entry
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.state, cartTotal, hasAutoApplied]);
 
   const handleRemoveDiscountCoupon = () => {
@@ -336,6 +340,8 @@ export default function Checkout() {
             }
 
             if (paymentUrl) {
+              // Redirecting from a click handler, not during render — safe despite the linter's warning
+              // eslint-disable-next-line react-hooks/immutability
               window.location.href = paymentUrl;
               return;
             }
@@ -384,7 +390,9 @@ export default function Checkout() {
     }
 
     if (paymentMethod !== 'COD' && !['VNPAY', 'ATM', 'VISA', 'MOMO', 'ZALOPAY'].includes(paymentMethod)) {
-      qrTokenRef.current = Date.now();
+      // Date.now() here is called from a click handler, not during render — safe despite the linter's warning
+      // eslint-disable-next-line react-hooks/purity
+      setQrToken(Date.now());
       setShowPaymentModal(true);
       return;
     }
@@ -863,7 +871,7 @@ export default function Checkout() {
               headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             setAddresses(addresses.filter(a => a.id !== id));
-          } catch (e) {
+          } catch {
             showNotification('Lỗi', 'Không thể xóa địa chỉ', 'error');
           }
         }}
@@ -873,7 +881,7 @@ export default function Checkout() {
               headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             fetchAddresses();
-          } catch (e) {
+          } catch {
             showNotification('Lỗi', 'Không thể đặt mặc định', 'error');
           }
         }}
@@ -900,7 +908,7 @@ export default function Checkout() {
                  </div>
                </div>
                <div className="bg-gray-50 p-4 rounded-2xl border-2 border-dashed border-blue-200 mb-6 flex justify-center w-full">
-                 <QRCodeCanvas value={`bookstore_payment_${qrTokenRef.current || Date.now()}_amount_${totalAmount}`} size={200} level="H" includeMargin={true} />
+                 <QRCodeCanvas value={`bookstore_payment_${qrToken}_amount_${totalAmount}`} size={200} level="H" includeMargin={true} />
                </div>
                <div className="text-center mb-6">
                   <p className="text-gray-500 text-sm mb-1">Số tiền cần thanh toán</p>

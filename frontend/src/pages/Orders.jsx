@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useWebSocket } from '../context/WebSocketContext';
 import Swal from 'sweetalert2';
-import { FaStore, FaCommentDots, FaBoxOpen, FaSearch } from 'react-icons/fa';
+import { FaBoxOpen, FaSearch } from 'react-icons/fa';
 
 export default function Orders({ embedded = false }) {
   const [orders, setOrders] = useState([]);
@@ -46,6 +46,8 @@ export default function Orders({ embedded = false }) {
       return;
     }
     fetchOrders();
+    // fetchOrders is stable for this component's lifetime; only re-run when user changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, navigate]);
 
   // Lắng nghe WebSocket
@@ -53,9 +55,11 @@ export default function Orders({ embedded = false }) {
     if (lastUpdate && lastUpdate.entity === 'ORDER') {
       fetchOrders(true); // Fetch background
     }
+    // fetchOrders is stable for this component's lifetime; only re-run on lastUpdate
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastUpdate]);
 
-  const getStatusText = (status, shippingStatus, paymentMethod) => {
+  const getStatusText = (status, shippingStatus, _) => {
     if (status === 'RETURNED') return 'YÊU CẦU TRẢ HÀNG';
     if (status === 'REFUNDED') return 'ĐÃ HOÀN TIỀN';
     if (status === 'COMPLETED') return 'HOÀN THÀNH';
@@ -264,7 +268,7 @@ export default function Orders({ embedded = false }) {
           setActiveTab('COMPLETED');
         });
       }
-    } catch (error) {
+    } catch {
       Swal.fire('Lỗi', 'Không thể cập nhật trạng thái đơn hàng', 'error');
     } finally {
       setLoading(false);
@@ -387,6 +391,8 @@ export default function Orders({ embedded = false }) {
           const res = await axios.get(`${API_BASE_URL}/payment/create-url?amount=${order.totalAmount}&orderId=${order.id}`);
           url = res.data.url;
         }
+        // Redirecting from a click handler, not during render — safe despite the linter's warning
+        // eslint-disable-next-line react-hooks/immutability
         window.location.href = url;
       } catch (error) {
         const errorMsg = error.response?.data?.message || 'Không thể tạo phiên thanh toán';

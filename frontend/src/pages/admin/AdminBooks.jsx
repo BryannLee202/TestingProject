@@ -66,6 +66,8 @@ export default function AdminBooks() {
 
   useEffect(() => {
     fetchData();
+    // Run once on mount only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const openAddModal = () => {

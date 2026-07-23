@@ -28,7 +28,7 @@ export default function AdminNewsletter() {
     } finally {
       setLoading(false);
     }
-  }, [API_BASE_URL]);
+  }, []);
 
   React.useEffect(() => {
     if (activeTab === 'manage') {
@@ -45,7 +45,7 @@ export default function AdminNewsletter() {
       });
       showNotification('Thành công', 'Đã xóa email đăng ký', 'success');
       fetchSubscribers();
-    } catch (error) {
+    } catch {
       showNotification('Lỗi', 'Lỗi khi xóa email đăng ký', 'error');
     }
   };

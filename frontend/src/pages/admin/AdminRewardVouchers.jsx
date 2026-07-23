@@ -106,7 +106,7 @@ export default function AdminRewardVouchers() {
         });
         showNotification('Thành công', 'Xóa mã sự kiện thành công.', 'success');
         fetchVouchers();
-      } catch (error) {
+      } catch {
         showNotification('Lỗi', 'Không thể xóa mã sự kiện. Có thể mã đã được sử dụng.', 'error');
       }
     }

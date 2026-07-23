@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { FaCommentDots, FaTimes, FaPaperPlane, FaRobot, FaUser, FaKey, FaExpand, FaCompress, FaTrash } from 'react-icons/fa';
+import { FaTimes, FaPaperPlane, FaRobot, FaUser, FaKey, FaExpand, FaCompress, FaTrash } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 
 export default function AIChatWidget() {

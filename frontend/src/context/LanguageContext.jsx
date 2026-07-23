@@ -31,6 +31,8 @@ export const LanguageProvider = ({ children }) => {
     if (language === 'en') {
       setTimeout(syncGoogleTranslate, 500);
     }
+    // Run once on mount only, to sync with whatever language was already persisted
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const translations = language === 'vi' ? vi : en;
@@ -79,6 +81,7 @@ export const LanguageProvider = ({ children }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components -- co-located with LanguageProvider by design; splitting into a separate file would mean touching every importer for a Fast Refresh nicety only
 export const useLanguage = () => {
   return useContext(LanguageContext);
 };

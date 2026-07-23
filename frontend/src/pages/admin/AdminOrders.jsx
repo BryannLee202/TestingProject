@@ -10,9 +10,7 @@ import {
   FaUser, 
   FaMapMarkerAlt, 
   FaTimes,
-  FaCheck,
   FaPrint,
-  FaEdit,
   FaTrash
 } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
@@ -60,6 +58,8 @@ export default function AdminOrders() {
 
   useEffect(() => {
     fetchOrders();
+    // Run once on mount only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Lắng nghe WebSocket
@@ -67,6 +67,8 @@ export default function AdminOrders() {
     if (lastUpdate && lastUpdate.entity === 'ORDER') {
       fetchOrders(true); // Fetch background
     }
+    // fetchOrders is stable for this component's lifetime; only re-run on lastUpdate
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastUpdate]);
 
   const openDetailModal = (order) => {
@@ -408,7 +410,7 @@ export default function AdminOrders() {
                                   try {
                                     const p = JSON.parse(b.images);
                                     if (Array.isArray(p) && p.length > 0) targetUrl = p[0];
-                                  } catch (e) {
+                                  } catch {
                                     if (b.images.startsWith('http') || b.images.startsWith('/')) targetUrl = b.images;
                                   }
                                 }

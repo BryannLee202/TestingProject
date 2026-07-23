@@ -3,11 +3,10 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { showNotification } from '../utils/alert';
-import { 
-  FaRegUserCircle, FaMapMarkerAlt, FaLock, FaFileInvoice, FaGift, 
-  FaClipboardList, FaTicketAlt, FaCoins, FaRegBell, FaHeart, 
-  FaBookOpen, FaStar, FaCrown, FaTimes, FaBoxOpen, FaEye, 
-  FaCalendarAlt, FaCreditCard, FaTruck, FaMoneyBillWave, FaCopy, FaCheck, FaChevronDown, FaRobot
+import {
+  FaRegUserCircle,
+  FaClipboardList, FaTicketAlt, FaRegBell, FaHeart,
+  FaBookOpen, FaStar, FaCrown, FaTimes, FaCopy, FaCheck, FaChevronDown, FaRobot
 } from 'react-icons/fa';
 import Select from 'react-select';
 import treeData from '../data/provinces.json';
@@ -188,10 +187,10 @@ export default function Profile() {
   const fetchWishlist = async () => {
     try {
       const token = localStorage.getItem('token');
-        const res = await axios.get(`${API_BASE_URL}/wishlists`, {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { t: new Date().getTime() }
-        });
+      const res = await axios.get(`${API_BASE_URL}/wishlists`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { t: new Date().getTime() }
+      });
       setWishlist(res.data);
     } catch (error) { console.error(error); }
   };
@@ -212,22 +211,6 @@ export default function Profile() {
       setNotifications(res.data || []);
     } catch (error) { console.error(error); }
     finally { setNotifLoading(false); }
-  };
-
-  const markNotifRead = async (notifId) => {
-    try {
-      const token = localStorage.getItem('token');
-      await axios.put(`${API_BASE_URL}/notifications/${notifId}/read`, {}, { headers: { Authorization: `Bearer ${token}` }});
-      setNotifications(prev => prev.map(n => n.id === notifId ? { ...n, isRead: true } : n));
-    } catch (error) { console.error(error); }
-  };
-
-  const markAllRead = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      await axios.put(`${API_BASE_URL}/notifications/read-all`, {}, { headers: { Authorization: `Bearer ${token}` }});
-      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-    } catch (error) { console.error(error); }
   };
 
   const fetchSeriesBooks = async () => {
@@ -255,6 +238,32 @@ export default function Profile() {
   };
 
   useEffect(() => {
+    if (user && activeTab === 'address') fetchAddresses();
+    if (user && activeTab === 'vat') fetchVat();
+    if (user && activeTab === 'wishlist') fetchWishlist();
+    if (user && activeTab === 'reviews') fetchReviews();
+    if (user && activeTab === 'member') fetchMyOrders();
+    if (user && activeTab === 'notifications') fetchNotifications();
+    if (activeTab === 'series') fetchSeriesBooks();
+  }, [user, activeTab]);
+
+  const markNotifRead = async (notifId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${API_BASE_URL}/notifications/${notifId}/read`, {}, { headers: { Authorization: `Bearer ${token}` }});
+      setNotifications(prev => prev.map(n => n.id === notifId ? { ...n, isRead: true } : n));
+    } catch (error) { console.error(error); }
+  };
+
+  const markAllRead = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${API_BASE_URL}/notifications/read-all`, {}, { headers: { Authorization: `Bearer ${token}` }});
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    } catch (error) { console.error(error); }
+  };
+
+  useEffect(() => {
     if (user) {
       const fetchProfile = async () => {
         try {
@@ -270,7 +279,7 @@ export default function Profile() {
           const token = localStorage.getItem('token');
           const res = await axios.get(`${API_BASE_URL}/coupons/my-coupons`, { headers: { Authorization: `Bearer ${token}` } });
           setVoucherCount(Array.isArray(res.data) ? res.data.length : 0);
-        } catch(e) { /* ignore */ }
+        } catch { /* ignore */ }
       };
       fetchVoucherCount();
     }
@@ -313,7 +322,7 @@ export default function Profile() {
       }, { headers: { Authorization: `Bearer ${token}` }});
       updateProfile(res.data);
       showNotification('Thành công', 'Đã lưu thiết lập Huấn luyện AI!', 'success');
-    } catch (error) {
+    } catch {
       showNotification('Lỗi', 'Lỗi khi lưu cấu hình AI.', 'error');
     } finally {
       setLoadingAi(false);
@@ -359,7 +368,7 @@ export default function Profile() {
       setShowAddAddress(false);
       setAddrForm({ firstName: '', lastName: '', phone: '', city: '', ward: '', street: '', isDefault: false });
       fetchAddresses();
-    } catch (error) {
+    } catch {
       showNotification('Lỗi', 'Lỗi khi thêm địa chỉ', 'error');
     } finally {
       setLoadingAddr(false);
@@ -373,7 +382,7 @@ export default function Profile() {
       await axios.delete(`${API_BASE_URL}/addresses/${id}`, { headers: { Authorization: `Bearer ${token}` }});
       showNotification('Thành công', 'Đã xóa địa chỉ', 'success');
       fetchAddresses();
-    } catch (error) {
+    } catch {
       showNotification('Lỗi', 'Lỗi khi xóa địa chỉ', 'error');
     }
   };
@@ -384,7 +393,7 @@ export default function Profile() {
       await axios.put(`${API_BASE_URL}/addresses/${id}/default`, {}, { headers: { Authorization: `Bearer ${token}` }});
       showNotification('Thành công', 'Đã đặt làm địa chỉ mặc định', 'success');
       fetchAddresses();
-    } catch (error) {
+    } catch {
       showNotification('Lỗi', 'Lỗi khi cập nhật', 'error');
     }
   };
@@ -397,7 +406,7 @@ export default function Profile() {
       const token = localStorage.getItem('token');
       await axios.post(`${API_BASE_URL}/vat-invoices`, vatForm, { headers: { Authorization: `Bearer ${token}` }});
       showNotification('Thành công', 'Lưu thông tin xuất hóa đơn thành công!', 'success');
-    } catch (error) {
+    } catch {
       showNotification('Lỗi', 'Lỗi khi lưu thông tin', 'error');
     } finally {
       setLoadingVat(false);
@@ -1404,7 +1413,7 @@ function MyVouchersTab() {
         let saved = [];
         try {
           saved = JSON.parse(localStorage.getItem(savedKey) || '[]');
-        } catch (e) {
+        } catch {
           saved = [];
         }
         
@@ -1421,6 +1430,8 @@ function MyVouchersTab() {
       }
     };
     fetchCoupons();
+    // Run once on mount only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleCopy = (code) => {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation, Link, useNavigate } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import axios from 'axios';
 import { FaCheckCircle, FaTimesCircle, FaSpinner } from 'react-icons/fa';
 
@@ -9,7 +9,6 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api'
 
 export default function PaymentResult() {
   const location = useLocation();
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [result, setResult] = useState(null);
   const { refreshCart } = useCart();
@@ -52,6 +51,8 @@ export default function PaymentResult() {
     };
 
     processPaymentReturn();
+    // refreshCart is stable for this component's lifetime; only re-run when location changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location]);
 
   if (loading) {

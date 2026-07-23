@@ -59,7 +59,7 @@ export default function AdminUsers() {
         });
         Swal.fire('Thành công!', 'Đã cập nhật quyền tài khoản.', 'success');
         fetchUsers();
-      } catch (error) {
+      } catch {
         Swal.fire('Lỗi!', 'Không thể cập nhật quyền.', 'error');
       }
     }

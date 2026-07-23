@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { FaEdit, FaTrash, FaPlus, FaImages, FaTimes, FaLink } from 'react-icons/fa';
+import { FaPlus, FaImages, FaTimes, FaLink } from 'react-icons/fa';
 
 export default function AdminBanners() {
   const [banners, setBanners] = useState([]);
@@ -36,6 +36,8 @@ export default function AdminBanners() {
 
   useEffect(() => {
     fetchBanners();
+    // Run once on mount only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const openAddModal = () => {

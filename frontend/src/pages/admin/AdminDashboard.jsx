@@ -6,11 +6,9 @@ import {
   FaShoppingBag, 
   FaBook, 
   FaList, 
-  FaClock, 
-  FaUser, 
+  FaClock,
   FaChevronRight,
-  FaArrowUp,
-  FaArrowDown
+  FaArrowUp
 } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
@@ -79,6 +77,8 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchDashboardData();
+    // Run once on mount only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Lắng nghe WebSocket: Cập nhật nếu Sách, Danh mục, hoặc Đơn hàng có sự thay đổi
@@ -86,6 +86,8 @@ export default function AdminDashboard() {
     if (lastUpdate && ['ORDER', 'BOOK', 'CATEGORY'].includes(lastUpdate.entity)) {
       fetchDashboardData(true);
     }
+    // fetchDashboardData is stable for this component's lifetime; only re-run on lastUpdate
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastUpdate]);
 
   if (loading) {
@@ -243,7 +245,7 @@ export default function AdminDashboard() {
             {bestsellers.length === 0 ? (
               <div className="text-center py-10 text-gray-455 text-sm">Không tìm thấy sách.</div>
             ) : (
-              bestsellers.map((book, idx) => (
+              bestsellers.map((book) => (
                 <div key={book.id} className="flex gap-3.5 items-center hover:bg-gray-50 p-2 rounded-xl transition-colors">
                   <div className="w-10 h-10 bg-gray-50 rounded-lg overflow-hidden shrink-0 border border-gray-100 flex items-center justify-center">
                     <img 

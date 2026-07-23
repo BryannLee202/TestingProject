@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import Swal from 'sweetalert2';
-import { FaRegBell, FaInfoCircle, FaTag, FaShoppingBag, FaCheck, FaTrash, FaCheckDouble } from 'react-icons/fa';
+import { FaRegBell, FaInfoCircle, FaTag, FaShoppingBag, FaCheckDouble } from 'react-icons/fa';
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState([]);
@@ -25,6 +25,8 @@ export default function Notifications() {
 
   useEffect(() => {
     fetchNotifications();
+    // fetchNotifications is stable for this component's lifetime; only re-run when user changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const getNotificationIcon = (type) => {

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
-import { FaStar, FaRecycle, FaHistory, FaHandshake } from 'react-icons/fa';
+import { FaRecycle, FaHistory, FaHandshake } from 'react-icons/fa';
 import { useCart } from '../context/CartContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
@@ -31,7 +31,7 @@ export default function UsedBooks() {
         
         // Let's filter some books to represent "used books" by adding condition, price discount
         // We will simulate that books with even IDs or specific category IDs are used books
-        const usedBooksSimulated = fetchedBooks.map((book, idx) => {
+        const usedBooksSimulated = fetchedBooks.map((book) => {
           // Simulate condition: 95% (like new), 90% (good), 80% (acceptable)
           const conditions = ["Mới 95% (Như mới)", "Mới 90% (Tốt)", "Mới 80% (Khá)"];
           const simulatedCondition = conditions[book.id % conditions.length];

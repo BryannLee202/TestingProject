@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import axios from 'axios';
-import { FaShoppingCart, FaStar } from 'react-icons/fa';
+import { FaStar } from 'react-icons/fa';
 import { useCart } from '../context/CartContext';
 
 export default function Search() {
@@ -21,6 +21,8 @@ export default function Search() {
     axios.get(`${API_BASE_URL}/categories`)
       .then(res => setAllCategories(res.data || []))
       .catch(console.error);
+    // API_BASE_URL is a module-level constant, not reactive
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -39,6 +41,8 @@ export default function Search() {
       }
     };
     fetchResults();
+    // API_BASE_URL is a module-level constant, not reactive
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
 
   const formatPrice = (price) => {

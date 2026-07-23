@@ -4,6 +4,7 @@ import SockJS from 'sockjs-client';
 
 const WebSocketContext = createContext(null);
 
+// eslint-disable-next-line react-refresh/only-export-components -- co-located with WebSocketProvider by design; splitting into a separate file would mean touching every importer for a Fast Refresh nicety only
 export const useWebSocket = () => useContext(WebSocketContext);
 
 export const WebSocketProvider = ({ children }) => {
@@ -17,7 +18,7 @@ export const WebSocketProvider = ({ children }) => {
 
     const client = new Client({
       webSocketFactory: () => new SockJS(wsUrl),
-      debug: (str) => {
+      debug: () => {
         // console.log(str); // Uncomment to debug STOMP
       },
       reconnectDelay: 5000,

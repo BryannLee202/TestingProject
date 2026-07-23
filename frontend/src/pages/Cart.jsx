@@ -12,11 +12,10 @@ export default function Cart() {
   const { cart, updateQuantity, removeFromCart, clearCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
   const [coupons, setCoupons] = useState([]);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
-  const [copiedCode, setCopiedCode] = useState('');
   const [recommendations, setRecommendations] = useState([]);
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
@@ -71,13 +70,6 @@ export default function Cart() {
     };
     fetchRecommendations();
   }, [user, API_BASE_URL]);
-
-  const handleCopy = (code) => {
-    navigator.clipboard.writeText(code);
-    setCopiedCode(code);
-    showNotification('Đã sao chép!', `Mã giảm giá "${code}" đã được lưu.`, 'success');
-    setTimeout(() => setCopiedCode(''), 2000);
-  };
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {

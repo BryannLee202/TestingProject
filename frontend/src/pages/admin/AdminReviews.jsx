@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { FaStar, FaTrash, FaSearch, FaCommentDots, FaImage, FaTimes } from 'react-icons/fa';
+import { FaStar, FaTrash, FaSearch, FaCommentDots, FaTimes } from 'react-icons/fa';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
@@ -31,6 +31,8 @@ export default function AdminReviews() {
 
   useEffect(() => {
     fetchReviews();
+    // Run once on mount only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleDelete = async (id) => {

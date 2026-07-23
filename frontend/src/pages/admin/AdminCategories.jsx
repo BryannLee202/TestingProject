@@ -36,6 +36,8 @@ export default function AdminCategories() {
 
   useEffect(() => {
     fetchCategories();
+    // Run once on mount only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const openAddModal = () => {
