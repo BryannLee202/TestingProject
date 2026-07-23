@@ -6,6 +6,16 @@ export default function Intro({ onComplete }) {
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
   const [progress, setProgress] = useState(0);
 
+  const handleEnter = () => {
+    setIsAnimatingOut(true);
+    sessionStorage.setItem('yiyi_intro_seen', 'true');
+    setTimeout(() => {
+      setIsVisible(false);
+      document.body.style.overflow = 'auto';
+      if (onComplete) onComplete();
+    }, 1000); // Wait for slide-up animation to finish
+  };
+
   useEffect(() => {
     // Check if user already saw intro in this session
     const hasSeenIntro = sessionStorage.getItem('yiyi_intro_seen');
@@ -14,12 +24,12 @@ export default function Intro({ onComplete }) {
       if (onComplete) onComplete();
       return;
     }
-    
+
     // Prevent scrolling when intro is visible
     document.body.style.overflow = 'hidden';
 
     // 10 seconds loading for the bottom progress bar
-    const loadingDuration = 10000; 
+    const loadingDuration = 10000;
     const intervalTime = 50;
     const steps = loadingDuration / intervalTime;
     let currentStep = 0;
@@ -28,7 +38,7 @@ export default function Intro({ onComplete }) {
       currentStep++;
       const newProgress = Math.min((currentStep / steps) * 100, 100);
       setProgress(newProgress);
-      
+
       if (currentStep >= steps) {
         clearInterval(progressInterval);
         handleEnter();
@@ -40,16 +50,6 @@ export default function Intro({ onComplete }) {
       document.body.style.overflow = 'auto';
     };
   }, []);
-
-  const handleEnter = () => {
-    setIsAnimatingOut(true);
-    sessionStorage.setItem('yiyi_intro_seen', 'true');
-    setTimeout(() => {
-      setIsVisible(false);
-      document.body.style.overflow = 'auto';
-      if (onComplete) onComplete();
-    }, 1000); // Wait for slide-up animation to finish
-  };
 
   if (!isVisible) return null;
 

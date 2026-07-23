@@ -152,38 +152,6 @@ export default function Profile() {
     }
   }, [user]);
 
-  useEffect(() => {
-    if (user && activeTab === 'address') fetchAddresses();
-    if (user && activeTab === 'vat') fetchVat();
-    if (user && activeTab === 'wishlist') fetchWishlist();
-    if (user && activeTab === 'reviews') fetchReviews();
-    if (user && activeTab === 'member') fetchMyOrders();
-    if (user && activeTab === 'notifications') fetchNotifications();
-    if (activeTab === 'series') fetchSeriesBooks();
-  }, [user, activeTab]);
-
-  useEffect(() => {
-    if (user) {
-      const fetchProfile = async () => {
-        try {
-          const token = localStorage.getItem('token');
-          const res = await axios.get(`${API_BASE_URL}/users/profile`, { headers: { Authorization: `Bearer ${token}` } });
-          setLiveUser(res.data);
-        } catch(e) { console.error(e); }
-      };
-      fetchProfile();
-
-      const fetchVoucherCount = async () => {
-        try {
-          const token = localStorage.getItem('token');
-          const res = await axios.get(`${API_BASE_URL}/coupons/my-coupons`, { headers: { Authorization: `Bearer ${token}` } });
-          setVoucherCount(Array.isArray(res.data) ? res.data.length : 0);
-        } catch(e) { /* ignore */ }
-      };
-      fetchVoucherCount();
-    }
-  }, [user]);
-
   // ---- API CALLS ----
   const fetchAddresses = async () => {
     try {
@@ -220,7 +188,7 @@ export default function Profile() {
   const fetchWishlist = async () => {
     try {
       const token = localStorage.getItem('token');
-        const res = await axios.get(`${API_BASE_URL}/wishlists`, { 
+        const res = await axios.get(`${API_BASE_URL}/wishlists`, {
           headers: { Authorization: `Bearer ${token}` },
           params: { t: new Date().getTime() }
         });
@@ -268,7 +236,7 @@ export default function Profile() {
       const res = await axios.get(`${API_BASE_URL}/books?size=20`);
       const all = res.data?.content || res.data || [];
       // Filter books that are in a series/combo category
-      const series = all.filter(b => 
+      const series = all.filter(b =>
         b.category?.name?.toLowerCase().includes('combo') ||
         b.category?.name?.toLowerCase().includes('bộ') ||
         b.title?.toLowerCase().includes('bộ')
@@ -285,6 +253,28 @@ export default function Profile() {
       setOrderCount(res.data.length);
     } catch (error) { console.error(error); }
   };
+
+  useEffect(() => {
+    if (user) {
+      const fetchProfile = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const res = await axios.get(`${API_BASE_URL}/users/profile`, { headers: { Authorization: `Bearer ${token}` } });
+          setLiveUser(res.data);
+        } catch(e) { console.error(e); }
+      };
+      fetchProfile();
+
+      const fetchVoucherCount = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const res = await axios.get(`${API_BASE_URL}/coupons/my-coupons`, { headers: { Authorization: `Bearer ${token}` } });
+          setVoucherCount(Array.isArray(res.data) ? res.data.length : 0);
+        } catch(e) { /* ignore */ }
+      };
+      fetchVoucherCount();
+    }
+  }, [user]);
 
   const handleUpdateInfo = async (e) => {
     e.preventDefault();
@@ -1061,10 +1051,6 @@ function YPointAccount({ liveUser, setLiveUser, updateProfile }) {
   const [loading, setLoading] = useState(false);
   const [visibleHistoryLimit, setVisibleHistoryLimit] = useState(10);
 
-  useEffect(() => {
-    fetchHistory();
-  }, []);
-
   const fetchHistory = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -1074,6 +1060,10 @@ function YPointAccount({ liveUser, setLiveUser, updateProfile }) {
       console.error('Error fetching history:', e);
     }
   };
+
+  useEffect(() => {
+    fetchHistory();
+  }, []);
 
   const handleRedeem = async (e) => {
     e.preventDefault();

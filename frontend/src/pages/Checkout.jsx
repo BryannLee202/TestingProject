@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -61,6 +61,7 @@ export default function Checkout() {
   const [note, setNote] = useState('');
   const [requireInvoice, setRequireInvoice] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const qrTokenRef = useRef(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   
   const [paymentMethod, setPaymentMethod] = useState('COD');
@@ -383,6 +384,7 @@ export default function Checkout() {
     }
 
     if (paymentMethod !== 'COD' && !['VNPAY', 'ATM', 'VISA', 'MOMO', 'ZALOPAY'].includes(paymentMethod)) {
+      qrTokenRef.current = Date.now();
       setShowPaymentModal(true);
       return;
     }
@@ -898,7 +900,7 @@ export default function Checkout() {
                  </div>
                </div>
                <div className="bg-gray-50 p-4 rounded-2xl border-2 border-dashed border-blue-200 mb-6 flex justify-center w-full">
-                 <QRCodeCanvas value={`bookstore_payment_${Date.now()}_amount_${totalAmount}`} size={200} level="H" includeMargin={true} />
+                 <QRCodeCanvas value={`bookstore_payment_${qrTokenRef.current || Date.now()}_amount_${totalAmount}`} size={200} level="H" includeMargin={true} />
                </div>
                <div className="text-center mb-6">
                   <p className="text-gray-500 text-sm mb-1">Số tiền cần thanh toán</p>

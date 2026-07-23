@@ -18,6 +18,27 @@ export const AuthProvider = ({ children }) => {
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
+  const refreshUser = async (tokenOverride) => {
+    try {
+      const token = tokenOverride || localStorage.getItem('token');
+      if (!token) return;
+      const res = await axios.get(`${API_BASE_URL}/users/profile?t=${Date.now()}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
+      setUser(res.data);
+      localStorage.setItem('user', JSON.stringify(res.data));
+    } catch(e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     // Check local storage for token on mount
     const token = localStorage.getItem('token');
@@ -65,27 +86,6 @@ export const AuthProvider = ({ children }) => {
       axios.interceptors.response.eject(resInterceptor);
     };
   }, []);
-
-  const refreshUser = async (tokenOverride) => {
-    try {
-      const token = tokenOverride || localStorage.getItem('token');
-      if (!token) return;
-      const res = await axios.get(`${API_BASE_URL}/users/profile?t=${Date.now()}`, { 
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        } 
-      });
-      setUser(res.data);
-      localStorage.setItem('user', JSON.stringify(res.data));
-    } catch(e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const login = (userData, token) => {
     setUser(userData);

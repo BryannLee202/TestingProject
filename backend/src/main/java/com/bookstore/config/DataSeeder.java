@@ -62,7 +62,7 @@ public class DataSeeder implements CommandLineRunner {
                         .position("MAIN")
                         .build(),
                 Banner.builder()
-                        .imageUrl("https://images.unsplash.com/photo-1537655780520-1e392edd816a?w=1200&auto=format&fit=crop&q=80")
+                        .imageUrl("https://images.unsplash.com/photo-1503602642458-232111445657?w=1200&auto=format&fit=crop&q=80")
                         .title("Đồ Chơi Trẻ Em")
                         .linkUrl("/category/3")
                         .position("MAIN")
@@ -138,16 +138,26 @@ public class DataSeeder implements CommandLineRunner {
 
         // 4. Seed Categories & Books
         List<Category> allCats = categoryRepository.findAll();
-        Category thieuNhi = getOrCreateCategory(allCats, "Sách Thiếu Nhi", "Các tác phẩm dành cho trẻ em");
-        Category tieuThuyet = getOrCreateCategory(allCats, "Tiểu Thuyết", "Tiểu thuyết tình cảm, lãng mạn, trinh thám");
-        Category khoaHoc = getOrCreateCategory(allCats, "Khoa Học Công Nghệ", "Sách về lập trình, vật lý, vũ trụ");
-        Category combo = getOrCreateCategory(allCats, "Combo Sách", "Combo tiết kiệm");
-        Category vanPhongPham = getOrCreateCategory(allCats, "Văn phòng phẩm", "Bút, vở, dụng cụ học tập");
-        Category doChoi = getOrCreateCategory(allCats, "Đồ chơi", "Đồ chơi trí tuệ, mô hình");
-        Category mangaComic = getOrCreateCategory(allCats, "Manga-Comic", "Truyện tranh Nhật Bản, Mỹ");
-        Category sachNgoaiVan = getOrCreateCategory(allCats, "Sách ngoại văn", "Sách nhập khẩu bằng tiếng Anh, Nhật");
-        Category quaLuNiem = getOrCreateCategory(allCats, "Quà lưu niệm", "Quà tặng xinh xắn độc đáo");
-        Category bachHoa = getOrCreateCategory(allCats, "Bách hóa", "Đồ dùng tiện ích nhỏ gọn");
+        Category thieuNhi = getOrCreateCategory(allCats, "Sách Thiếu Nhi", "Các tác phẩm dành cho trẻ em",
+                "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&auto=format&fit=crop&q=80");
+        Category tieuThuyet = getOrCreateCategory(allCats, "Tiểu Thuyết", "Tiểu thuyết tình cảm, lãng mạn, trinh thám",
+                "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&auto=format&fit=crop&q=80");
+        Category khoaHoc = getOrCreateCategory(allCats, "Khoa Học Công Nghệ", "Sách về lập trình, vật lý, vũ trụ",
+                "https://images.unsplash.com/photo-1550399105-c4db5fb85c18?w=400&auto=format&fit=crop&q=80");
+        Category combo = getOrCreateCategory(allCats, "Combo Sách", "Combo tiết kiệm",
+                "https://images.unsplash.com/photo-1519682337058-a94d519337bc?w=400&auto=format&fit=crop&q=80");
+        Category vanPhongPham = getOrCreateCategory(allCats, "Văn phòng phẩm", "Bút, vở, dụng cụ học tập",
+                "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=400&auto=format&fit=crop&q=80");
+        Category doChoi = getOrCreateCategory(allCats, "Đồ chơi", "Đồ chơi trí tuệ, mô hình",
+                "https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=400&auto=format&fit=crop&q=80");
+        Category mangaComic = getOrCreateCategory(allCats, "Manga-Comic", "Truyện tranh Nhật Bản, Mỹ",
+                "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=400&auto=format&fit=crop&q=80");
+        Category sachNgoaiVan = getOrCreateCategory(allCats, "Sách ngoại văn", "Sách nhập khẩu bằng tiếng Anh, Nhật",
+                "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=400&auto=format&fit=crop&q=80");
+        Category quaLuNiem = getOrCreateCategory(allCats, "Quà lưu niệm", "Quà tặng xinh xắn độc đáo",
+                "https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=400&auto=format&fit=crop&q=80");
+        Category bachHoa = getOrCreateCategory(allCats, "Bách hóa", "Đồ dùng tiện ích nhỏ gọn",
+                "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=400&auto=format&fit=crop&q=80");
 
         List<Book> allBooks = bookRepository.findAll();
         
@@ -159,7 +169,7 @@ public class DataSeeder implements CommandLineRunner {
                 .oldPrice(BigDecimal.valueOf(80000.0))
                 .discount(31)
                 .stockQuantity(100)
-                .imageUrl("https://bizweb.dktcdn.net/100/197/269/products/de-men-phieu-luu-ky-bia-cung.jpg")
+                .imageUrl("https://images.unsplash.com/photo-1512820790803-83ca734da794?w=600&auto=format&fit=crop&q=80")
                 .salesCount(0)
                 .isCombo(false)
                 .category(thieuNhi)
@@ -187,7 +197,7 @@ public class DataSeeder implements CommandLineRunner {
                 .oldPrice(BigDecimal.valueOf(110000.0))
                 .discount(28)
                 .stockQuantity(200)
-                .imageUrl("https://nhanam.vn/goc-nhin/wp-content/uploads/2021/05/NhaGiaKim-cover.jpg")
+                .imageUrl("https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&auto=format&fit=crop&q=80")
                 .salesCount(0)
                 .isCombo(false)
                 .category(tieuThuyet)
@@ -201,7 +211,7 @@ public class DataSeeder implements CommandLineRunner {
                 .oldPrice(BigDecimal.valueOf(1800000.0))
                 .discount(16)
                 .stockQuantity(20)
-                .imageUrl("https://m.media-amazon.com/images/I/81YOuOGFC5L.jpg")
+                .imageUrl("https://images.unsplash.com/photo-1519682337058-a94d519337bc?w=600&auto=format&fit=crop&q=80")
                 .salesCount(0)
                 .isCombo(true)
                 .category(combo)
@@ -229,7 +239,7 @@ public class DataSeeder implements CommandLineRunner {
                 .oldPrice(BigDecimal.valueOf(450000.0))
                 .discount(28)
                 .stockQuantity(30)
-                .imageUrl("https://images.unsplash.com/photo-1566698627439-7755f6a97c23?w=600&auto=format&fit=crop&q=80")
+                .imageUrl("https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=600&auto=format&fit=crop&q=80")
                 .salesCount(0)
                 .isCombo(false)
                 .category(doChoi)
@@ -257,7 +267,7 @@ public class DataSeeder implements CommandLineRunner {
                 .oldPrice(BigDecimal.valueOf(280000.0))
                 .discount(21)
                 .stockQuantity(80)
-                .imageUrl("https://m.media-amazon.com/images/I/81m9fP%2B7GgL.jpg")
+                .imageUrl("https://images.unsplash.com/photo-1503919005314-30d93d07d823?w=600&auto=format&fit=crop&q=80")
                 .salesCount(0)
                 .isCombo(false)
                 .category(sachNgoaiVan)
@@ -271,7 +281,7 @@ public class DataSeeder implements CommandLineRunner {
                 .oldPrice(BigDecimal.valueOf(25000.0))
                 .discount(28)
                 .stockQuantity(150)
-                .imageUrl("https://images.unsplash.com/photo-1629131726692-1accd0c73df0?w=600&auto=format&fit=crop&q=80")
+                .imageUrl("https://images.unsplash.com/photo-1560859251-d563a49c5e4a?w=600&auto=format&fit=crop&q=80")
                 .salesCount(0)
                 .isCombo(false)
                 .category(quaLuNiem)
@@ -292,11 +302,11 @@ public class DataSeeder implements CommandLineRunner {
                 .build());
     }
 
-    private Category getOrCreateCategory(List<Category> list, String name, String description) {
+    private Category getOrCreateCategory(List<Category> list, String name, String description, String imageUrl) {
         return list.stream()
                 .filter(c -> c.getName().equals(name))
                 .findFirst()
-                .orElseGet(() -> categoryRepository.save(new Category(null, name, description, null, false, null)));
+                .orElseGet(() -> categoryRepository.save(new Category(null, name, description, imageUrl, false, null)));
     }
 
     private void saveBookIfNotExist(List<Book> list, Book book) {

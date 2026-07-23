@@ -170,7 +170,7 @@ export default function ProductDetail() {
             if (inList) cached[id] = true;
             else delete cached[id];
             localStorage.setItem('wishlistCache', JSON.stringify(cached));
-          } catch {}
+          } catch { /* ignore malformed wishlist cache */ }
         } catch (e) { console.error(e); }
       };
       const checkEligibility = async () => {
@@ -347,7 +347,7 @@ export default function ProductDetail() {
         if (liked) cached[id] = true;
         else delete cached[id];
         localStorage.setItem('wishlistCache', JSON.stringify(cached));
-      } catch {}
+      } catch { /* ignore malformed wishlist cache */ }
       if (liked) {
         showNotification('Thành công', 'Đã thêm vào danh sách yêu thích!', 'success');
       } else {

@@ -56,7 +56,7 @@ export default function AIChatWidget() {
       try { 
         setMessages(JSON.parse(saved)); 
         return;
-      } catch(e) {}
+      } catch { /* ignore malformed cached history */ }
     }
     setMessages([
       { role: 'model', content: user ? `Xin chào ${user.fullName}! Mình là trợ lý AI của YiYi Book. Hôm nay bạn muốn tìm sách gì ạ?` : 'Xin chào! Mình là trợ lý AI của YiYi Book. Bạn cần tư vấn gì ạ?' }
