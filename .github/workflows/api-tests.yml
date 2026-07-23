@@ -91,7 +91,6 @@ jobs:
         run: |
           newman run YiYi-Book-API.postman_collection.json \
             --environment YiYi-Book-Local-Dev.postman_environment.json \
-            --insecure-file-read \
             --reporters cli,htmlextra,junit \
             --reporter-htmlextra-export report.html \
             --reporter-junit-export report-junit.xml
