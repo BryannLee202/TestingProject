@@ -27,7 +27,7 @@ Hệ thống áp dụng mô hình kiến trúc Client-Server tiêu chuẩn công
 │        FRONTEND CLIENT          │          │         BACKEND SERVICES        │
 │    (ReactJS SPA - Vercel)       │          │     (Spring Boot - Render)      │
 ├─────────────────────────────────┤          ├─────────────────────────────────┤
-│  • React 18 + Vite              │  HTTP/   │  • Java 17 + Spring Boot 3      │
+│  • React 18 + Vite              │  HTTP/   │  • Java 25 + Spring Boot 3      │
 │  • Tailwind CSS (v4)            │  JSON    │  • Spring Security (JWT Auth)   │
 │  • Context API (Auth/Cart/Lang) ├─────────►│  • Spring Data JPA + Hibernate  │
 │  • Firebase Auth (Social Login) │◄─────────┤  • Resend API & Spring Mail     │
@@ -378,7 +378,7 @@ Dự án đã được cấu hình tối ưu để triển khai mượt mà trê
 | Dịch vụ | Công nghệ | Ghi chú |
 |---|---|---|
 | **Frontend** | Vercel | Auto-deploy khi push `main`, CDN toàn cầu |
-| **Backend** | Render | Java 17, HikariCP Pool Size=2 (tránh vượt limit free tier) |
+| **Backend** | Render | Java 17, HikariCP Pool Size=5 (cân bằng giữa tránh vượt limit free tier và tránh nghẽn request) |
 | **Database** | Clever Cloud MySQL | Cloud DB, tự động backup |
 | **Email** | Resend API | Thay SMTP truyền thống, tránh spam filter |
 | **AI / LLM** | Groq Cloud | Llama 3.3 70B, tốc độ inference cực nhanh (~500 tokens/s) |
@@ -391,7 +391,7 @@ Dự án đã được cấu hình tối ưu để triển khai mượt mà trê
 
 *   **Java Development Kit (JDK):** Phiên bản 17 hoặc cao hơn.
 *   **Node.js:** Phiên bản 18.x trở lên.
-*   **Database:** Microsoft SQL Server hoặc MySQL.
+*   **Database:** MySQL (dự án chỉ còn dùng MySQL — cấu hình SQL Server cũ đã bị gỡ khỏi application.properties vì không còn dùng).
 
 ### 2. Biến Môi Trường (Environment Variables)
 
