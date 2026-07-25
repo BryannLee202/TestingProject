@@ -1,0 +1,8 @@
+target/
+uploads/
+*.log
+.env
+.vscode/
+.idea/
+src/main/resources/application-local.properties
+src/main/resources/serviceAccountKey.json

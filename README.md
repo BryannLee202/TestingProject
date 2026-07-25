@@ -421,6 +421,31 @@ npm run dev
 # Frontend chạy tại: http://localhost:5173
 ```
 
+### 5. Chạy Toàn Bộ Bằng Docker Compose (Không Cần Cài JDK/Node/MySQL)
+
+Nếu không muốn cài JDK 25, Node.js hay MySQL trên máy, có thể dựng toàn bộ hệ thống (MySQL + Backend + Frontend) chỉ bằng Docker Desktop:
+
+```bash
+# Từ thư mục gốc của repo
+docker compose up --build
+# Lần chạy đầu tiên sẽ mất vài phút để build backend (Maven) và cài node_modules
+```
+
+*   **Backend** chạy tại: http://localhost:8081 (kiểm tra nhanh bằng http://localhost:8081/api/ping hoặc http://localhost:8081/api/books)
+*   **Frontend** chạy tại: http://localhost:5173
+*   **MySQL** chạy nội bộ trong mạng Docker (không public port 3306 ra host, tránh xung đột nếu máy đã cài MySQL local theo mục 1) — dữ liệu được `DataSeeder` tự động seed giống hệt chạy local.
+*   Tài khoản có sẵn sau khi seed: `admin@gmail.com` / `123456` (ADMIN) và `user@gmail.com` / `123456` (USER).
+
+Dừng hệ thống:
+
+```bash
+docker compose down
+# Thêm -v nếu muốn xoá luôn dữ liệu MySQL đã seed (lần `up` kế tiếp sẽ seed lại từ đầu)
+docker compose down -v
+```
+
+> Container frontend chạy Vite ở **chế độ dev** (tương đương `npm run dev`), không phải bản build production — mã nguồn `frontend/` được mount vào container nên sửa code vẫn thấy cập nhật tức thì (hot reload) như chạy local.
+
 ---
 
 ## 🆕 VIII. Lịch Sử Cập Nhật Toàn Bộ

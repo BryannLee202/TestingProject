@@ -7,3 +7,4 @@ uploads/
 backend/target/
 backend/postman/report*.html
 backend/postman/report*.xml
+.claude/
