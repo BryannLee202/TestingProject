@@ -30,7 +30,7 @@ public class Category {
     @Column(columnDefinition = "TEXT")
     private String imageUrl;
 
-    @Column(nullable = false, columnDefinition = "bit default 0")
+    @Column(nullable = false, columnDefinition = "boolean default false")
     private boolean isFeatured = false;
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
