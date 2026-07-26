@@ -378,7 +378,7 @@ Dự án đã được cấu hình tối ưu để triển khai mượt mà trê
 | Dịch vụ | Công nghệ | Ghi chú |
 |---|---|---|
 | **Frontend** | Vercel | Auto-deploy khi push `main`, CDN toàn cầu |
-| **Backend** | Render | Java 17, HikariCP Pool Size=5 (cân bằng giữa tránh vượt limit free tier và tránh nghẽn request) |
+| **Backend** | Render | Build qua `backend/Dockerfile` (tự đóng gói JDK 25, không phụ thuộc runtime Render cấu hình sẵn), HikariCP Pool Size=5 (cân bằng giữa tránh vượt limit free tier và tránh nghẽn request) |
 | **Database** | Clever Cloud MySQL | Cloud DB, tự động backup |
 | **Email** | Resend API | Thay SMTP truyền thống, tránh spam filter |
 | **AI / LLM** | Groq Cloud | Llama 3.3 70B, tốc độ inference cực nhanh (~500 tokens/s) |
@@ -445,6 +445,21 @@ docker compose down -v
 ```
 
 > Container frontend chạy Vite ở **chế độ dev** (tương đương `npm run dev`), không phải bản build production — mã nguồn `frontend/` được mount vào container nên sửa code vẫn thấy cập nhật tức thì (hot reload) như chạy local.
+
+**Bật đăng nhập Google + gửi email OTP (tùy chọn):**
+
+Mặc định 2 tính năng này tắt (không ảnh hưởng gì khác — 2 tài khoản seed sẵn ở trên vẫn đăng nhập bình thường). Muốn bật thì:
+
+```bash
+cp .env.example .env
+# rồi điền FIREBASE_SERVICE_ACCOUNT_JSON và BREVO_API_KEY thật vào .env
+docker compose up -d --build backend
+```
+
+*   `.env` đã nằm trong `.gitignore`, không bao giờ bị commit — mỗi người tự điền key riêng, không chia sẻ qua git.
+*   `FIREBASE_SERVICE_ACCOUNT_JSON`: lấy từ Firebase Console → Project Settings → Service Accounts, đúng project `yiyi-bookstore` (frontend đã gắn cứng project này, key từ project khác sẽ không hoạt động) — xin key từ người đã có quyền truy cập thay vì tự tạo project mới.
+*   `BREVO_API_KEY`: đăng ký miễn phí tại brevo.com để lấy key.
+*   Xem chi tiết từng biến trong `.env.example`.
 
 ---
 
