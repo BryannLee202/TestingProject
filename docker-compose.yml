@@ -1,24 +1,23 @@
 services:
-  mysql:
-    image: mysql:8.0
-    container_name: bookstore-mysql
+  postgres:
+    image: postgres:16
+    container_name: bookstore-postgres
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: bookstore
-      MYSQL_USER: bookstore_user
-      MYSQL_PASSWORD: bookstore_pass
+      POSTGRES_DB: bookstore
+      POSTGRES_USER: bookstore_user
+      POSTGRES_PASSWORD: bookstore_pass
     # Not published to the host on purpose: anyone who already followed the
-    # manual local-db-setup.sql/Workbench setup likely has host port 3306
-    # bound by their own MySQL80 service. The backend reaches this container
-    # over the internal Compose network at mysql:3306 regardless.
-    # Uncomment to inspect this DB from the host (Workbench/DBeaver/etc.):
+    # manual local-db-setup.sql setup likely has host port 5432 bound by
+    # their own Postgres server. The backend reaches this container over the
+    # internal Compose network at postgres:5432 regardless.
+    # Uncomment to inspect this DB from the host (psql/pgAdmin/DBeaver/etc.):
     # ports:
-    #   - "3307:3306"
+    #   - "5433:5432"
     volumes:
-      - bookstore_mysql_data:/var/lib/mysql
+      - bookstore_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "pg_isready -U bookstore_user -d bookstore"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -32,15 +31,15 @@ services:
     container_name: bookstore-backend
     restart: unless-stopped
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      MYSQLHOST: mysql
-      MYSQLPORT: 3306
-      MYSQLDATABASE: bookstore
-      MYSQLUSER: bookstore_user
-      MYSQLPASSWORD: bookstore_pass
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: bookstore
+      DB_USER: bookstore_user
+      DB_PASSWORD: bookstore_pass
       # Optional - enables Google/Apple login and OTP email. Left blank by
       # default (nothing breaks); set them in a repo-root ".env" file (see
       # .env.example) to turn these features on. See FirebaseConfig.java /
@@ -70,7 +69,7 @@ services:
       - bookstore-net
 
 volumes:
-  bookstore_mysql_data:
+  bookstore_postgres_data:
 
 networks:
   bookstore-net:
