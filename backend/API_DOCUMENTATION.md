@@ -34,14 +34,10 @@ Auth scheme: `Authorization: Bearer <JWT>`. Get a token from `POST /api/auth/log
 > database — breaking every order-related endpoint (create/list/view/cancel/return/ship/admin, ~12 endpoints) when
 > running against MySQL, which is this project's actual production database (Clever Cloud, per README). Changed to
 > `@Lob` (portable JPA — Hibernate maps it to `TEXT` on MySQL, `NVARCHAR(MAX)` on SQL Server automatically).
-> Verified via a full Postman/Newman run: 569/569 assertions passing after the fix.
 > 9. **Boolean JSON field names**: due to Lombok's getter-naming rules, primitive `boolean` fields drop the `is`
 >    prefix in JSON — `Address.isDefault` → send/receive `"default"`, `Category.isFeatured` → `"featured"`,
 >    `NewsletterSubscriber.active` → `"active"`. Boxed `Boolean` fields keep `is...` (`isCombo`, `isFeatured` on
 >    `Book`, `isActive`/`isPartner` on `Coupon`, `isActive` on `RewardVoucher`).
-
-All 125 requests below (116 real endpoints + negative/cleanup variants) are wired up as a ready-to-run Postman
-collection — see [`postman/README.md`](postman/README.md).
 
 ---
 
