@@ -33,7 +33,6 @@ application.security.jwt.expiration=86400000
 # --- Frontend URL used to build payment return links ---
 FRONTEND_URL=http://localhost:5173
 
-# --- Email OTP (optional — leave blank to skip; OTP emails just won't send) ---
-BREVO_API_KEY=
+# --- Email (newsletter notifications) ---
 spring.mail.username=noreply@yiyibook.vn
 

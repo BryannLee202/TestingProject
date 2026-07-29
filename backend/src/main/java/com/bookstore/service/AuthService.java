@@ -29,7 +29,6 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
-    private final OtpService otpService;
     private final CouponRepository couponRepository;
     private final PointTransactionRepository pointTransactionRepository;
 
@@ -61,34 +60,12 @@ public class AuthService {
                 .build());
     }
 
-    public void sendOtp(String phone, String email) {
-        // Nếu không truyền email (ví dụ từ trang Quên mật khẩu), thì tìm user theo số điện thoại để lấy email
-        if (email == null || email.isEmpty()) {
-            User user = userRepository.findByPhone(phone).orElse(null);
-            if (user != null) {
-                email = user.getEmail();
-            }
-        }
-        
-        if (email == null || email.isEmpty()) {
-            // Vẫn gửi OTP, nhưng chỉ in ra console nếu không có email (dự phòng)
-        }
-        otpService.generateAndSendOtp(phone, email);
-    }
-
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email đã được sử dụng!");
         }
         if (request.getPhone() != null && userRepository.existsByPhone(request.getPhone())) {
             throw new RuntimeException("Số điện thoại đã được sử dụng!");
-        }
-        
-        if (request.getOtp() != null) {
-            String verifyKey = (request.getEmail() != null && !request.getEmail().isEmpty()) ? request.getEmail() : request.getPhone();
-            if (!otpService.verifyOtp(verifyKey, request.getOtp())) {
-                throw new RuntimeException("Mã OTP không chính xác hoặc đã hết hạn!");
-            }
         }
 
         var user = User.builder()
@@ -127,18 +104,4 @@ public class AuthService {
                 .build();
     }
 
-    public boolean verifyForgotOtp(String email, String otp) {
-        return otpService.verifyOtpForReset(email, otp);
-    }
-
-    public void resetPassword(com.bookstore.dto.ResetPasswordRequest request) {
-        if (!otpService.hasResetSession(request.getEmail())) {
-            throw new RuntimeException("Bạn chưa xác thực mã OTP hoặc phiên làm việc đã hết hạn!");
-        }
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với Email này!"));
-        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        userRepository.save(user);
-        otpService.clearResetSession(request.getEmail());
-    }
 }

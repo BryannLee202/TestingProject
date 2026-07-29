@@ -51,7 +51,7 @@ Hệ thống áp dụng mô hình kiến trúc Client-Server tiêu chuẩn công
 
 ### 1. Phân Hệ Khách Hàng (Customer App)
 
-*   **Xác Thực Tài Khoản (Authentication):** Đăng ký bằng Email/OTP, cơ chế lưu phiên JWT, tự động đính kèm Token qua Axios Interceptors.
+*   **Xác Thực Tài Khoản (Authentication):** Đăng ký bằng Email/Mật khẩu, cơ chế lưu phiên JWT, tự động đính kèm Token qua Axios Interceptors.
 *   **Đa Ngôn Ngữ (i18n):** Chuyển đổi linh hoạt giữa Tiếng Việt và Tiếng Anh với React Context và Google Translate fallback.
 *   **Trang Chủ Động (Dynamic Homepage):**
     *   **Hero Slider:** Trình chiếu các chương trình khuyến mãi lớn, hỗ trợ autoplay và chạm vuốt.

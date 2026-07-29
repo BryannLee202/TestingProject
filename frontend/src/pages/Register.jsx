@@ -10,54 +10,26 @@ export default function Register() {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
-  const [otp, setOtp] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
-  const [sendingOtp, setSendingOtp] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
   const { login } = useAuth();
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
-  const handleSendOtp = async () => {
-    if (!phone) return showNotification('Lỗi', 'Vui lòng nhập số điện thoại', 'warning');
-    if (!email) return showNotification('Lỗi', 'Vui lòng nhập email trước', 'warning');
-    
-    setSendingOtp(true);
-    try {
-      await axios.post(`${API_BASE_URL}/auth/send-otp`, { phone, email });
-      setOtpSent(true);
-      showNotification('Thành công', 'Đã gửi mã xác thực OTP vào Email của bạn!', 'success');
-    } catch (error) {
-      console.error(error);
-      showNotification('Lỗi gửi OTP', error.response?.data?.message || 'Không thể gửi OTP. Hãy thử lại sau.', 'error');
-    } finally {
-      setSendingOtp(false);
-    }
-  };
-
-  const verifyOtpAndRegister = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       return showNotification('Lỗi', 'Mật khẩu xác nhận không khớp', 'warning');
     }
-    if (!otpSent) {
-      return showNotification('Lỗi', 'Vui lòng bấm "Nhận OTP" và kiểm tra Email của bạn', 'warning');
-    }
-    if (!otp) {
-      return showNotification('Lỗi', 'Vui lòng nhập mã OTP 6 số', 'warning');
-    }
 
     setLoading(true);
-    
+
     try {
       const res = await axios.post(`${API_BASE_URL}/auth/register`, {
         name,
         email,
         phone,
-        password,
-        otp
+        password
       });
 
       if (res.data.token || res.status === 201 || res.status === 200) {
@@ -72,7 +44,7 @@ export default function Register() {
       }
     } catch (error) {
       console.error(error);
-      showNotification('Đăng ký thất bại', error.response?.data?.message || 'Mã OTP không đúng hoặc có lỗi xảy ra', 'error');
+      showNotification('Đăng ký thất bại', error.response?.data?.message || 'Có lỗi xảy ra', 'error');
     } finally {
       setLoading(false);
     }
@@ -83,90 +55,65 @@ export default function Register() {
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-10 border border-gray-100">
         <div className="text-center mb-10">
           <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">Đăng ký</h2>
-          <p className="mt-2 text-sm text-gray-600">Tạo tài khoản bằng Email OTP</p>
+          <p className="mt-2 text-sm text-gray-600">Tạo tài khoản mới</p>
         </div>
 
-        <form className="space-y-5" onSubmit={verifyOtpAndRegister}>
+        <form className="space-y-5" onSubmit={handleSubmit}>
           <div>
             <label className="block text-sm font-medium text-gray-700">Họ và tên</label>
-            <input 
-              type="text" 
-              required 
+            <input
+              type="text"
+              required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary outline-none" 
+              className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary outline-none"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Email (Dùng để nhận OTP)</label>
-            <div className="mt-1 flex gap-2">
-              <input 
-                type="email" 
-                required 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary outline-none disabled:bg-gray-100" 
-              />
-              <button 
-                type="button" 
-                onClick={handleSendOtp}
-                disabled={sendingOtp || !email || !phone}
-                className="px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 disabled:opacity-50 whitespace-nowrap transition-colors"
-              >
-                {sendingOtp ? 'Đang gửi...' : (otpSent ? 'Gửi lại OTP' : 'Nhận OTP')}
-              </button>
-            </div>
+            <label className="block text-sm font-medium text-gray-700">Email</label>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary outline-none"
+            />
           </div>
-          
-          {otpSent && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Mã OTP (Kiểm tra Hộp thư hoặc Spam)</label>
-              <input 
-                type="text" 
-                required 
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                placeholder="Nhập mã 6 số"
-                maxLength="6"
-                className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 outline-none text-center tracking-[0.5em] font-bold text-lg" 
-              />
-            </div>
-          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700">Số điện thoại</label>
-            <input 
-              type="tel" 
-              required 
+            <input
+              type="tel"
+              required
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary outline-none" 
+              className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary outline-none"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">Mật khẩu</label>
-            <input 
-              type="password" 
-              required 
+            <input
+              type="password"
+              required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary outline-none" 
+              className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary outline-none"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Xác nhận mật khẩu</label>
-            <input 
-              type="password" 
-              required 
+            <input
+              type="password"
+              required
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary outline-none" 
+              className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary outline-none"
             />
           </div>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             disabled={loading}
             className={`w-full bg-gray-900 hover:bg-black text-white font-medium py-3 rounded-lg transition-colors ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
