@@ -383,6 +383,8 @@ Dự án đã được cấu hình tối ưu để triển khai mượt mà trê
 *   **Node.js:** Phiên bản 18.x trở lên.
 *   **Database:** PostgreSQL (dự án đã chuyển từ MySQL sang PostgreSQL/Supabase — cấu hình MySQL/SQL Server cũ đã bị gỡ khỏi application.properties vì không còn dùng).
 
+> 💡 **Không muốn cài JDK/Node/PostgreSQL?** Chỉ cần cài **Docker Desktop** rồi làm theo mục 5 bên dưới — toàn bộ hệ thống sẽ tự dựng trong container.
+
 ### 2. Biến Môi Trường (Environment Variables)
 
 Tạo file `.env` trong thư mục `frontend/`:
@@ -434,6 +436,16 @@ docker compose down -v
 ```
 
 > Container frontend chạy Vite ở **chế độ dev** (tương đương `npm run dev`), không phải bản build production — mã nguồn `frontend/` được mount vào container nên sửa code vẫn thấy cập nhật tức thì (hot reload) như chạy local.
+
+#### Xử lý sự cố thường gặp
+
+| Tình huống | Cách xử lý |
+|---|---|
+| Cổng `8081`/`5173`/`5432` đã bị chiếm | Đổi cổng ở phần `ports:` tương ứng trong `docker-compose.yml`, hoặc tắt tiến trình đang giữ cổng đó |
+| `docker compose` báo không kết nối được daemon | Mở Docker Desktop, đợi icon chuyển sang trạng thái đang chạy rồi thử lại |
+| Build backend lần đầu rất lâu | Bình thường — Maven đang tải toàn bộ dependency vào image; nếu lỗi mạng giữa chừng, chạy lại `docker compose up --build` sẽ tận dụng cache các layer đã tải xong |
+| Muốn xem log khi container lỗi | `docker compose logs -f backend` (hoặc `frontend`, `postgres`) |
+| Vừa `git pull` code mới có đổi `pom.xml`/`package.json` | Chạy lại `docker compose up --build` (không chỉ `docker compose up`) để rebuild image với dependency mới |
 
 ---
 
