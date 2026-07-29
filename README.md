@@ -31,7 +31,7 @@ Hệ thống áp dụng mô hình kiến trúc Client-Server tiêu chuẩn công
 │  • Tailwind CSS (v4)            │  JSON    │  • Spring Security (JWT Auth)   │
 │  • Context API (Auth/Cart/Lang) ├─────────►│  • Spring Data JPA + Hibernate  │
 │  • Axios (HTTP client)          │◄─────────┤  • VNPAY & QR Payment Gateways  │
-│  • Groq API (AI Chatbot)        │          │  • MySQL (Clever Cloud)         │
+│  • Groq API (AI Chatbot)        │          │  • PostgreSQL (Supabase)        │
 └─────────────────────────────────┘          └─────────────────────────────────┘
                 │
                 ▼
@@ -287,7 +287,7 @@ sequenceDiagram
   actor User as Khách Hàng
   participant FE as Frontend (React)
   participant BE as Backend (Spring Boot)
-  participant DB as Database (MySQL/SQL Server)
+  participant DB as Database (PostgreSQL)
 
   User->>FE: Nhập email & password
   FE->>BE: POST /api/auth/login
@@ -368,9 +368,9 @@ Dự án đã được cấu hình tối ưu để triển khai mượt mà trê
 | Dịch vụ | Công nghệ | Ghi chú |
 |---|---|---|
 | **Frontend** | Vercel | Auto-deploy khi push `main`, CDN toàn cầu |
-| **Backend** | Render | Java 17, HikariCP Pool Size=2 (tránh vượt limit free tier) |
-| **Database** | Clever Cloud MySQL | Cloud DB, tự động backup |
-| **Email** | Resend API | Thay SMTP truyền thống, tránh spam filter |
+| **Backend** | Render | Build qua `backend/Dockerfile` (tự đóng gói JDK 25, không phụ thuộc runtime Render cấu hình sẵn), HikariCP Pool Size=5 (cân bằng giữa tránh vượt limit free tier và tránh nghẽn request) |
+| **Database** | Supabase (PostgreSQL) | Cloud DB, tự động backup |
+| **Email** | Spring Mail (SMTP) | Gửi email newsletter |
 | **AI / LLM** | Groq Cloud | Llama 3.3 70B, tốc độ inference cực nhanh (~500 tokens/s) |
 
 ---
@@ -381,7 +381,7 @@ Dự án đã được cấu hình tối ưu để triển khai mượt mà trê
 
 *   **Java Development Kit (JDK):** Phiên bản 17 hoặc cao hơn.
 *   **Node.js:** Phiên bản 18.x trở lên.
-*   **Database:** Microsoft SQL Server hoặc MySQL.
+*   **Database:** PostgreSQL (dự án đã chuyển từ MySQL sang PostgreSQL/Supabase — cấu hình MySQL/SQL Server cũ đã bị gỡ khỏi application.properties vì không còn dùng).
 
 ### 2. Biến Môi Trường (Environment Variables)
 
@@ -396,7 +396,7 @@ VITE_GROQ_API_KEY=your_groq_api_key_here
 
 ```bash
 cd backend
-# Cập nhật application.properties với DB và Resend API Key
+# Cập nhật application.properties với thông tin kết nối Database
 ./mvnw spring-boot:run
 # Backend chạy tại: http://localhost:8081
 ```
@@ -409,6 +409,31 @@ npm install
 npm run dev
 # Frontend chạy tại: http://localhost:5173
 ```
+
+### 5. Chạy Toàn Bộ Bằng Docker Compose (Không Cần Cài JDK/Node/PostgreSQL)
+
+Nếu không muốn cài JDK 25, Node.js hay PostgreSQL trên máy, có thể dựng toàn bộ hệ thống (PostgreSQL + Backend + Frontend) chỉ bằng Docker Desktop:
+
+```bash
+# Từ thư mục gốc của repo
+docker compose up --build
+# Lần chạy đầu tiên sẽ mất vài phút để build backend (Maven) và cài node_modules
+```
+
+*   **Backend** chạy tại: http://localhost:8081 (kiểm tra nhanh bằng http://localhost:8081/api/ping hoặc http://localhost:8081/api/books)
+*   **Frontend** chạy tại: http://localhost:5173
+*   **PostgreSQL** chạy nội bộ trong mạng Docker (không public port 5432 ra host, tránh xung đột nếu máy đã cài PostgreSQL local theo mục 1) — dữ liệu được `DataSeeder` tự động seed giống hệt chạy local.
+*   Tài khoản có sẵn sau khi seed: `admin@gmail.com` / `123456` (ADMIN) và `user@gmail.com` / `123456` (USER).
+
+Dừng hệ thống:
+
+```bash
+docker compose down
+# Thêm -v nếu muốn xoá luôn dữ liệu PostgreSQL đã seed (lần `up` kế tiếp sẽ seed lại từ đầu)
+docker compose down -v
+```
+
+> Container frontend chạy Vite ở **chế độ dev** (tương đương `npm run dev`), không phải bản build production — mã nguồn `frontend/` được mount vào container nên sửa code vẫn thấy cập nhật tức thì (hot reload) như chạy local.
 
 ---
 
