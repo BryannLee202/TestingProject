@@ -1,0 +1,9 @@
+# Force LF line endings for Unix shell scripts regardless of the checkout
+# platform's core.autocrlf setting — CRLF breaks the "#!/bin/sh" shebang
+# (interpreter not found) when these run inside a Linux container/CI.
+backend/mvnw text eol=lf
+*.sh text eol=lf
+
+# Windows batch files must stay CRLF.
+*.cmd text eol=crlf
+*.bat text eol=crlf

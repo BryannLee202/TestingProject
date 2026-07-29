@@ -40,12 +40,9 @@ services:
       DB_NAME: bookstore
       DB_USER: bookstore_user
       DB_PASSWORD: bookstore_pass
-      # Optional - enables Google/Apple login and OTP email. Left blank by
-      # default (nothing breaks); set them in a repo-root ".env" file (see
-      # .env.example) to turn these features on. See FirebaseConfig.java /
-      # EmailService.java for how each one is consumed.
-      FIREBASE_SERVICE_ACCOUNT_JSON: ${FIREBASE_SERVICE_ACCOUNT_JSON:-}
-      BREVO_API_KEY: ${BREVO_API_KEY:-}
+      # Optional - enables newsletter emails via NewsletterService. Left
+      # blank by default (nothing breaks); set them in a repo-root ".env"
+      # file (see .env.example) to turn this on.
       SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME:-}
       SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD:-}
     ports:
