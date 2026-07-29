@@ -3,9 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { showNotification } from '../utils/alert';
 import { useAuth } from '../context/AuthContext';
-import { FaGoogle } from 'react-icons/fa';
-import { auth } from '../config/firebase';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 
 export default function Register() {
   const [name, setName] = useState('');
@@ -22,35 +19,6 @@ export default function Register() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
-
-  const handleSocialLogin = async (providerName) => {
-    if (providerName.toUpperCase() === 'GOOGLE') {
-      try {
-        const provider = new GoogleAuthProvider();
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-        const idToken = await user.getIdToken();
-
-        const res = await axios.post(`${API_BASE_URL}/auth/social-login`, {
-          provider: 'GOOGLE',
-          providerId: user.uid,
-          email: user.email,
-          name: user.displayName,
-          token: idToken
-        });
-
-        if (res.data.token) {
-          login(res.data.user, res.data.token);
-          showNotification('Đăng nhập thành công', `Chào mừng ${res.data.user.fullName}!`, 'success');
-          navigate('/');
-        }
-      } catch (error) {
-        showNotification('Lỗi', `Đăng nhập Google thất bại: ${error.response?.data?.message || error.message}`, 'error');
-      }
-    } else {
-      showNotification('Thông báo', `Tính năng đăng nhập bằng ${providerName} đang phát triển!`, 'info');
-    }
-  };
 
   const handleSendOtp = async () => {
     if (!phone) return showNotification('Lỗi', 'Vui lòng nhập số điện thoại', 'warning');
@@ -205,24 +173,6 @@ export default function Register() {
             {loading ? 'Đang xử lý...' : 'Đăng ký tài khoản'}
           </button>
         </form>
-
-        <div className="mt-6 flex items-center justify-center space-x-4">
-          <div className="flex-1 h-px bg-gray-200"></div>
-          <span className="text-sm text-gray-500">Hoặc đăng ký bằng</span>
-          <div className="flex-1 h-px bg-gray-200"></div>
-        </div>
-
-        <div className="mt-6">
-          <button
-            onClick={() => handleSocialLogin('GOOGLE')}
-            className="flex items-center justify-center gap-2 w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm bg-white hover:bg-gray-50 font-medium text-gray-700 transition-colors"
-          >
-            <FaGoogle className="text-red-500" /> Google
-          </button>
-          {/* Apple login is not wired up yet (needs an Apple Developer Program
-              account to configure Sign in with Apple in Firebase) — hidden
-              until that's set up. */}
-        </div>
 
         <div className="mt-8 text-center text-sm text-gray-600">
           Đã có tài khoản? <Link to="/login" className="font-medium text-red-600 hover:text-red-700">Đăng nhập ngay</Link>

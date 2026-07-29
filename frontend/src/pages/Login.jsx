@@ -3,9 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { showNotification } from '../utils/alert';
-import { FaGoogle, FaTimes } from 'react-icons/fa';
-import { auth } from '../config/firebase';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { FaTimes } from 'react-icons/fa';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -95,40 +93,6 @@ export default function Login() {
     }
   };
 
-  const handleSocialLogin = async (providerName) => {
-    if (providerName.toUpperCase() === 'GOOGLE') {
-      try {
-        const provider = new GoogleAuthProvider();
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-        const idToken = await user.getIdToken();
-
-        const res = await axios.post(`${API_BASE_URL}/auth/social-login`, {
-          provider: 'GOOGLE',
-          providerId: user.uid,
-          email: user.email,
-          name: user.displayName,
-          token: idToken
-        });
-
-        if (res.data.token) {
-          login(res.data.user, res.data.token);
-          showNotification('Đăng nhập thành công', `Chào mừng ${res.data.user.fullName}!`, 'success');
-          navigate('/');
-        }
-      } catch (error) {
-        console.error(error);
-        if (error.code === 'auth/popup-closed-by-user') {
-          // Người dùng tự đóng popup
-          return;
-        }
-        showNotification('Lỗi', `Đăng nhập Google thất bại: ${error.response?.data?.message || error.message}`, 'error');
-      }
-    } else {
-      showNotification('Thông báo', `Tính năng đăng nhập bằng ${providerName} đang được phát triển`, 'info');
-    }
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-10 border border-gray-100">
@@ -174,24 +138,6 @@ export default function Login() {
             {loading ? 'Đang xử lý...' : 'Đăng nhập'}
           </button>
         </form>
-
-        <div className="mt-6 flex items-center justify-center space-x-4">
-          <div className="flex-1 h-px bg-gray-200"></div>
-          <span className="text-sm text-gray-500">Hoặc đăng nhập bằng</span>
-          <div className="flex-1 h-px bg-gray-200"></div>
-        </div>
-
-        <div className="mt-6">
-          <button
-            onClick={() => handleSocialLogin('GOOGLE')}
-            className="flex items-center justify-center gap-2 w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm bg-white hover:bg-gray-50 font-medium text-gray-700 transition-colors"
-          >
-            <FaGoogle className="text-red-500" /> Google
-          </button>
-          {/* Apple login is not wired up yet (needs an Apple Developer Program
-              account to configure Sign in with Apple in Firebase) — hidden
-              until that's set up. */}
-        </div>
 
         <div className="mt-8 text-center text-sm text-gray-600">
           Chưa có tài khoản? <Link to="/register" className="font-medium text-red-600 hover:text-red-700">Đăng ký ngay</Link>

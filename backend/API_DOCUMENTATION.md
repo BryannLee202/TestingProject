@@ -49,10 +49,9 @@ collection — see [`postman/README.md`](postman/README.md).
 
 | Method | Path | Body | Response |
 |---|---|---|---|
-| POST | `/auth/register` | `{name, email, password, phone, otp?, firebaseToken?}` | `{token, user}` |
+| POST | `/auth/register` | `{name, email, password, phone, otp?}` | `{token, user}` |
 | POST | `/auth/login` | `{email, password}` | `{token, user}` |
 | POST | `/auth/send-otp` | `{phone, email}` | `{message}` |
-| POST | `/auth/social-login` | `{provider, token, email, name, providerId}` | `{token, user}` |
 | POST | `/auth/verify-forgot-otp` | `{email, otp, newPassword}` | `{message}` |
 | POST | `/auth/reset-password` | `{email, otp, newPassword}` | `{message}` |
 

@@ -37,9 +37,3 @@ FRONTEND_URL=http://localhost:5173
 BREVO_API_KEY=
 spring.mail.username=noreply@yiyibook.vn
 
-# --- Firebase (optional — only needed for Google/Apple social login) ---
-# Either paste the full service-account JSON as one line here:
-FIREBASE_SERVICE_ACCOUNT_JSON=
-# ...or simply drop the downloaded file at:
-#   backend/src/main/resources/serviceAccountKey.json
-# (already .gitignore'd) and leave the line above blank.

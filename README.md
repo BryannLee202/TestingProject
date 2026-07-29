@@ -13,7 +13,7 @@ Hệ thống được thiết kế hướng tới việc tối ưu hóa trải n
 *   **🤖 Trợ Lý AI Cá Nhân Hóa (YiYi AI):** Chatbot thông minh tích hợp Groq API (Llama 3.3 70B), được trang bị Intent Detection Engine, RAG (Retrieval-Augmented Generation) đọc toàn bộ kho hàng thực tế, và khả năng học hỏi từng khách hàng riêng biệt.
 *   **💰 Hệ Thống Điểm Thưởng Thông Minh (Y-Point System):** Cơ chế tích lũy điểm dựa trên giá trị đơn hàng thực tế, cho phép người dùng đổi điểm thành mã giảm giá hoặc trừ trực tiếp vào hóa đơn.
 *   **🏆 Chiến Lược Giữ Chân Khách Hàng (Membership Gamification):** Tự động phân hạng thành viên (Đồng, Bạc, Vàng, Kim Cương) dựa trên điểm tích lũy, mang đến đặc quyền miễn phí vận chuyển và ưu đãi riêng.
-*   **💳 Thanh Toán Số & Đăng Nhập Mạng Xã Hội:** Tích hợp thanh toán nhanh qua VNPAY, mã VietQR động, và đăng nhập cực nhanh qua Google/Apple (Firebase Auth).
+*   **💳 Thanh Toán Số:** Tích hợp thanh toán nhanh qua VNPAY và mã VietQR động.
 *   **🌐 Hệ Thống Đa Ngôn Ngữ (Multilingual):** Hỗ trợ song ngữ Tiếng Việt - Tiếng Anh (i18n) với cơ chế đồng bộ mượt mà.
 
 ---
@@ -30,8 +30,7 @@ Hệ thống áp dụng mô hình kiến trúc Client-Server tiêu chuẩn công
 │  • React 18 + Vite              │  HTTP/   │  • Java 17 + Spring Boot 3      │
 │  • Tailwind CSS (v4)            │  JSON    │  • Spring Security (JWT Auth)   │
 │  • Context API (Auth/Cart/Lang) ├─────────►│  • Spring Data JPA + Hibernate  │
-│  • Firebase Auth (Social Login) │◄─────────┤  • Resend API & Spring Mail     │
-│  • Axios (HTTP client)          │          │  • VNPAY & QR Payment Gateways  │
+│  • Axios (HTTP client)          │◄─────────┤  • VNPAY & QR Payment Gateways  │
 │  • Groq API (AI Chatbot)        │          │  • MySQL (Clever Cloud)         │
 └─────────────────────────────────┘          └─────────────────────────────────┘
                 │
@@ -52,7 +51,7 @@ Hệ thống áp dụng mô hình kiến trúc Client-Server tiêu chuẩn công
 
 ### 1. Phân Hệ Khách Hàng (Customer App)
 
-*   **Xác Thực Tài Khoản (Authentication):** Đăng ký bằng Email/OTP, Đăng nhập an toàn qua Social Login (Google, Apple) tích hợp Firebase, cơ chế lưu phiên JWT, tự động đính kèm Token qua Axios Interceptors.
+*   **Xác Thực Tài Khoản (Authentication):** Đăng ký bằng Email/OTP, cơ chế lưu phiên JWT, tự động đính kèm Token qua Axios Interceptors.
 *   **Đa Ngôn Ngữ (i18n):** Chuyển đổi linh hoạt giữa Tiếng Việt và Tiếng Anh với React Context và Google Translate fallback.
 *   **Trang Chủ Động (Dynamic Homepage):**
     *   **Hero Slider:** Trình chiếu các chương trình khuyến mãi lớn, hỗ trợ autoplay và chạm vuốt.
@@ -288,19 +287,10 @@ sequenceDiagram
   actor User as Khách Hàng
   participant FE as Frontend (React)
   participant BE as Backend (Spring Boot)
-  participant Firebase as Firebase Auth
   participant DB as Database (MySQL/SQL Server)
 
-  alt Đăng nhập Truyền thống
-      User->>FE: Nhập email & password
-      FE->>BE: POST /api/auth/login
-  else Social Login (Google/Apple)
-      User->>FE: Bấm đăng nhập Google
-      FE->>Firebase: Gọi signInWithPopup
-      Firebase-->>FE: Trả về ID Token
-      FE->>BE: POST /api/auth/social-login (kèm Token)
-  end
-
+  User->>FE: Nhập email & password
+  FE->>BE: POST /api/auth/login
   BE->>DB: Truy vấn thông tin User
   alt Tồn tại User hợp lệ
     BE->>BE: Tạo chuỗi JWT Token chứa Username & Roles
@@ -400,7 +390,6 @@ Tạo file `.env` trong thư mục `frontend/`:
 ```env
 VITE_API_URL=http://localhost:8081/api
 VITE_GROQ_API_KEY=your_groq_api_key_here
-VITE_FIREBASE_API_KEY=your_firebase_api_key
 ```
 
 ### 3. Khởi Chạy Backend (Spring Boot)

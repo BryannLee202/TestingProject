@@ -34,11 +34,6 @@ public class AuthController {
         return ResponseEntity.ok().body(Map.of("message", "OTP sent successfully"));
     }
 
-    @PostMapping("/social-login")
-    public ResponseEntity<AuthResponse> socialLogin(@RequestBody com.bookstore.dto.SocialLoginRequest request) {
-        return ResponseEntity.ok(authService.socialLogin(request));
-    }
-
     @PostMapping("/verify-forgot-otp")
     public ResponseEntity<?> verifyForgotOtp(@RequestBody com.bookstore.dto.ResetPasswordRequest request) {
         boolean isValid = authService.verifyForgotOtp(request.getEmail(), request.getOtp());
