@@ -16,7 +16,7 @@ RUN update-ca-certificates \
 COPY pom.xml .
 COPY .mvn .mvn
 COPY mvnw .
-RUN chmod +x mvnw
+RUN sed -i 's/\r$//' mvnw && chmod +x mvnw
 # Download dependencies first
 RUN ./mvnw dependency:go-offline -B
 # Copy source and build
