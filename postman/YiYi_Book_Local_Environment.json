@@ -1,0 +1,42 @@
+{
+  "name": "YiYi Book Local",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8081",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "bookId",
+      "value": "1",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "categoryId",
+      "value": "1",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "bannerId",
+      "value": "1",
+      "type": "default",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}
