@@ -446,6 +446,11 @@ docker compose down -v
 | Build backend lần đầu rất lâu | Bình thường — Maven đang tải toàn bộ dependency vào image; nếu lỗi mạng giữa chừng, chạy lại `docker compose up --build` sẽ tận dụng cache các layer đã tải xong |
 | Muốn xem log khi container lỗi | `docker compose logs -f backend` (hoặc `frontend`, `postgres`) |
 | Vừa `git pull` code mới có đổi `pom.xml`/`package.json` | Chạy lại `docker compose up --build` (không chỉ `docker compose up`) để rebuild image với dependency mới |
+| Backend lỗi `Connection refused ... localhost` khi chạy trong Docker | Container không tự gọi được `localhost` để tới container database khác. Sửa `datasource.url` dùng đúng tên service trong `docker-compose.yml` (ví dụ `db`/`postgres`), không dùng `localhost` |
+| `Bind for 0.0.0.0:8081 failed: port is already allocated` | Có container cũ từ lần chạy trước vẫn đang giữ port. Chạy `docker ps -a` tìm container cũ, `docker stop <id>` rồi `docker rm <id>`, sau đó `docker compose up --build` lại |
+| `git pull` báo "Your local changes would be overwritten by merge" hoặc conflict hàng loạt | File tự sửa tay (cấu hình local) bị trùng thay đổi mới trên remote. Nếu không cần giữ thay đổi cục bộ: `git merge --abort` rồi `git reset --hard origin/main` để đồng bộ lại toàn bộ theo remote |
+| Backend crash `AccessDeniedException` khi tạo thư mục (ví dụ `/app/uploads`) | User chạy trong container không có quyền ghi vào thư mục ứng dụng. Trong Dockerfile, cấp quyền cho toàn bộ thư mục app: `RUN chown -R <user>:<group> /app` |
+| `Unable to determine Dialect without JDBC metadata` | Database chưa được tạo hoặc sai cấu hình kết nối (driver/URL không khớp loại database đang dùng). Kiểm tra lại `datasource.url`, `driver-class-name` và xác nhận database đã tồn tại |
 
 ---
 
