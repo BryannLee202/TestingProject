@@ -1,0 +1,867 @@
+{
+  "info": {
+    "_postman_id": "14c72a97-d46d-41a9-8d88-0bafe2478871",
+    "name": "TestScipts",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "56909949",
+    "_collection_link": "https://go.postman.co/collection/56909949-14c72a97-d46d-41a9-8d88-0bafe2478871?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "6. Review",
+      "item": [
+        {
+          "name": "POST /reviews",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// 1. Kiểm tra Status Code (Chấp nhận 200/201 nếu đã mua, hoặc 400 nếu chưa mua)\r\npm.test(\"✅ Status code hợp lệ (200/201 hoặc 400)\", () => {\r\n    pm.expect(pm.response.code).to.be.oneOf([200, 201, 400]);\r\n});\r\n\r\n// 2. Kiểm tra thời gian phản hồi < 2s\r\npm.test(\"⏱ Response time < 2000ms\", () => {\r\n    pm.expect(pm.response.responseTime).to.be.below(2000);\r\n});\r\n\r\n// 3. Kiểm tra Response Body phù hợp theo từng trường hợp\r\npm.test(\"📦 Response body hợp lệ\", () => {\r\n    const json = pm.response.json();\r\n    if (pm.response.code === 200 || pm.response.code === 201) {\r\n        // Nếu đã mua hàng -> Phải có id và rating\r\n        pm.expect(json).to.have.property(\"id\");\r\n        pm.expect(json).to.have.property(\"rating\");\r\n        if (json.id) { pm.environment.set(\"reviewId\", json.id); }\r\n    } else {\r\n        // Nếu chưa mua hàng (400) -> Phải có thông báo lỗi\r\n        pm.expect(json).to.have.property(\"message\");\r\n    }\r\n});\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyQGdtYWlsLmNvbSIsImlhdCI6MTc4NTY2MjkyOCwiZXhwIjoxNzg1NzQ5MzI4fQ.2vPi9rMlpOk1TR13SCGcJ5neOps5KYSmC2tx8bd4wHk",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"rating\": 5,\r\n  \"comment\": \"Sách rất hay, đóng gói cẩn thận!\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/reviews/book/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "reviews",
+                "book",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xem danh sách đánh giá của 1 sách",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"✅ Status 200 OK\", () => pm.response.to.have.status(200));\r\npm.test(\"⏱ Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));\r\npm.test(\"⭐ Trả về mảng danh sách reviews\", () => {\r\n    pm.expect(pm.response.json()).to.be.an(\"array\");\r\n});\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyQGdtYWlsLmNvbSIsImlhdCI6MTc4NTY2MjkyOCwiZXhwIjoxNzg1NzQ5MzI4fQ.2vPi9rMlpOk1TR13SCGcJ5neOps5KYSmC2tx8bd4wHk",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/reviews/book/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "reviews",
+                "book",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xem danh sách đánh giá của tôi",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"✅ Status 200 OK\", () => pm.response.to.have.status(200));\r\npm.test(\"⏱ Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyQGdtYWlsLmNvbSIsImlhdCI6MTc4NTY2NTQ0OSwiZXhwIjoxNzg1NzUxODQ5fQ.FUBFISe0BZyhLfAZiufWl0AZZQHB2WZlbS12Do7CAYw",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/reviews/my-reviews",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "reviews",
+                "my-reviews"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tạo đánh giá mới",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"✅ Status code hợp lệ (200/201/400)\", () => {\r\n    pm.expect(pm.response.code).to.be.oneOf([200, 201, 400]);\r\n});\r\npm.test(\"⏱ Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyQGdtYWlsLmNvbSIsImlhdCI6MTc4NTY2NTQ4MSwiZXhwIjoxNzg1NzUxODgxfQ.ohWYTAmCh6-ONZczwkxwTlmvqrQtl1nSaqomgJ6F60I",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"rating\": 5,\r\n  \"comment\": \"Sách rất hay, đóng gói cẩn thận!\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/reviews/book/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "reviews",
+                "book",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "8. Coupons",
+      "item": [
+        {
+          "name": "Lấy danh sách mã giảm giá",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"✅ Status 200 OK\", () => pm.response.to.have.status(200));\r\npm.test(\"⏱ Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));\r\npm.test(\"🎫 Trả về mảng danh sách coupon\", () => {\r\n    pm.expect(pm.response.json()).to.be.an(\"array\");\r\n});\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyQGdtYWlsLmNvbSIsImlhdCI6MTc4NTY2NTkzOCwiZXhwIjoxNzg1NzUyMzM4fQ.3WXZGPlBmyBMFZ43o5oQklNgOWfDL0y3BAPJ97ikymw",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/coupons",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "coupons"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Áp dụng mã giảm giá",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"✅ Status code hợp lệ (200/400)\", () => {\r\n    pm.expect(pm.response.code).to.be.oneOf([200, 400]);\r\n});\r\npm.test(\"⏱ Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyQGdtYWlsLmNvbSIsImlhdCI6MTc4NTY2NTkzOCwiZXhwIjoxNzg1NzUyMzM4fQ.3WXZGPlBmyBMFZ43o5oQklNgOWfDL0y3BAPJ97ikymw",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"code\": \"GRAPE10\",\r\n  \"orderAmount\": 200000\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/coupons/validate?code=GRAPE10&amount=200000",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "coupons",
+                "validate"
+              ],
+              "query": [
+                {
+                  "key": "code",
+                  "value": "GRAPE10"
+                },
+                {
+                  "key": "amount",
+                  "value": "200000"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "1. AUTH",
+      "item": [
+        {
+          "name": "Đăng nhập",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"✅ Status 200 OK\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\npm.test(\"⏱ Response time < 2000ms\", () => {\r\n    pm.expect(pm.response.responseTime).to.be.below(2000);\r\n});\r\npm.test(\"🔑 Response có token\", () => {\r\n    const json = pm.response.json();\r\n    pm.expect(json).to.have.property(\"token\");\r\n    pm.expect(json.token).to.be.a(\"string\").and.not.empty;\r\n});\r\npm.test(\"👤 Response có thông tin user\", () => {\r\n    const json = pm.response.json();\r\n    pm.expect(json).to.have.property(\"user\");\r\n    pm.expect(json.user).to.have.property(\"id\");\r\n});\r\n\r\n// ⚡ TỰ ĐỘNG LƯU TOKEN & USERID VÀO ENVIRONMENT\r\nconst json = pm.response.json();\r\nif (json.token) {\r\n    pm.environment.set(\"token\", json.token);\r\n}\r\nif (json.user && json.user.id) {\r\n    pm.environment.set(\"userId\", json.user.id);\r\n}\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"user@gmail.com\",\r\n  \"password\": \"123456\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Đăng ký",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"✅ Status 200 hoặc 201\", () => {\r\n    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r\n});\r\npm.test(\"⏱ Response time < 2000ms\", () => {\r\n    pm.expect(pm.response.responseTime).to.be.below(2000);\r\n});\r\npm.test(\"📦 Response chứa thông tin tài khoản\", () => {\r\n    const json = pm.response.json();\r\n    pm.expect(json).to.have.property(\"token\");\r\n});\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"Văn Đỉnh\",\r\n  \"email\": \"vandinh_test@gmail.com\",\r\n  \"password\": \"123456\",\r\n  \"phone\": \"0987654321\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/auth/register",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Đăng xuất",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// ⚡ Xóa Token khỏi môi trường Postman\r\npm.environment.unset(\"token\");\r\n\r\npm.test(\"✅ Xóa Token khỏi môi trường thành công\", () => {\r\n    pm.expect(pm.response.code).to.be.oneOf([200, 204, 404]);\r\n});\r\n\r\npm.test(\"⏱ Response time < 2000ms\", () => {\r\n    pm.expect(pm.response.responseTime).to.be.below(2000);\r\n});\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/auth/logout",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2.Books",
+      "item": [
+        {
+          "name": "Danh sách toàn bộ sách",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"✅ Status 200 OK\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\npm.test(\"⏱ Response time < 2000ms\", () => {\r\n    pm.expect(pm.response.responseTime).to.be.below(2000);\r\n});\r\npm.test(\"📚 Response là array danh sách sách\", () => {\r\n    const json = pm.response.json();\r\n    const books = Array.isArray(json) ? json : (json.content || json.data || []);\r\n    pm.expect(books).to.be.an(\"array\");\r\n});\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/books",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "books"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Chi tiết 1 cuốn sách",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"✅ Status 200 OK\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\npm.test(\"⏱ Response time < 2000ms\", () => {\r\n    pm.expect(pm.response.responseTime).to.be.below(2000);\r\n});\r\npm.test(\"📖 Sách có đủ thông tin (id, title, price)\", () => {\r\n    const json = pm.response.json();\r\n    pm.expect(json).to.have.property(\"id\");\r\n    pm.expect(json).to.have.property(\"title\");\r\n    pm.expect(json).to.have.property(\"price\");\r\n});\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/books/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "books",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tìm sách",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"✅ Status 200 OK\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\npm.test(\"⏱ Response time < 2000ms\", () => {\r\n    pm.expect(pm.response.responseTime).to.be.below(2000);\r\n});\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/books/search?keyword=Clean",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "books",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "Clean"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "9. Notifications",
+      "item": [
+        {
+          "name": "Lấy danh sách thông báo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"✅ Status 200 OK\", () => pm.response.to.have.status(200));\r\npm.test(\"⏱ Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));\r\npm.test(\"🔔 Trả về danh sách thông báo\", () => {\r\n    pm.expect(pm.response.json()).to.be.an(\"array\");\r\n});\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/notifications",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "notifications"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Đánh dấu thông báo đã đọc",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"✅ Status 200 OK\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"⏱ Response time < 2000ms\", () => {\r\n    pm.expect(pm.response.responseTime).to.be.below(2000);\r\n});\r\n\r\npm.test(\"🔔 Đánh dấu thông báo đã đọc\", () => {\r\n    const json = pm.response.json();\r\n    pm.expect(json).to.have.property(\"isRead\");\r\n    pm.expect(json.isRead).to.be.true;\r\n});\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyQGdtYWlsLmNvbSIsImlhdCI6MTc4NTY2NTkzOCwiZXhwIjoxNzg1NzUyMzM4fQ.3WXZGPlBmyBMFZ43o5oQklNgOWfDL0y3BAPJ97ikymw",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/notifications/1/read",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "notifications",
+                "1",
+                "read"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "10. Newsletter",
+      "item": [
+        {
+          "name": "Đăng ký nhận bản tin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"✅ Status 200 hoặc 201\", () => {\r\n    pm.expect(pm.response.code).to.be.oneOf([200, 201, 400]);\r\n});\r\npm.test(\"⏱ Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyQGdtYWlsLmNvbSIsImlhdCI6MTc4NTY2NTkzOCwiZXhwIjoxNzg1NzUyMzM4fQ.3WXZGPlBmyBMFZ43o5oQklNgOWfDL0y3BAPJ97ikymw",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"khachhang_test@gmail.com\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/newsletter/subscribe",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "newsletter",
+                "subscribe"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3.Cart",
+      "item": [
+        {
+          "name": "Xem giỏ hàng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"✅ Status 200 OK\", () => pm.response.to.have.status(200));\r\npm.test(\"⏱ Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));\r\npm.test(\"🛒 Giỏ hàng có chứa mảng items\", () => {\r\n    const json = pm.response.json();\r\n    pm.expect(json).to.have.property(\"items\");\r\n});\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyQGdtYWlsLmNvbSIsImlhdCI6MTc4NTY2NjMzMCwiZXhwIjoxNzg1NzUyNzMwfQ.K_HLG2FpZNOuGJuhQW8gGkW_Pnm3B79XlQ-QlKZ7k48",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/cart",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "cart"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Thêm sản phẩm vào giỏ hàng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"✅ Status 200 OK\", () => pm.response.to.have.status(200));\r\npm.test(\"⏱ Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));\r\npm.test(\"➕ Đã thêm sản phẩm vào giỏ hàng\", () => {\r\n    const json = pm.response.json();\r\n    pm.expect(json).to.have.property(\"items\");\r\n});\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyQGdtYWlsLmNvbSIsImlhdCI6MTc4NTY2NjMzMCwiZXhwIjoxNzg1NzUyNzMwfQ.K_HLG2FpZNOuGJuhQW8gGkW_Pnm3B79XlQ-QlKZ7k48",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"bookId\": 1, \"quantity\": 1}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/cart",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "cart"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4.Orders",
+      "item": [
+        {
+          "name": "Xem danh sách đơn hàng của tôi",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"✅ Status 200 OK\", () => pm.response.to.have.status(200));\r\npm.test(\"⏱ Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));\r\npm.test(\"📋 Trả về mảng danh sách đơn hàng\", () => {\r\n    pm.expect(pm.response.json()).to.be.an(\"array\");\r\n});\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyQGdtYWlsLmNvbSIsImlhdCI6MTc4NTY2NjMzMCwiZXhwIjoxNzg1NzUyNzMwfQ.K_HLG2FpZNOuGJuhQW8gGkW_Pnm3B79XlQ-QlKZ7k48",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/orders",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tạo đơn hàng mới",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"✅ Tạo đơn hàng thành công (200/201)\", () => {\r\n    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r\n});\r\n\r\npm.test(\"⏱ Response time < 2000ms\", () => {\r\n    pm.expect(pm.response.responseTime).to.be.below(2000);\r\n});\r\n\r\npm.test(\"📦 Đơn hàng mới chứa thông tin id và totalAmount\", () => {\r\n    const json = pm.response.json();\r\n    pm.expect(json).to.have.property(\"id\");\r\n    pm.expect(json).to.have.property(\"totalAmount\");\r\n});\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyQGdtYWlsLmNvbSIsImlhdCI6MTc4NTY2NjMzMCwiZXhwIjoxNzg1NzUyNzMwfQ.K_HLG2FpZNOuGJuhQW8gGkW_Pnm3B79XlQ-QlKZ7k48",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"items\": [\r\n    {\r\n      \"bookId\": 1,\r\n      \"quantity\": 1,\r\n      \"price\": 55000\r\n    }\r\n  ],\r\n  \"shippingAddress\": \"123 Nguyễn Huệ, Q.1, TP.HCM\",\r\n  \"phoneNumber\": \"0987654321\",\r\n  \"paymentMethod\": \"COD\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/orders",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
