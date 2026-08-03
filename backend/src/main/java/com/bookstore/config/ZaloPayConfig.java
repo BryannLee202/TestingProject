@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets;
 
 public class ZaloPayConfig {
     public static final String APP_ID = "2553";
-    public static final String KEY1 = "PcY4iZIKFCIdgZvA6ueMcMHHUbRLYjPL";
+    public static final String KEY1 = "***REMOVED_ZALOPAY_KEY1***";
     public static final String KEY2 = "kLtgPl8YESD1XcgX5IQOZIbdzVmWVPNI";
     public static final String CREATE_ORDER_URL = "https://sb-openapi.zalopay.vn/v2/create";
     public static final String QUERY_ORDER_URL = "https://sb-openapi.zalopay.vn/v2/query";
