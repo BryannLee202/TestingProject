@@ -36,24 +36,6 @@
       "value": "1",
       "type": "default",
       "enabled": true
-    },
-    {
-      "key": "orderId",
-      "value": "1",
-      "type": "default",
-      "enabled": true
-    },
-    {
-      "key": "addressId",
-      "value": "1",
-      "type": "default",
-      "enabled": true
-    },
-    {
-      "key": "amount",
-      "value": "100000",
-      "type": "default",
-      "enabled": true
     }
   ],
   "_postman_variable_scope": "environment"
