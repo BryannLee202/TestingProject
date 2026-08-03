@@ -3,7 +3,7 @@
   "values": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:8081",
+      "value": "http://localhost:8081/api",
       "type": "default",
       "enabled": true
     },
