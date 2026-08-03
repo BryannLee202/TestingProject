@@ -1,0 +1,78 @@
+name: API tests (Postman/Newman — Member 5)
+
+# Chay bo kiem thu API trong postman/ moi khi backend hoac bo test thay doi.
+# Bao cao HTML duoc dinh kem vao ket qua chay (tab Artifacts) de tai ve xem.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "backend/**"
+      - "postman/**"
+      - ".github/workflows/api-tests.yml"
+  push:
+    branches: ["main"]
+    paths:
+      - "backend/**"
+      - "postman/**"
+      - ".github/workflows/api-tests.yml"
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: postman/package-lock.json
+
+      # Chi dung postgres + backend. Khong can container frontend cho API test,
+      # bo qua giup tiet kiem vai phut build Vite.
+      - name: Khoi dong PostgreSQL + backend
+        run: docker compose up --build -d postgres backend
+
+      - name: Cho backend san sang
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sS -f -m 5 http://localhost:8081/api/ping > /dev/null 2>&1; then
+              echo "Backend san sang sau ${i} lan thu."
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Backend khong khoi dong duoc trong 5 phut." >&2
+          docker compose logs backend >&2
+          exit 1
+
+      - name: Cai Newman
+        working-directory: postman
+        run: npm ci
+
+      - name: Chay bo kiem thu API
+        working-directory: postman
+        run: npm test
+
+      # Chay ca khi test that bai — do chinh la luc bao cao huu ich nhat.
+      - name: Dinh kem bao cao HTML
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: newman-report
+          path: postman/newman/newman-report.html
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: In log backend khi that bai
+        if: failure()
+        run: docker compose logs backend
+
+      - name: Don dep
+        if: always()
+        run: docker compose down -v

@@ -5,3 +5,7 @@ temp_db/
 target/
 uploads/
 backend/target/
+
+# Bao cao Newman sinh ra khi chay bo kiem thu API (postman/).
+# Bao cao la san pham cua moi lan chay, khong phai ma nguon.
+postman/newman/
