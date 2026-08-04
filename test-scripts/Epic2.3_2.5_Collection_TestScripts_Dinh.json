@@ -50,12 +50,11 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/api/auth/register",
+              "raw": "{{baseUrl}}/auth/register",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "auth",
                 "register"
               ]
@@ -116,12 +115,11 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/api/auth/login",
+              "raw": "{{baseUrl}}/auth/login",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "auth",
                 "login"
               ]
@@ -151,12 +149,11 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/books",
+              "raw": "{{baseUrl}}/books",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "books"
               ]
             }
@@ -180,12 +177,11 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/books/{{bookId}}",
+              "raw": "{{baseUrl}}/books/{{bookId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "books",
                 "1"
               ]
@@ -210,12 +206,11 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/books/search?keyword=Clean",
+              "raw": "{{baseUrl}}/books/search?keyword=Clean",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "books",
                 "search"
               ],
@@ -251,12 +246,11 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/cart",
+              "raw": "{{baseUrl}}/cart",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "cart"
               ]
             }
@@ -289,12 +283,11 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/api/cart",
+              "raw": "{{baseUrl}}/cart",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "cart"
               ]
             }
@@ -323,12 +316,11 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/orders",
+              "raw": "{{baseUrl}}/orders",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "orders"
               ]
             }
@@ -361,12 +353,11 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/api/orders",
+              "raw": "{{baseUrl}}/orders",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "orders"
               ]
             }
@@ -417,12 +408,11 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/payment/create-url?amount=150000&orderId={{orderId}}",
+              "raw": "{{baseUrl}}/payment/create-url?amount=150000&orderId={{orderId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "payment",
                 "create-url"
               ],
@@ -473,12 +463,11 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/payment/momo/create-url?amount=150000&orderId={{orderId}}",
+              "raw": "{{baseUrl}}/payment/momo/create-url?amount=150000&orderId={{orderId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "payment",
                 "momo",
                 "create-url"
@@ -531,12 +520,11 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/payment/zalopay/create-url?amount=150000&orderId={{orderId}}",
+              "raw": "{{baseUrl}}/payment/zalopay/create-url?amount=150000&orderId={{orderId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "payment",
                 "zalopay",
                 "create-url"
@@ -577,12 +565,11 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/reviews/my-reviews",
+              "raw": "{{baseUrl}}/reviews/my-reviews",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "reviews",
                 "my-reviews"
               ]
@@ -643,12 +630,11 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/api/reviews/book/{{bookId}}",
+              "raw": "{{baseUrl}}/reviews/book/{{bookId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "reviews",
                 "book",
                 "1"
@@ -706,12 +692,11 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/api/reviews/book/{{bookId}}",
+              "raw": "{{baseUrl}}/reviews/book/{{bookId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "reviews",
                 "book",
                 "1"
@@ -749,12 +734,11 @@
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/reviews/{{reviewId}}/like",
+              "raw": "{{baseUrl}}/reviews/{{reviewId}}/like",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "reviews",
                 "1",
                 "like"
@@ -799,12 +783,11 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/api/reviews/{{reviewId}}/comments",
+              "raw": "{{baseUrl}}/reviews/{{reviewId}}/comments",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "reviews",
                 "1",
                 "comments"
@@ -844,12 +827,11 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/wishlists",
+              "raw": "{{baseUrl}}/wishlists",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "wishlists"
               ]
             }
@@ -883,12 +865,11 @@
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/wishlists/book/{{bookId}}",
+              "raw": "{{baseUrl}}/wishlists/book/{{bookId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "wishlists",
                 "book",
                 "1"
@@ -919,12 +900,11 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/coupons/validate?code=GRAPE10&amount=200000",
+              "raw": "{{baseUrl}}/coupons/validate?code=GRAPE10&amount=200000",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "coupons",
                 "validate"
               ],
@@ -969,12 +949,11 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/coupons",
+              "raw": "{{baseUrl}}/coupons",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "coupons"
               ]
             }
@@ -1003,12 +982,11 @@
             "method": "PUT",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/notifications/1/read",
+              "raw": "{{baseUrl}}/notifications/1/read",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "notifications",
                 "1",
                 "read"
@@ -1044,12 +1022,11 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/notifications",
+              "raw": "{{baseUrl}}/notifications",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "notifications"
               ]
             }
@@ -1087,12 +1064,11 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/api/newsletter/subscribe",
+              "raw": "{{baseUrl}}/newsletter/subscribe",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "newsletter",
                 "subscribe"
               ]
@@ -1138,12 +1114,11 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/orders",
+              "raw": "{{baseUrl}}/orders",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "orders"
               ]
             }
@@ -1184,12 +1159,11 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/books/999999",
+              "raw": "{{baseUrl}}/books/999999",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "books",
                 "999999"
               ]
