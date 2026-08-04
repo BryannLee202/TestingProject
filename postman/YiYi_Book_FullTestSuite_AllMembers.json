@@ -60,7 +60,7 @@
                       "",
                       "pm.test(\"Lưu biến môi trường token\", function () {",
                       "    pm.environment.set(\"token\", pm.response.json().token);",
-                      "    pm.expect(pm.environment.get(\"token\")).to.not.be.empty;",
+                      "    pm.expect(pm.environment.get(\"token\")).to.exist;",
                       "});"
                     ]
                   }
@@ -90,7 +90,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"name\": \"Phu Test User\",\n  \"email\": \"{{phuTestEmail}}\",\n  \"password\": \"{{testPassword}}\",\n  \"phone\": \"0123456789\"\n}"
+                  "raw": "{\n  \"email\": \"{{phuTestEmail}}\",\n  \"password\": \"{{testPassword}}\",\n  \"name\": \"Phu Test User\",\n  \"phone\": \"{{phuTestPhone}}\"\n}"
                 }
               },
               "event": [
@@ -99,7 +99,8 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "pm.environment.set(\"phuTestEmail\", \"phu_test_\" + Date.now() + \"@example.com\");"
+                      "pm.environment.set(\"phuTestEmail\", \"phu_test_\" + Date.now() + \"@example.com\");",
+                      "pm.environment.set(\"phuTestPhone\", \"09\" + (Date.now() % 100000000));"
                     ]
                   }
                 },
@@ -311,7 +312,7 @@
                       "",
                       "pm.test(\"Lưu phuBookId\", function () {",
                       "    pm.environment.set(\"phuBookId\", pm.response.json().id);",
-                      "    pm.expect(pm.environment.get(\"phuBookId\")).to.not.be.empty;",
+                      "    pm.expect(pm.environment.get(\"phuBookId\")).to.exist;",
                       "});",
                       "",
                       "pm.test(\"Backend lưu đúng stockQuantity và title vừa gửi\", function () {",
@@ -554,7 +555,7 @@
                       "",
                       "pm.test(\"Lưu phuCategoryId\", function () {",
                       "    pm.environment.set(\"phuCategoryId\", pm.response.json().id);",
-                      "    pm.expect(pm.environment.get(\"phuCategoryId\")).to.not.be.empty;",
+                      "    pm.expect(pm.environment.get(\"phuCategoryId\")).to.exist;",
                       "});"
                     ]
                   }
@@ -782,7 +783,7 @@
                       "",
                       "pm.test(\"Lưu phuBannerId\", function () {",
                       "    pm.environment.set(\"phuBannerId\", pm.response.json().id);",
-                      "    pm.expect(pm.environment.get(\"phuBannerId\")).to.not.be.empty;",
+                      "    pm.expect(pm.environment.get(\"phuBannerId\")).to.exist;",
                       "});",
                       "",
                       "pm.test(\"Backend lưu đúng title, linkUrl, position vừa gửi\", function () {",
@@ -819,7 +820,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"title\": \"Banner Đã Update\"\n}"
+                  "raw": "{\n  \"imageUrl\": \"https://example.com/banner.jpg\",\n  \"title\": \"Banner Đã Update\",\n  \"linkUrl\": \"/sale\",\n  \"position\": \"HOME_HERO\"\n}"
                 }
               },
               "event": [
