@@ -33,13 +33,19 @@ git log --follow --oneline -- postman/Epic2.1_2.3_Collection_Auth_Books_Categori
 
 ## Phần kiểm thử API bằng Postman (Epic 1 & 2)
 
-Tổng **93 request**, toàn bộ đã được đối chiếu 1-1 với mapping controller thật.
+Tổng **119 request**, toàn bộ đã được đối chiếu 1-1 với mapping controller thật.
 
 | Thành viên | Jira | Phạm vi | File | Số request |
 |---|---|---|---|---|
 | Anh Phú | Epic 2.1, 2.2, 2.3 | Auth, Books, Categories, Banners | `postman/Epic2.1_2.3_Collection_Auth_Books_Categories_Banners_Phu.json` | 18 |
 | Thiên | Epic 2.3, 2.4 | Cart, Orders, Payment, Wishlist, Address, VAT Invoice | `postman/YiYi_Book_API_Collection_Thien.json` | 35 |
 | Lê Minh Tài | Epic 2.5 | Admin, Rewards, RBAC, luồng đặt hàng | `postman/YiYi_Book_API_Collection_Tai.json` | 40 |
+| Đinh Phan (Đỉnh) | Epic 2.3, 2.5 | Cart, Orders, Payment, Reviews, Wishlist, Coupons, Notifications, Newsletter | `test-scripts/Epic2.3_2.5_Collection_TestScripts_Dinh.json` | 26 |
+
+`postman/YiYi_Book_FullTestSuite_AllMembers.json` gộp cả 4 bộ trên vào 1 file
+(mỗi người 1 folder riêng, nội dung giống hệt file gốc) để chạy chung một lượt
+bằng Collection Runner hoặc Newman — xem `postman/README.md` mục
+"Chạy chung để nộp thầy".
 
 Hướng dẫn chạy chung: `postman/README.md`.
 
@@ -48,6 +54,10 @@ toàn bộ folder của mình (Jira: *"Viết Pre-request Script (auto login, se
 
 Tài còn làm phần **automation Newman CLI + báo cáo HTML**: `postman/package.json`,
 `postman/run-newman.sh`, và workflow `.github/workflows/api-tests.yml`.
+
+Đinh Phan còn có phần Epic 2.3 "Khai báo endpoints: Reviews + Coupons +
+Notifications + Newsletter" — 3 nhóm cuối không ai khác trong nhóm làm, nằm
+trọn trong file test-scripts/ ở trên.
 
 ## Phần unit test tầng Service
 
