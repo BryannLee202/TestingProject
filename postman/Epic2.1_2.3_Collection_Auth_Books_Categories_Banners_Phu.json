@@ -19,12 +19,11 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/auth/login",
+              "raw": "{{baseUrl}}/auth/login",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "auth",
                 "login"
               ],
@@ -32,9 +31,37 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password\"\n}"
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code là 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time < 2000ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test(\"Body có token\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"token\");",
+                  "    pm.expect(json.token).to.be.a(\"string\").and.to.not.be.empty;",
+                  "});",
+                  "",
+                  "pm.test(\"Lưu biến môi trường token\", function () {",
+                  "    pm.environment.set(\"token\", pm.response.json().token);",
+                  "    pm.expect(pm.environment.get(\"token\")).to.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Register",
@@ -47,12 +74,11 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/auth/register",
+              "raw": "{{baseUrl}}/auth/register",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "auth",
                 "register"
               ],
@@ -60,65 +86,41 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password\",\n  \"fullName\": \"Test User\"\n}"
+              "raw": "{\n  \"email\": \"{{phuTestEmail}}\",\n  \"password\": \"{{testPassword}}\",\n  \"fullName\": \"Phu Test User\"\n}"
             }
-          }
-        },
-        {
-          "name": "Refresh Token",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set(\"phuTestEmail\", \"phu_test_\" + Date.now() + \"@example.com\");"
+                ]
               }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/auth/refresh",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "refresh"
-              ],
-              "query": []
             },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"refreshToken\": \"your_refresh_token_here\"\n}"
-            }
-          }
-        },
-        {
-          "name": "Logout",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code là 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time < 2000ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test(\"Body có token của tài khoản vừa tạo\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"token\");",
+                  "    pm.expect(json.token).to.be.a(\"string\").and.to.not.be.empty;",
+                  "});"
+                ]
               }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/auth/logout",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "logout"
-              ],
-              "query": []
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{}"
             }
-          }
+          ]
         }
       ]
     },
@@ -131,17 +133,45 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/books",
+              "raw": "{{baseUrl}}/books",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "books"
               ],
               "query": []
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code là 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time < 2000ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test(\"Body là mảng sách\", function () {",
+                  "    pm.expect(pm.response.json()).to.be.an(\"array\");",
+                  "});",
+                  "",
+                  "pm.test(\"Lưu bookId từ phần tử đầu (nếu có)\", function () {",
+                  "    const json = pm.response.json();",
+                  "    if (json.length > 0 && json[0].id) {",
+                  "        pm.environment.set(\"bookId\", json[0].id);",
+                  "    }",
+                  "    pm.expect(json).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Get Book by ID",
@@ -149,18 +179,39 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/books/{{bookId}}",
+              "raw": "{{baseUrl}}/books/{{bookId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "books",
                 "{{bookId}}"
               ],
               "query": []
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code là 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time < 2000ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test(\"Body có trường id\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"id\");",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Search Books",
@@ -168,12 +219,11 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/books/search?keyword=harry",
+              "raw": "{{baseUrl}}/books/search?keyword=harry",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "books",
                 "search"
               ],
@@ -184,7 +234,28 @@
                 }
               ]
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code là 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time < 2000ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test(\"Body là mảng kết quả tìm kiếm\", function () {",
+                  "    pm.expect(pm.response.json()).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Create Book",
@@ -197,12 +268,11 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/books",
+              "raw": "{{baseUrl}}/books",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "books"
               ],
               "query": []
@@ -211,7 +281,34 @@
               "mode": "raw",
               "raw": "{\n  \"title\": \"New Book\",\n  \"price\": 150000,\n  \"author\": \"Author\",\n  \"stock\": 10\n}"
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code là 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time < 2000ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test(\"Body có trường id\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"id\");",
+                  "});",
+                  "",
+                  "pm.test(\"Lưu phuBookId\", function () {",
+                  "    pm.environment.set(\"phuBookId\", pm.response.json().id);",
+                  "    pm.expect(pm.environment.get(\"phuBookId\")).to.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Update Book",
@@ -224,14 +321,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/books/{{bookId}}",
+              "raw": "{{baseUrl}}/books/{{phuBookId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "books",
-                "{{bookId}}"
+                "{{phuBookId}}"
               ],
               "query": []
             },
@@ -239,7 +335,29 @@
               "mode": "raw",
               "raw": "{\n  \"title\": \"Updated Book\",\n  \"price\": 120000\n}"
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code là 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time < 2000ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test(\"Body có trường id\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"id\");",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Delete Book",
@@ -247,18 +365,34 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/books/{{bookId}}",
+              "raw": "{{baseUrl}}/books/{{phuBookId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "books",
-                "{{bookId}}"
+                "{{phuBookId}}"
               ],
               "query": []
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code là 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time < 2000ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -271,17 +405,45 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/categories",
+              "raw": "{{baseUrl}}/categories",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "categories"
               ],
               "query": []
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code là 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time < 2000ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test(\"Body là mảng danh mục\", function () {",
+                  "    pm.expect(pm.response.json()).to.be.an(\"array\");",
+                  "});",
+                  "",
+                  "pm.test(\"Lưu categoryId từ phần tử đầu (nếu có)\", function () {",
+                  "    const json = pm.response.json();",
+                  "    if (json.length > 0 && json[0].id) {",
+                  "        pm.environment.set(\"categoryId\", json[0].id);",
+                  "    }",
+                  "    pm.expect(json).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Get Category by ID",
@@ -289,18 +451,39 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/categories/{{categoryId}}",
+              "raw": "{{baseUrl}}/categories/{{categoryId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "categories",
                 "{{categoryId}}"
               ],
               "query": []
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code là 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time < 2000ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test(\"Body có trường id\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"id\");",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Create Category",
@@ -313,21 +496,56 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/categories",
+              "raw": "{{baseUrl}}/categories",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "categories"
               ],
               "query": []
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Sách Văn Học\",\n  \"description\": \"Văn học trong và ngoài nước\"\n}"
+              "raw": "{\n  \"name\": \"{{phuCategoryName}}\",\n  \"description\": \"Văn học trong và ngoài nước\"\n}"
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set(\"phuCategoryName\", \"Danh mục test \" + Date.now());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code là 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time < 2000ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test(\"Body có trường id\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"id\");",
+                  "});",
+                  "",
+                  "pm.test(\"Lưu phuCategoryId\", function () {",
+                  "    pm.environment.set(\"phuCategoryId\", pm.response.json().id);",
+                  "    pm.expect(pm.environment.get(\"phuCategoryId\")).to.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Update Category",
@@ -340,14 +558,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/categories/{{categoryId}}",
+              "raw": "{{baseUrl}}/categories/{{phuCategoryId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "categories",
-                "{{categoryId}}"
+                "{{phuCategoryId}}"
               ],
               "query": []
             },
@@ -355,7 +572,29 @@
               "mode": "raw",
               "raw": "{\n  \"name\": \"Sách Giáo Khoa\"\n}"
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code là 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time < 2000ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test(\"Body có trường id\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"id\");",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Delete Category",
@@ -363,18 +602,34 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/categories/{{categoryId}}",
+              "raw": "{{baseUrl}}/categories/{{phuCategoryId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "categories",
-                "{{categoryId}}"
+                "{{phuCategoryId}}"
               ],
               "query": []
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code là 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time < 2000ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -387,17 +642,45 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/banners",
+              "raw": "{{baseUrl}}/banners",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "banners"
               ],
               "query": []
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code là 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time < 2000ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test(\"Body là mảng banner\", function () {",
+                  "    pm.expect(pm.response.json()).to.be.an(\"array\");",
+                  "});",
+                  "",
+                  "pm.test(\"Lưu bannerId từ phần tử đầu (nếu có)\", function () {",
+                  "    const json = pm.response.json();",
+                  "    if (json.length > 0 && json[0].id) {",
+                  "        pm.environment.set(\"bannerId\", json[0].id);",
+                  "    }",
+                  "    pm.expect(json).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Get Banners By Position",
@@ -405,19 +688,39 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/banners/position/HOME_HERO",
+              "raw": "{{baseUrl}}/banners/position/HOME_HERO",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "banners",
                 "position",
                 "HOME_HERO"
               ],
               "query": []
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code là 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time < 2000ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test(\"Body là mảng banner theo vị trí\", function () {",
+                  "    pm.expect(pm.response.json()).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Create Banner",
@@ -430,12 +733,11 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/banners",
+              "raw": "{{baseUrl}}/banners",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "banners"
               ],
               "query": []
@@ -444,7 +746,34 @@
               "mode": "raw",
               "raw": "{\n  \"imageUrl\": \"https://example.com/banner.jpg\",\n  \"position\": \"HOME_HERO\",\n  \"active\": true\n}"
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code là 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time < 2000ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test(\"Body có trường id\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"id\");",
+                  "});",
+                  "",
+                  "pm.test(\"Lưu phuBannerId\", function () {",
+                  "    pm.environment.set(\"phuBannerId\", pm.response.json().id);",
+                  "    pm.expect(pm.environment.get(\"phuBannerId\")).to.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Update Banner",
@@ -457,14 +786,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/banners/{{bannerId}}",
+              "raw": "{{baseUrl}}/banners/{{phuBannerId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "banners",
-                "{{bannerId}}"
+                "{{phuBannerId}}"
               ],
               "query": []
             },
@@ -472,7 +800,29 @@
               "mode": "raw",
               "raw": "{\n  \"active\": false\n}"
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code là 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time < 2000ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test(\"Body có trường id\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"id\");",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Delete Banner",
@@ -480,18 +830,34 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/banners/{{bannerId}}",
+              "raw": "{{baseUrl}}/banners/{{phuBannerId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
                 "banners",
-                "{{bannerId}}"
+                "{{phuBannerId}}"
               ],
               "query": []
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code là 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time < 2000ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     }
