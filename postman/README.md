@@ -15,15 +15,15 @@
 *Tất cả các API yêu cầu xác thực đều đã được cấu hình nhúng tự động Token JWT thông qua cơ chế Bearer Token của Collection.*
 
 ### 2. Tạo Environment (Epic 2.2)
-Đã tạo 2 file Environment cấu hình sẵn biến môi trường:
-- `YiYi_Book_Local_Environment_PHU.json`: Sử dụng cho môi trường chạy Spring Boot Local.
-- `YiYi_Book_Docker_Environment_PHU.json`: Sử dụng cho môi trường chạy qua Docker Compose.
-- **Các biến đã cấu hình:** `baseUrl` (mặc định `http://localhost:8081`), `token` (chuẩn bị sẵn để map JWT), `userId`, `bookId`, `categoryId`, `bannerId`.
+- `Epic2.1_2.3_Collection_Auth_Books_Categories_Banners_Phu.json`: File Collection chứa toàn bộ các API Auth, Books, Categories, Banners.
+- `Epic2.2_Environment_Local_Phu.json`: Cấu hình cho môi trường chạy Spring Boot Local (`baseUrl = http://localhost:8081`).
+- `Epic2.2_Environment_Docker_Phu.json`: Cấu hình cho môi trường chạy qua Docker Compose (`baseUrl = http://localhost:8081`).
+- **Các biến đã cấu hình:** `baseUrl`, `token`, `userId`, `bookId`, `categoryId`, `bannerId`.
 
 ### 3. Verify API bằng Postman/Swagger (Epic 1.5)
 Quá trình tạo file Collection này được trích xuất (map) đối chiếu trực tiếp 1-1 từ Source Code Backend của dự án (cụ thể là các file Controller như `AuthController.java`, `BookController.java`,...), đảm bảo tính chính xác về mặt định tuyến (routing) và tham số truyền vào (payload body).
 
 ## Hướng dẫn sử dụng cho Team (Reviewer):
-1. **Import:** Mở ứng dụng Postman, chọn Import và kéo thả 3 file JSON trong thư mục này vào Workspace của team.
-2. **Chọn Environment:** Bật (active) môi trường "YiYi Book Local" hoặc "YiYi Book Docker" ở góc phải màn hình Postman.
+1. **Import:** Mở Postman/Thunder Client, chọn Import và chọn 3 file `Epic*.json` trong thư mục `postman/`.
+2. **Chọn Environment:** Bật môi trường "Epic 2.2 - Environment Docker (Anh Phú)" hoặc "Epic 2.2 - Environment Local (Anh Phú)".
 3. **Thử nghiệm:** Đăng nhập (Auth -> Login) để lấy token, sau đó copy token dán vào biến `token` trong Environment để test các API bảo mật (tạo, sửa, xóa).
