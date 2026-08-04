@@ -1,0 +1,54 @@
+name: Backend checks (unit test + rào chắn stack)
+
+# Chay tren MOI pull request va moi lan push vao main.
+#
+# Co y KHONG dat bo loc `paths`: rao chan stack phai nhin duoc ca docker-compose.yml
+# va frontend/package.json, neu loc theo backend/** thi mot PR keo lai MySQL qua
+# docker-compose se lot qua ma khong bi chan.
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: ["main"]
+
+jobs:
+  guard-stack:
+    name: Rào chắn stack (PostgreSQL, không Firebase/OTP)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Kiem tra stack khong bi keo lui
+        run: bash scripts/guard-stack.sh
+
+  unit-tests:
+    name: Unit test tầng Service
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Chay unit test
+        working-directory: backend
+        run: ./mvnw --batch-mode test
+
+      # Bao cao JaCoCo huu ich nhat khi test that bai, nen dinh kem ca hai truong hop.
+      - name: Dinh kem bao cao do phu JaCoCo
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: backend/target/site/jacoco/
+          if-no-files-found: warn
+          retention-days: 30
