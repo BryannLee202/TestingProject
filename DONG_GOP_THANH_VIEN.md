@@ -87,10 +87,11 @@ Khi rút 5 file test từ nhánh `Sp3-Unitest`, thao tác `git checkout <sha> --
 chỉ chép nội dung file chứ không mang theo thông tin tác giả. Commit đã được sửa
 lại để mang tên `graperu <dinhphan0511@gmail.com>`.
 
-**3. Các commit mang tên `Claude` là phần gộp nhánh và sửa lỗi**, không phải phần
-nội dung kiểm thử do thành viên viết. Cụ thể gồm: đổi tên file theo Epic, sửa lỗi
-`baseUrl` lặp `/api`, gỡ các request trỏ endpoint không tồn tại, thêm environment
-dùng chung, và thêm rào chắn CI. Chi tiết lý do nằm trong nội dung từng commit.
+**3. Các commit mang tên `LeMinhTai` trong đợt gộp này là phần tích hợp và sửa lỗi**,
+không phải phần nội dung kiểm thử do thành viên khác viết. Cụ thể gồm: đổi tên file
+theo Epic, sửa lỗi `baseUrl` lặp `/api`, gỡ các request trỏ endpoint không tồn tại,
+thêm environment dùng chung, và thêm rào chắn CI. Chi tiết lý do nằm trong nội dung
+từng commit.
 
 **4. Vì sao số request giảm so với báo cáo ban đầu.**
 10 request bị gỡ do trỏ vào endpoint không tồn tại trong backend (8 của Thiên,
