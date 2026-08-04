@@ -3,7 +3,7 @@
 Thư mục này chứa toàn bộ bộ kiểm thử API của nhóm. Sau khi clone repo, import là
 chạy được ngay, không cần chỉnh tay file nào.
 
-Báo cáo công việc của từng thành viên: [`README_Phu.md`](README_Phu.md), [`README_Tai.md`](README_Tai.md).
+Bảng đóng góp chi tiết của từng thành viên xem ở [`DONG_GOP_THANH_VIEN.md`](../DONG_GOP_THANH_VIEN.md) tại thư mục gốc repo.
 
 ## Chạy nhanh
 

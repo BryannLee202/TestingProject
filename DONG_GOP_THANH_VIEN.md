@@ -41,7 +41,6 @@ Tổng **93 request**, toàn bộ đã được đối chiếu 1-1 với mapping
 | Thiên | Epic 2.3, 2.4 | Cart, Orders, Payment, Wishlist, Address, VAT Invoice | `postman/YiYi_Book_API_Collection_Thien.json` | 35 |
 | Lê Minh Tài | Epic 2.5 | Admin, Rewards, RBAC, luồng đặt hàng | `postman/YiYi_Book_API_Collection_Tai.json` | 40 |
 
-Báo cáo riêng của từng người: `postman/README_Phu.md`, `postman/README_Tai.md`.
 Hướng dẫn chạy chung: `postman/README.md`.
 
 Thiên còn viết **pre-request script tự động đăng nhập và gán token** dùng cho

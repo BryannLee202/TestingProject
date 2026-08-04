@@ -60,8 +60,7 @@ Content-Type: application/json
   "title": "Clean Code",
   "author": "Robert C. Martin",
   "price": 250000,
-  "stock": 100,
-  "categoryId": 1
+  "stockQuantity": 100
 }
 
 ### 12. Categories - Create Category (Protected)

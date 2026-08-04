@@ -67,46 +67,6 @@
       }
     },
     {
-      "_id": "req-3",
-      "colId": "yiyi-book-api",
-      "containerId": "folder-0",
-      "name": "Refresh Token",
-      "url": "{{baseUrl}}/api/auth/refresh",
-      "method": "POST",
-      "sortNum": 30000,
-      "created": "2026-08-04T08:29:56.534Z",
-      "headers": [
-        {
-          "name": "Content-Type",
-          "value": "application/json"
-        }
-      ],
-      "body": {
-        "type": "json",
-        "raw": "{\n  \"refreshToken\": \"your_refresh_token_here\"\n}"
-      }
-    },
-    {
-      "_id": "req-4",
-      "colId": "yiyi-book-api",
-      "containerId": "folder-0",
-      "name": "Logout",
-      "url": "{{baseUrl}}/api/auth/logout",
-      "method": "POST",
-      "sortNum": 40000,
-      "created": "2026-08-04T08:29:56.534Z",
-      "headers": [
-        {
-          "name": "Content-Type",
-          "value": "application/json"
-        }
-      ],
-      "body": {
-        "type": "json",
-        "raw": "{}"
-      }
-    },
-    {
       "_id": "req-5",
       "colId": "yiyi-book-api",
       "containerId": "folder-1",
