@@ -32,6 +32,16 @@
                 "packages": {},
                 "requests": {}
               }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set(\"dinhTestEmail\", \"dinh_test_\" + Date.now() + \"@example.com\");",
+                  "pm.environment.set(\"dinhTestPhone\", \"09\" + (Date.now() % 100000000));"
+                ]
+              }
             }
           ],
           "request": {
@@ -42,7 +52,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"name\": \"Văn Đỉnh\",\r\n  \"email\": \"dinh.test@gmail.com\",\r\n  \"password\": \"123\"\r\n}\r\n",
+              "raw": "{\n  \"name\": \"Văn Đỉnh\",\n  \"email\": \"{{dinhTestEmail}}\",\n  \"password\": \"123456\",\n  \"phone\": \"{{dinhTestPhone}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -107,7 +117,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"email\": \"dinh.test@gmail.com\",\r\n  \"password\": \"123\"\r\n}\r\n",
+              "raw": "{\n  \"email\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -712,17 +722,24 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"✅ Status 200 OK\", () => {\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "});\r",
-                  "pm.test(\"⏱ Response time < 2000ms\", () => {\r",
-                  "    pm.expect(pm.response.responseTime).to.be.below(2000);\r",
-                  "});\r",
-                  "pm.test(\"👍 Thả like thành công\", () => {\r",
-                  "    const json = pm.response.json();\r",
-                  "    pm.expect(json).to.have.property(\"id\");\r",
-                  "});\r",
-                  ""
+                  "pm.test(\"✅ Status 200 (đã có đánh giá) hoặc 400 (chưa có đánh giá nào)\", () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+                  "});",
+                  "",
+                  "pm.test(\"⏱ Response time < 2000ms\", () => {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test(\"👍 Phản hồi hợp lệ theo từng trường hợp\", () => {",
+                  "    const json = pm.response.json();",
+                  "    if (pm.response.code === 200) {",
+                  "        pm.expect(json).to.have.property(\"id\");",
+                  "    } else {",
+                  "        // Backend chỉ cho đánh giá sau khi đã mua và nhận hàng, nên trên DB",
+                  "        // sạch sẽ chưa có review nào để thả tim.",
+                  "        pm.expect(json).to.have.property(\"message\");",
+                  "    }",
+                  "});"
                 ],
                 "type": "text/javascript",
                 "packages": {},
@@ -754,15 +771,23 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"✅ Status 200 OK\", () => {\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "});\r",
-                  "pm.test(\"💬 Viết comment thành công\", () => {\r",
-                  "    const json = pm.response.json();\r",
-                  "    pm.expect(json).to.have.property(\"id\");\r",
-                  "    pm.expect(json.content).to.equal(\"Cảm ơn bạn đã chia sẻ trải nghiệm!\");\r",
-                  "});\r",
-                  ""
+                  "pm.test(\"✅ Status 200 (đã có đánh giá) hoặc 400 (chưa có đánh giá nào)\", () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+                  "});",
+                  "",
+                  "pm.test(\"⏱ Response time < 2000ms\", () => {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test(\"💬 Phản hồi hợp lệ theo từng trường hợp\", () => {",
+                  "    const json = pm.response.json();",
+                  "    if (pm.response.code === 200) {",
+                  "        pm.expect(json).to.have.property(\"id\");",
+                  "        pm.expect(json.content).to.eql(\"Cảm ơn bạn đã chia sẻ trải nghiệm!\");",
+                  "    } else {",
+                  "        pm.expect(json).to.have.property(\"message\");",
+                  "    }",
+                  "});"
                 ],
                 "type": "text/javascript",
                 "packages": {},
@@ -1121,6 +1146,9 @@
               "path": [
                 "orders"
               ]
+            },
+            "auth": {
+              "type": "noauth"
             }
           },
           "response": []

@@ -120,7 +120,7 @@
                   "});",
                   "",
                   "pm.test(\"Backend lưu đúng name của tài khoản vừa tạo\", function () {",
-                  "    pm.expect(pm.response.json().user.name).to.eql(\"Phu Test User\");",
+                  "    pm.expect(pm.response.json().user.fullName).to.eql(\"Phu Test User\");",
                   "});"
                 ]
               }
