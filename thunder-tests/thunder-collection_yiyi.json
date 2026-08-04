@@ -1,0 +1,350 @@
+{
+  "clientName": "Thunder Client",
+  "collectionName": "YiYi Book API Collection",
+  "collectionId": "yiyi-book-api",
+  "dateCreated": "2026-08-04T08:29:56.533Z",
+  "folders": [
+    {
+      "_id": "folder-0",
+      "name": "Auth",
+      "containerId": ""
+    },
+    {
+      "_id": "folder-1",
+      "name": "Books",
+      "containerId": ""
+    },
+    {
+      "_id": "folder-2",
+      "name": "Categories",
+      "containerId": ""
+    },
+    {
+      "_id": "folder-3",
+      "name": "Banners",
+      "containerId": ""
+    }
+  ],
+  "requests": [
+    {
+      "_id": "req-1",
+      "colId": "yiyi-book-api",
+      "containerId": "folder-0",
+      "name": "Login",
+      "url": "{{baseUrl}}/api/auth/login",
+      "method": "POST",
+      "sortNum": 10000,
+      "created": "2026-08-04T08:29:56.534Z",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password\"\n}"
+      }
+    },
+    {
+      "_id": "req-2",
+      "colId": "yiyi-book-api",
+      "containerId": "folder-0",
+      "name": "Register",
+      "url": "{{baseUrl}}/api/auth/register",
+      "method": "POST",
+      "sortNum": 20000,
+      "created": "2026-08-04T08:29:56.534Z",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password\",\n  \"name\": \"Test User\",\n  \"phone\": \"0123456789\"\n}"
+      }
+    },
+    {
+      "_id": "req-3",
+      "colId": "yiyi-book-api",
+      "containerId": "folder-0",
+      "name": "Refresh Token",
+      "url": "{{baseUrl}}/api/auth/refresh",
+      "method": "POST",
+      "sortNum": 30000,
+      "created": "2026-08-04T08:29:56.534Z",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"refreshToken\": \"your_refresh_token_here\"\n}"
+      }
+    },
+    {
+      "_id": "req-4",
+      "colId": "yiyi-book-api",
+      "containerId": "folder-0",
+      "name": "Logout",
+      "url": "{{baseUrl}}/api/auth/logout",
+      "method": "POST",
+      "sortNum": 40000,
+      "created": "2026-08-04T08:29:56.534Z",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{}"
+      }
+    },
+    {
+      "_id": "req-5",
+      "colId": "yiyi-book-api",
+      "containerId": "folder-1",
+      "name": "Get All Books",
+      "url": "{{baseUrl}}/api/books",
+      "method": "GET",
+      "sortNum": 50000,
+      "created": "2026-08-04T08:29:56.534Z",
+      "headers": [],
+      "body": {}
+    },
+    {
+      "_id": "req-6",
+      "colId": "yiyi-book-api",
+      "containerId": "folder-1",
+      "name": "Get Book by ID",
+      "url": "{{baseUrl}}/api/books/{{bookId}}",
+      "method": "GET",
+      "sortNum": 60000,
+      "created": "2026-08-04T08:29:56.534Z",
+      "headers": [],
+      "body": {}
+    },
+    {
+      "_id": "req-7",
+      "colId": "yiyi-book-api",
+      "containerId": "folder-1",
+      "name": "Search Books",
+      "url": "{{baseUrl}}/api/books/search?keyword=harry",
+      "method": "GET",
+      "sortNum": 70000,
+      "created": "2026-08-04T08:29:56.534Z",
+      "headers": [],
+      "body": {}
+    },
+    {
+      "_id": "req-8",
+      "colId": "yiyi-book-api",
+      "containerId": "folder-1",
+      "name": "Create Book",
+      "url": "{{baseUrl}}/api/books",
+      "method": "POST",
+      "sortNum": 80000,
+      "created": "2026-08-04T08:29:56.534Z",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"title\": \"New Book\",\n  \"price\": 150000,\n  \"author\": \"Author\",\n  \"stockQuantity\": 10\n}"
+      }
+    },
+    {
+      "_id": "req-9",
+      "colId": "yiyi-book-api",
+      "containerId": "folder-1",
+      "name": "Update Book",
+      "url": "{{baseUrl}}/api/books/{{bookId}}",
+      "method": "PUT",
+      "sortNum": 90000,
+      "created": "2026-08-04T08:29:56.534Z",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"title\": \"Updated Book\",\n  \"price\": 120000\n}"
+      }
+    },
+    {
+      "_id": "req-10",
+      "colId": "yiyi-book-api",
+      "containerId": "folder-1",
+      "name": "Delete Book",
+      "url": "{{baseUrl}}/api/books/{{bookId}}",
+      "method": "DELETE",
+      "sortNum": 100000,
+      "created": "2026-08-04T08:29:56.534Z",
+      "headers": [],
+      "body": {}
+    },
+    {
+      "_id": "req-11",
+      "colId": "yiyi-book-api",
+      "containerId": "folder-2",
+      "name": "Get All Categories",
+      "url": "{{baseUrl}}/api/categories",
+      "method": "GET",
+      "sortNum": 110000,
+      "created": "2026-08-04T08:29:56.534Z",
+      "headers": [],
+      "body": {}
+    },
+    {
+      "_id": "req-12",
+      "colId": "yiyi-book-api",
+      "containerId": "folder-2",
+      "name": "Get Category by ID",
+      "url": "{{baseUrl}}/api/categories/{{categoryId}}",
+      "method": "GET",
+      "sortNum": 120000,
+      "created": "2026-08-04T08:29:56.534Z",
+      "headers": [],
+      "body": {}
+    },
+    {
+      "_id": "req-13",
+      "colId": "yiyi-book-api",
+      "containerId": "folder-2",
+      "name": "Create Category",
+      "url": "{{baseUrl}}/api/categories",
+      "method": "POST",
+      "sortNum": 130000,
+      "created": "2026-08-04T08:29:56.534Z",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"name\": \"Sách Văn Học\",\n  \"description\": \"Văn học trong và ngoài nước\"\n}"
+      }
+    },
+    {
+      "_id": "req-14",
+      "colId": "yiyi-book-api",
+      "containerId": "folder-2",
+      "name": "Update Category",
+      "url": "{{baseUrl}}/api/categories/{{categoryId}}",
+      "method": "PUT",
+      "sortNum": 140000,
+      "created": "2026-08-04T08:29:56.534Z",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"name\": \"Sách Giáo Khoa\"\n}"
+      }
+    },
+    {
+      "_id": "req-15",
+      "colId": "yiyi-book-api",
+      "containerId": "folder-2",
+      "name": "Delete Category",
+      "url": "{{baseUrl}}/api/categories/{{categoryId}}",
+      "method": "DELETE",
+      "sortNum": 150000,
+      "created": "2026-08-04T08:29:56.534Z",
+      "headers": [],
+      "body": {}
+    },
+    {
+      "_id": "req-16",
+      "colId": "yiyi-book-api",
+      "containerId": "folder-3",
+      "name": "Get All Banners",
+      "url": "{{baseUrl}}/api/banners",
+      "method": "GET",
+      "sortNum": 160000,
+      "created": "2026-08-04T08:29:56.534Z",
+      "headers": [],
+      "body": {}
+    },
+    {
+      "_id": "req-17",
+      "colId": "yiyi-book-api",
+      "containerId": "folder-3",
+      "name": "Get Banners By Position",
+      "url": "{{baseUrl}}/api/banners/position/HOME_HERO",
+      "method": "GET",
+      "sortNum": 170000,
+      "created": "2026-08-04T08:29:56.534Z",
+      "headers": [],
+      "body": {}
+    },
+    {
+      "_id": "req-18",
+      "colId": "yiyi-book-api",
+      "containerId": "folder-3",
+      "name": "Create Banner",
+      "url": "{{baseUrl}}/api/banners",
+      "method": "POST",
+      "sortNum": 180000,
+      "created": "2026-08-04T08:29:56.534Z",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"imageUrl\": \"https://example.com/banner.jpg\",\n  \"position\": \"HOME_HERO\",\n  \"title\": \"Banner Sale\",\n  \"linkUrl\": \"/sale\"\n}"
+      }
+    },
+    {
+      "_id": "req-19",
+      "colId": "yiyi-book-api",
+      "containerId": "folder-3",
+      "name": "Update Banner",
+      "url": "{{baseUrl}}/api/banners/{{bannerId}}",
+      "method": "PUT",
+      "sortNum": 190000,
+      "created": "2026-08-04T08:29:56.534Z",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"title\": \"Banner Đã Update\"\n}"
+      }
+    },
+    {
+      "_id": "req-20",
+      "colId": "yiyi-book-api",
+      "containerId": "folder-3",
+      "name": "Delete Banner",
+      "url": "{{baseUrl}}/api/banners/{{bannerId}}",
+      "method": "DELETE",
+      "sortNum": 200000,
+      "created": "2026-08-04T08:29:56.534Z",
+      "headers": [],
+      "body": {}
+    }
+  ]
+}
