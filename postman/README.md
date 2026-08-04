@@ -16,8 +16,8 @@
 
 ### 2. Tạo Environment (Epic 2.2)
 Đã tạo 2 file Environment cấu hình sẵn biến môi trường:
-- `YiYi_Book_Local_Environment.json`: Sử dụng cho môi trường chạy Spring Boot Local.
-- `YiYi_Book_Docker_Environment.json`: Sử dụng cho môi trường chạy qua Docker Compose.
+- `YiYi_Book_Local_Environment_PHU.json`: Sử dụng cho môi trường chạy Spring Boot Local.
+- `YiYi_Book_Docker_Environment_PHU.json`: Sử dụng cho môi trường chạy qua Docker Compose.
 - **Các biến đã cấu hình:** `baseUrl` (mặc định `http://localhost:8081`), `token` (chuẩn bị sẵn để map JWT), `userId`, `bookId`, `categoryId`, `bannerId`.
 
 ### 3. Verify API bằng Postman/Swagger (Epic 1.5)
