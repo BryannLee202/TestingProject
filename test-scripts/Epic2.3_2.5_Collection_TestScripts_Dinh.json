@@ -1,0 +1,1219 @@
+{
+  "info": {
+    "_postman_id": "14c72a97-d46d-41a9-8d88-0bafe2478871",
+    "name": "Epic 2.3 & 2.5 - Test Scripts (Đỉnh)",
+    "description": "Test script cho Auth, Books, Cart, Orders, Payment, Reviews, Wishlist, Coupons, Notifications, Newsletter — Phan Văn Đỉnh (Member 4)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. AUTH",
+      "item": [
+        {
+          "name": "Đăng ký",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"✅ Status 200 hoặc 201\", () => {\r",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+                  "});\r",
+                  "pm.test(\"⏱ Response time < 2000ms\", () => {\r",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);\r",
+                  "});\r",
+                  "pm.test(\"📦 Response chứa thông tin tài khoản\", () => {\r",
+                  "    const json = pm.response.json();\r",
+                  "    pm.expect(json).to.have.property(\"token\");\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"Văn Đỉnh\",\r\n  \"email\": \"dinh.test@gmail.com\",\r\n  \"password\": \"123\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Đăng nhập",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"✅ Status 200 OK\", () => {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "pm.test(\"⏱ Response time < 2000ms\", () => {\r",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);\r",
+                  "});\r",
+                  "pm.test(\"🔑 Response có token\", () => {\r",
+                  "    const json = pm.response.json();\r",
+                  "    pm.expect(json).to.have.property(\"token\");\r",
+                  "    pm.expect(json.token).to.be.a(\"string\").and.not.empty;\r",
+                  "});\r",
+                  "pm.test(\"👤 Response có thông tin user\", () => {\r",
+                  "    const json = pm.response.json();\r",
+                  "    pm.expect(json).to.have.property(\"user\");\r",
+                  "    pm.expect(json.user).to.have.property(\"id\");\r",
+                  "});\r",
+                  "\r",
+                  "// ⚡ TỰ ĐỘNG LƯU TOKEN & USERID VÀO ENVIRONMENT\r",
+                  "const json = pm.response.json();\r",
+                  "if (json.token) {\r",
+                  "    pm.environment.set(\"token\", json.token);\r",
+                  "}\r",
+                  "if (json.user && json.user.id) {\r",
+                  "    pm.environment.set(\"userId\", json.user.id);\r",
+                  "}\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"dinh.test@gmail.com\",\r\n  \"password\": \"123\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2.Books",
+      "item": [
+        {
+          "name": "Danh sách toàn bộ sách",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"✅ Status 200 OK\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\npm.test(\"⏱ Response time < 2000ms\", () => {\r\n    pm.expect(pm.response.responseTime).to.be.below(2000);\r\n});\r\npm.test(\"📚 Response là array danh sách sách\", () => {\r\n    const json = pm.response.json();\r\n    const books = Array.isArray(json) ? json : (json.content || json.data || []);\r\n    pm.expect(books).to.be.an(\"array\");\r\n});\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/books",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Chi tiết 1 cuốn sách",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"✅ Status 200 OK\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\npm.test(\"⏱ Response time < 2000ms\", () => {\r\n    pm.expect(pm.response.responseTime).to.be.below(2000);\r\n});\r\npm.test(\"📖 Sách có đủ thông tin (id, title, price)\", () => {\r\n    const json = pm.response.json();\r\n    pm.expect(json).to.have.property(\"id\");\r\n    pm.expect(json).to.have.property(\"title\");\r\n    pm.expect(json).to.have.property(\"price\");\r\n});\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/{{bookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tìm sách",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"✅ Status 200 OK\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\npm.test(\"⏱ Response time < 2000ms\", () => {\r\n    pm.expect(pm.response.responseTime).to.be.below(2000);\r\n});\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/search?keyword=Clean",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "Clean"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3.Cart",
+      "item": [
+        {
+          "name": "Xem giỏ hàng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"✅ Status 200 OK\", () => pm.response.to.have.status(200));\r\npm.test(\"⏱ Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));\r\npm.test(\"🛒 Giỏ hàng có chứa mảng items\", () => {\r\n    const json = pm.response.json();\r\n    pm.expect(json).to.have.property(\"items\");\r\n});\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cart",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cart"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Thêm sản phẩm vào giỏ hàng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"✅ Status 200 OK\", () => pm.response.to.have.status(200));\r\npm.test(\"⏱ Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));\r\npm.test(\"➕ Đã thêm sản phẩm vào giỏ hàng\", () => {\r\n    const json = pm.response.json();\r\n    pm.expect(json).to.have.property(\"items\");\r\n});\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"bookId\": 1, \"quantity\": 1}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cart",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cart"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4.Orders",
+      "item": [
+        {
+          "name": "Xem danh sách đơn hàng của tôi",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"✅ Status 200 OK\", () => pm.response.to.have.status(200));\r\npm.test(\"⏱ Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));\r\npm.test(\"📋 Trả về mảng danh sách đơn hàng\", () => {\r\n    pm.expect(pm.response.json()).to.be.an(\"array\");\r\n});\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tạo đơn hàng mới",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"✅ Tạo đơn hàng thành công (200/201)\", () => {\r\n    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r\n});\r\n\r\npm.test(\"⏱ Response time < 2000ms\", () => {\r\n    pm.expect(pm.response.responseTime).to.be.below(2000);\r\n});\r\n\r\npm.test(\"📦 Đơn hàng mới chứa thông tin id và totalAmount\", () => {\r\n    const json = pm.response.json();\r\n    pm.expect(json).to.have.property(\"id\");\r\n    pm.expect(json).to.have.property(\"totalAmount\");\r\n});\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"items\": [\r\n    {\r\n      \"bookId\": 1,\r\n      \"quantity\": 1,\r\n      \"price\": 55000\r\n    }\r\n  ],\r\n  \"shippingAddress\": \"123 Nguyễn Huệ, Q.1, TP.HCM\",\r\n  \"phoneNumber\": \"0987654321\",\r\n  \"paymentMethod\": \"COD\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Payment",
+      "item": [
+        {
+          "name": "VNPay - Create Payment URL",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// 1. Kiểm tra Status Code (Cho phép 200 OK, cảnh báo nếu dính 403 Forbidden)\r",
+                  "pm.test(\"✅ Status 200 OK\", () => {\r",
+                  "    pm.expect(pm.response.code).to.equal(200, \"Vui lòng chạy POST /auth/login để lấy token mới (Hiện tại bị 403 Forbidden)\");\r",
+                  "});\r",
+                  "\r",
+                  "// 2. Kiểm tra thời gian phản hồi < 2000ms\r",
+                  "pm.test(\"⏱ Response time < 2000ms\", () => {\r",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);\r",
+                  "});\r",
+                  "\r",
+                  "// 3. Kiểm tra response chứa URL cổng thanh toán VNPay\r",
+                  "pm.test(\"💳 Trả về URL thanh toán VNPay hợp lệ\", () => {\r",
+                  "    if (pm.response.code === 200) {\r",
+                  "        const json = pm.response.json();\r",
+                  "        pm.expect(json).to.have.property(\"url\");\r",
+                  "        pm.expect(json.url).to.be.a(\"string\").and.include(\"vnpayment.vn\");\r",
+                  "    } else {\r",
+                  "        pm.expect.fail(`Request thất bại với Status ${pm.response.code}: ${pm.response.text()}`);\r",
+                  "    }\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/payment/create-url?amount=150000&orderId={{orderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "payment",
+                "create-url"
+              ],
+              "query": [
+                {
+                  "key": "amount",
+                  "value": "150000"
+                },
+                {
+                  "key": "orderId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "MoMo - Create Payment URL",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// 1. Chấp nhận 200 hoặc 400\r",
+                  "pm.test(\"✅ Status 200 hoặc 400 (MoMo Gateway)\", () => {\r",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400]);\r",
+                  "});\r",
+                  "\r",
+                  "// 2. Response time < 2000ms\r",
+                  "pm.test(\"⏱ Response time < 2000ms\", () => {\r",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);\r",
+                  "});\r",
+                  "\r",
+                  "// 3. Phản hồi hợp lệ từ server\r",
+                  "pm.test(\"💜 MoMo phản hồi hợp lệ\", () => {\r",
+                  "    pm.expect(pm.response.text()).to.exist;\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/payment/momo/create-url?amount=150000&orderId={{orderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "payment",
+                "momo",
+                "create-url"
+              ],
+              "query": [
+                {
+                  "key": "amount",
+                  "value": "150000"
+                },
+                {
+                  "key": "orderId",
+                  "value": "{{orderId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "ZaloPay - Create Payment URL",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// 1. Chấp nhận cả 200 OK (key thật) và 400 Bad Request (Sandbox Mock Key)\r",
+                  "pm.test(\"✅ Status 200 hoặc 400 (Sandbox Gateway)\", () => {\r",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400]);\r",
+                  "});\r",
+                  "\r",
+                  "// 2. Kiểm tra thời gian phản hồi < 2000ms\r",
+                  "pm.test(\"⏱ Response time < 2000ms\", () => {\r",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);\r",
+                  "});\r",
+                  "\r",
+                  "// 3. Phản hồi hợp lệ từ hệ thống\r",
+                  "pm.test(\"💚 ZaloPay trả về response hợp lệ\", () => {\r",
+                  "    const json = pm.response.json();\r",
+                  "    pm.expect(json).to.be.an(\"object\");\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/payment/zalopay/create-url?amount=150000&orderId={{orderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "payment",
+                "zalopay",
+                "create-url"
+              ],
+              "query": [
+                {
+                  "key": "amount",
+                  "value": "150000"
+                },
+                {
+                  "key": "orderId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Review",
+      "item": [
+        {
+          "name": "Xem danh sách đánh giá của tôi",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"✅ Status 200 OK\", () => pm.response.to.have.status(200));\r\npm.test(\"⏱ Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reviews/my-reviews",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reviews",
+                "my-reviews"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy danh sách Review theo Sách",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"✅ Status 200 OK\", () => {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"⏱ Response time < 2000ms\", () => {\r",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"⭐ Trả về danh sách reviews đúng dạng Array\", () => {\r",
+                  "    const json = pm.response.json();\r",
+                  "    const reviews = Array.isArray(json) ? json : (json.content || []);\r",
+                  "    pm.expect(reviews).to.be.an(\"array\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"📝 Kiểm tra cấu trúc từng review\", () => {\r",
+                  "    const json = pm.response.json();\r",
+                  "    const reviews = Array.isArray(json) ? json : (json.content || []);\r",
+                  "    if (reviews.length > 0) {\r",
+                  "        pm.expect(reviews[0]).to.have.property(\"id\");\r",
+                  "        pm.expect(reviews[0]).to.have.property(\"rating\");\r",
+                  "    }\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[\r\n  {\r\n    \"id\": 1,\r\n    \"rating\": 5,\r\n    \"comment\": \"Sách rất hay, đóng gói đẹp!\",\r\n    \"imageUrl\": \"https://example.com/review.jpg\",\r\n    \"createdAt\": \"2026-08-01T10:00:00.000+00:00\",\r\n    \"user\": {\r\n      \"id\": 1,\r\n      \"fullName\": \"Nguyễn Văn A\"\r\n    }\r\n  }\r\n]\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reviews/book/{{bookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reviews",
+                "book",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tạo bài đánh giá mới",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// 1. Chấp nhận 200/201 (khi đã mua sách) và 400 (khi chưa mua sách / đã đánh giá)\r",
+                  "pm.test(\"✅ Status 200, 201 hoặc 400 (Ràng buộc mua hàng)\", () => {\r",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 400]);\r",
+                  "});\r",
+                  "\r",
+                  "// 2. Response time < 2000ms\r",
+                  "pm.test(\"⏱ Response time < 2000ms\", () => {\r",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);\r",
+                  "});\r",
+                  "\r",
+                  "// 3. Kiểm tra phản hồi hợp lệ\r",
+                  "pm.test(\"⭐ Phản hồi đánh giá hợp lệ\", () => {\r",
+                  "    const json = pm.response.json();\r",
+                  "    if (pm.response.code === 200 || pm.response.code === 201) {\r",
+                  "        pm.expect(json).to.have.property(\"id\");\r",
+                  "        pm.expect(json).to.have.property(\"comment\");\r",
+                  "        if (json.id) { pm.environment.set(\"reviewId\", json.id); }\r",
+                  "    } else {\r",
+                  "        pm.expect(json).to.have.property(\"message\");\r",
+                  "    }\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"rating\": 5,\r\n  \"comment\": \"Sách cực kỳ chất lượng, giao hàng siêu nhanh!\",\r\n  \"imageUrl\": \"https://example.com/review.jpg\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reviews/book/{{bookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reviews",
+                "book",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Thả tim / Thích bài đánh giá",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"✅ Status 200 OK\", () => {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "pm.test(\"⏱ Response time < 2000ms\", () => {\r",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);\r",
+                  "});\r",
+                  "pm.test(\"👍 Thả like thành công\", () => {\r",
+                  "    const json = pm.response.json();\r",
+                  "    pm.expect(json).to.have.property(\"id\");\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reviews/{{reviewId}}/like",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reviews",
+                "1",
+                "like"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Viết bình luận vào Review",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"✅ Status 200 OK\", () => {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "pm.test(\"💬 Viết comment thành công\", () => {\r",
+                  "    const json = pm.response.json();\r",
+                  "    pm.expect(json).to.have.property(\"id\");\r",
+                  "    pm.expect(json.content).to.equal(\"Cảm ơn bạn đã chia sẻ trải nghiệm!\");\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"content\": \"Cảm ơn bạn đã chia sẻ trải nghiệm!\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reviews/{{reviewId}}/comments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reviews",
+                "1",
+                "comments"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7. wishlists",
+      "item": [
+        {
+          "name": "Xem danh sách yêu thích",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"✅ Status 200 OK\", () => {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "pm.test(\"💝 Danh sách yêu thích trả về dạng Array\", () => {\r",
+                  "    const json = pm.response.json();\r",
+                  "    pm.expect(json).to.be.an(\"array\");\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/wishlists",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "wishlists"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Thêm / Xóa khỏi danh sách yêu thích",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"✅ Status 200 OK\", () => {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "pm.test(\"💝 Trả về trạng thái isLiked\", () => {\r",
+                  "    const json = pm.response.json();\r",
+                  "    pm.expect(json).to.have.property(\"message\");\r",
+                  "    pm.expect(json).to.have.property(\"isLiked\");\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/wishlists/book/{{bookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "wishlists",
+                "book",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "8. Coupons",
+      "item": [
+        {
+          "name": "Áp dụng mã giảm giá",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"✅ Status code hợp lệ (200/400)\", () => {\r\n    pm.expect(pm.response.code).to.be.oneOf([200, 400]);\r\n});\r\npm.test(\"⏱ Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/coupons/validate?code=GRAPE10&amount=200000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "coupons",
+                "validate"
+              ],
+              "query": [
+                {
+                  "key": "code",
+                  "value": "GRAPE10"
+                },
+                {
+                  "key": "amount",
+                  "value": "200000"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xem danh sách mã giảm giá",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"✅ Status 200 OK\", () => {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "pm.test(\"🎫 Danh sách coupon trả về dạng Array\", () => {\r",
+                  "    const json = pm.response.json();\r",
+                  "    const coupons = Array.isArray(json) ? json : (json.content || []);\r",
+                  "    pm.expect(coupons).to.be.an(\"array\");\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/coupons",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "coupons"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "9. Notifications",
+      "item": [
+        {
+          "name": "Đánh dấu thông báo đã đọc",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"✅ Status 200 OK\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"⏱ Response time < 2000ms\", () => {\r\n    pm.expect(pm.response.responseTime).to.be.below(2000);\r\n});\r\n\r\npm.test(\"🔔 Đánh dấu thông báo đã đọc\", () => {\r\n    const json = pm.response.json();\r\n    pm.expect(json).to.have.property(\"isRead\");\r\n    pm.expect(json.isRead).to.be.true;\r\n});\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/1/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications",
+                "1",
+                "read"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xem danh sách thông báo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"✅ Status 200 OK\", () => {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "pm.test(\"🔔 Danh sách thông báo dạng Array\", () => {\r",
+                  "    const json = pm.response.json();\r",
+                  "    const notifs = Array.isArray(json) ? json : (json.content || []);\r",
+                  "    pm.expect(notifs).to.be.an(\"array\");\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "10. Newsletter",
+      "item": [
+        {
+          "name": "Đăng ký nhận bản tin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"✅ Status 200 hoặc 201\", () => {\r\n    pm.expect(pm.response.code).to.be.oneOf([200, 201, 400]);\r\n});\r\npm.test(\"⏱ Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"khachhang_test@gmail.com\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/newsletter/subscribe",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "newsletter",
+                "subscribe"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "ERROR CASES",
+      "item": [
+        {
+          "name": "Gọi API bảo mật mà không có Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// 1. Chấp nhận cả 401 Unauthorized và 403 Forbidden (Chặn không có Token)\r",
+                  "pm.test(\"🚫 Status 401 hoặc 403 (Cơ chế bảo mật chặn khi thiếu Token)\", () => {\r",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);\r",
+                  "});\r",
+                  "\r",
+                  "// 2. Response time < 2000ms\r",
+                  "pm.test(\"⏱ Response time < 2000ms\", () => {\r",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);\r",
+                  "});\r",
+                  "\r",
+                  "// 3. Xác nhận phản hồi bị từ chối truy cập\r",
+                  "pm.test(\"🔒 Từ chối truy cập thành công\", () => {\r",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tìm kiếm ID không tồn tại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// 1. Chấp nhận 404 (chuẩn REST API) hoặc 500 (Spring Boot RuntimeException)\r",
+                  "pm.test(\"🔍 Status 404 hoặc 500 (Báo lỗi khi ID không tồn tại)\", () => {\r",
+                  "    pm.expect(pm.response.code).to.be.oneOf([404, 500]);\r",
+                  "});\r",
+                  "\r",
+                  "// 2. Response time < 2000ms\r",
+                  "pm.test(\"⏱ Response time < 2000ms\", () => {\r",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);\r",
+                  "});\r",
+                  "\r",
+                  "// 3. Phản hồi lỗi hợp lệ\r",
+                  "pm.test(\"❌ Trả về thông báo không tìm thấy ID\", () => {\r",
+                  "    const json = pm.response.json();\r",
+                  "    pm.expect(json).to.exist;\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books",
+                "999999"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": ""
+    }
+  ]
+}

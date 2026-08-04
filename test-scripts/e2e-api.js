@@ -57,10 +57,10 @@ async function runTests() {
     // 1. Register User
     console.log(`1. Testing Registration for ${email}...`);
     await request('/auth/register', 'POST', {
-      username: `tester_${testId}`,
       email: email,
       password: password,
-      name: 'Test User'
+      name: 'Test User',
+      phone: '0123456789'
     });
     console.log('   -> Registration Success.');
 
@@ -87,9 +87,10 @@ async function runTests() {
     if (books.length > 0) {
       firstBookId = books[0].id;
     } else {
-      const allBooks = await request('/books?page=0&size=10', 'GET', null, false);
-      if (allBooks.content && allBooks.content.length > 0) {
-        firstBookId = allBooks.content[0].id;
+      // GET /books tra ve mang thuan, khong phai trang phan trang {content:[...]}
+      const allBooks = await request('/books', 'GET', null, false);
+      if (Array.isArray(allBooks) && allBooks.length > 0) {
+        firstBookId = allBooks[0].id;
       }
     }
     if (!firstBookId) {
@@ -101,7 +102,7 @@ async function runTests() {
     // 5. Add to Cart
     console.log('5. Adding Book to Cart...');
     try {
-      await request('/cart/add', 'POST', {
+      await request('/cart', 'POST', {
         bookId: firstBookId,
         quantity: 1
       }, token);
@@ -128,7 +129,6 @@ async function runTests() {
         paymentMethod: 'COD',
         customerNote: 'Test order',
         shippingFee: 15000,
-        totalAmount: 50000,
         items: [
            { bookId: firstBookId, quantity: 1, price: 50000 }
         ]
@@ -141,8 +141,7 @@ async function runTests() {
     // 8. Add Review
     console.log('8. Testing Review Submission...');
     try {
-      await request('/reviews', 'POST', {
-        bookId: firstBookId,
+      await request(`/reviews/book/${firstBookId}`, 'POST', {
         rating: 5,
         comment: 'Great book! Tested autonomously.'
       }, token);
