@@ -247,6 +247,18 @@
       "value": "",
       "type": "default",
       "enabled": true
+    },
+    {
+      "key": "contactId",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "uploadedUrl",
+      "value": "",
+      "type": "default",
+      "enabled": true
     }
   ],
   "_postman_variable_scope": "environment"

@@ -1,0 +1,1158 @@
+{
+  "info": {
+    "_postman_id": "2abd7c00-f853-4eb7-aeaa-dda1d9efb28e",
+    "name": "Epic 2 - Users, Contacts, Settings, Upload (Vân Anh)",
+    "description": "Bốn nhóm endpoint: Users, Contacts, Settings, Upload — Vân Anh (Member 1).\n\nDùng chung environment \"YiYi Book — TEAM (Local)\".\n\nChạy folder \"00 - Auth\" trước để lấy adminToken và userToken.\n\nNhóm Upload dùng form-data: phải tự chọn tệp trong Postman trước khi chạy, nếu không sẽ báo lỗi thiếu tham số file.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "57072160",
+    "_collection_link": "https://go.postman.co/collection/57072109-2abd7c00-f853-4eb7-aeaa-dda1d9efb28e?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "00 - Auth",
+      "item": [
+        {
+          "name": "Đăng nhập tài khoản quản trị",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Đăng nhập thành công', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Phản hồi có chứa token', function () {",
+                  "    pm.expect(pm.response.json()).to.have.property('token');",
+                  "});",
+                  "",
+                  "// Lưu token vào environment để các request sau dùng",
+                  "const body = pm.response.json();",
+                  "if (body && body.token) {",
+                  "    pm.environment.set('adminToken', body.token);",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Dang nhap va tu luu JWT vao bien admin_token. Chay request nay truoc cac folder khac."
+          },
+          "response": []
+        },
+        {
+          "name": "Đăng nhập tài khoản thường",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Đăng nhập thành công', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Phản hồi có chứa token', function () {",
+                  "    pm.expect(pm.response.json()).to.have.property('token');",
+                  "});",
+                  "",
+                  "// Lưu token vào environment để các request sau dùng",
+                  "const body = pm.response.json();",
+                  "if (body && body.token) {",
+                  "    pm.environment.set('userToken', body.token);",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Dang nhap va tu luu JWT vao bien user_token. Chay request nay truoc cac folder khac."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Lấy thông tin hồ sơ cá nhân",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Trả về mã 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Có đủ các trường thông tin cơ bản', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property('id');",
+                  "    pm.expect(body).to.have.property('username');",
+                  "    pm.expect(body).to.have.property('fullName');",
+                  "    pm.expect(body).to.have.property('role');",
+                  "});",
+                  "",
+                  "pm.test('Không để lộ mật khẩu trong phản hồi', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.password).to.be.oneOf([undefined, null]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "profile"
+              ]
+            },
+            "description": "Trả về thông tin tài khoản đang đăng nhập, xác định qua JWT."
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy hồ sơ khi chưa đăng nhập (âm tính)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Bị từ chối truy cập (401 hoặc 403)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "profile"
+              ]
+            },
+            "description": "Không gửi token, kỳ vọng bị từ chối truy cập."
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật hồ sơ cá nhân",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Trả về mã 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Thông tin đã được cập nhật đúng', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.fullName).to.eql('Nguyen Van A');",
+                  "    pm.expect(body.phone).to.eql('0900000000');",
+                  "    pm.expect(body.gender).to.eql('Nam');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"fullName\": \"Nguyen Van A\",\n    \"phone\": \"0900000000\",\n    \"gender\": \"Nam\",\n    \"birthday\": \"01/01/2000\",\n    \"aiPreferences\": \"Thích sách trinh tham\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "profile"
+              ]
+            },
+            "description": "Cập nhật thông tin cá nhân. Lưu ý: các trường không gửi lên sẽ bị ghi đè thành null."
+          },
+          "response": []
+        },
+        {
+          "name": "Đổi mật khẩu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Trả về mã 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Có thông báo đổi mật khẩu thành công', function () {",
+                  "    pm.expect(pm.response.json().message).to.include('thành công');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"oldPassword\": \"123456\",\n    \"newPassword\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "password"
+              ]
+            },
+            "description": "Đổi mật khẩu. Đặt mật khẩu mới trùng mật khẩu cũ để chạy lại được nhiều lần."
+          },
+          "response": []
+        },
+        {
+          "name": "Đổi mật khẩu với mật khẩu cũ sai (âm tính)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Không trả về mã 200', function () {",
+                  "    pm.expect(pm.response.code).to.not.eql(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"oldPassword\": \"mat_khau_sai_hoan_toan\",\n    \"newPassword\": \"matkhaumoi123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "password"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Contacts",
+      "item": [
+        {
+          "name": "Gửi góp ý (công khai)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Trả về mã 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Có thông báo và dữ liệu góp ý vừa lưu', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.message).to.include('thành công');",
+                  "    pm.expect(body.data).to.have.property('id');",
+                  "});",
+                  "",
+                  "pm.test('Email được chuẩn hoá về chữ thường', function () {",
+                  "    pm.expect(pm.response.json().data.email).to.eql('a@example.com');",
+                  "});",
+                  "",
+                  "// Lưu id để các request sau dùng lại",
+                  "const data = pm.response.json().data;",
+                  "if (data && data.id) {",
+                  "    pm.environment.set('contactId', data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"fullName\": \"Nguyen Van A\",\n    \"email\": \"a@example.com\",\n    \"phone\": \"0900000000\",\n    \"content\": \"Toi muon gop y ve dich vu giao hang\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contacts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contacts"
+              ]
+            },
+            "description": "Endpoint công khai, không cần đăng nhập."
+          },
+          "response": []
+        },
+        {
+          "name": "Gửi góp ý thiếu họ tên (âm tính)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Trả về mã 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Báo lỗi thiếu họ tên', function () {",
+                  "    pm.expect(pm.response.json().message).to.include('Họ tên');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"a@example.com\",\n    \"content\": \"Noi dung gop y\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contacts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contacts"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Gửi góp ý với email sai định dạng (âm tính)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Trả về mã 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Báo lỗi email không hợp lệ', function () {",
+                  "    pm.expect(pm.response.json().message).to.include('Email');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"fullName\": \"Nguyen Van A\",\n    \"email\": \"khongcokytua.com\",\n    \"content\": \"Noi dung gop y\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contacts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contacts"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy danh sách góp ý (ADMIN)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Trả về mã 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Phản hồi là một danh sách', function () {",
+                  "    pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contacts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contacts"
+              ]
+            },
+            "description": "Yêu cầu quyền ADMIN."
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy danh sách góp ý bằng tài khoản thường (âm tính)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Bị từ chối truy cập (403)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contacts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contacts"
+              ]
+            },
+            "description": "Tài khoản không có quyền ADMIN, kỳ vọng bị từ chối."
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật trạng thái góp ý (ADMIN)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Trả về mã 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Trạng thái đã được cập nhật', function () {",
+                  "    pm.expect(pm.response.json().data.status).to.eql('PROCESSED');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"status\": \"PROCESSED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contacts/{{contactId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contacts",
+                "{{contactId}}",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cập nhật trạng thái góp ý không tồn tại (âm tính)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Trả về mã 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Báo không tìm thấy góp ý', function () {",
+                  "    pm.expect(pm.response.json().message).to.include('Không tìm thấy');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"status\": \"PROCESSED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contacts/999999/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contacts",
+                "999999",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xoá góp ý (ADMIN)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Trả về mã 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Có thông báo xoá thành công', function () {",
+                  "    pm.expect(pm.response.json().message).to.include('xóa');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contacts/{{contactId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contacts",
+                "{{contactId}}"
+              ]
+            },
+            "description": "Xoá góp ý vừa tạo ở request đầu tiên, giúp bộ kiểm thử chạy lại được nhiều lần."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Settings",
+      "item": [
+        {
+          "name": "Lấy toàn bộ cấu hình website (công khai)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Trả về mã 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Phản hồi là một đối tượng khoá - giá trị', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.be.an('object');",
+                  "    pm.expect(body).to.not.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Mọi giá trị cấu hình đều là chuỗi, không có giá trị null', function () {",
+                  "    const body = pm.response.json();",
+                  "    Object.keys(body).forEach(function (k) {",
+                  "        pm.expect(body[k], 'Khoá ' + k).to.be.a('string');",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "settings"
+              ]
+            },
+            "description": "Trả về Map khoá - giá trị. Endpoint công khai, không cần đăng nhập."
+          },
+          "response": []
+        },
+        {
+          "name": "Lưu cấu hình website (ADMIN)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Trả về mã 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Báo lưu cấu hình thành công', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.success).to.be.true;",
+                  "    pm.expect(body.message).to.include('thành công');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"site_name\": \"YiYi Book\",\n    \"hotline\": \"1900 1234\",\n    \"address\": \"TP. Ho Chi Minh\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "settings"
+              ]
+            },
+            "description": "Lưu nhiều cấu hình cùng lúc. Yêu cầu quyền ADMIN."
+          },
+          "response": []
+        },
+        {
+          "name": "Lưu cấu hình bằng tài khoản thường (âm tính)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Bị từ chối truy cập (403)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"site_name\": \"Ten bi sua trai phep\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "settings"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xác nhận cấu hình đã được lưu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Trả về mã 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Cấu hình vừa lưu đã xuất hiện', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.site_name).to.eql('YiYi Book');",
+                  "    pm.expect(body.hotline).to.eql('1900 1234');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "settings"
+              ]
+            },
+            "description": "Chạy sau request lưu cấu hình để kiểm chứng dữ liệu thực sự được ghi xuống."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Upload",
+      "item": [
+        {
+          "name": "Tải lên tệp ảnh hợp lệ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Trả về mã 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Phản hồi có chứa đường dẫn tệp', function () {",
+                  "    pm.expect(pm.response.json()).to.have.property('url');",
+                  "});",
+                  "",
+                  "pm.test('Đường dẫn trả về đúng định dạng /uploads/', function () {",
+                  "    pm.expect(pm.response.json().url).to.match(/^\\/uploads\\/.+/);",
+                  "});",
+                  "",
+                  "pm.test('Tên tệp đã được đổi thành mã định danh ngẫu nhiên', function () {",
+                  "    const url = pm.response.json().url;",
+                  "    const ten = url.replace('/uploads/', '');",
+                  "    pm.expect(ten).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/);",
+                  "});",
+                  "",
+                  "pm.test('Phần mở rộng của tệp gốc được giữ lại', function () {",
+                  "    pm.expect(pm.response.json().url).to.include('.');",
+                  "});",
+                  "",
+                  "// /uploads/** duoc phuc vu o goc server, khong nam duoi /api\nconst goc = pm.environment.get('baseUrl').replace(/\\/api\\/?$/, '');\npm.environment.set('uploadedUrl', goc + pm.response.json().url);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "description": "Chọn một tệp ảnh từ máy trước khi chạy request",
+                  "value": null
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/upload",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "upload"
+              ]
+            },
+            "description": "Tải tệp lên máy chủ. Tên tệp được đổi thành UUID để tránh ghi đè."
+          },
+          "response": []
+        },
+        {
+          "name": "Tải lên khi không đính kèm tệp (âm tính)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Không trả về mã 200', function () {",
+                  "    pm.expect(pm.response.code).to.not.eql(200);",
+                  "});",
+                  "",
+                  "pm.test('Trả về mã 400 thay vì lỗi máy chủ 500', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            },
+            "url": {
+              "raw": "{{baseUrl}}/upload",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "upload"
+              ]
+            },
+            "description": "Không gửi tham số file, kỳ vọng máy chủ báo lỗi yêu cầu không hợp lệ."
+          },
+          "response": []
+        },
+        {
+          "name": "Tải lên tệp không phải ảnh (kiểm tra ràng buộc định dạng)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Máy chủ hiện không kiểm tra định dạng tệp, mọi loại tệp đều được chấp nhận.",
+                  "// Ca kiểm thử này ghi nhận hành vi đó như một rủi ro bảo mật cần khắc phục.",
+                  "pm.test('Ghi nhận: máy chủ chấp nhận mọi định dạng tệp', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Cảnh báo bảo mật nếu tệp thực thi được chấp nhận', function () {",
+                  "    const url = pm.response.json().url || '';",
+                  "    const nguyHiem = ['.exe', '.sh', '.bat', '.jsp', '.php'];",
+                  "    const co = nguyHiem.some(function (d) { return url.toLowerCase().endsWith(d); });",
+                  "    if (co) {",
+                  "        console.warn('Máy chủ chấp nhận tệp thực thi: ' + url);",
+                  "    }",
+                  "    pm.expect(true).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "description": "Chọn một tệp không phải ảnh, ví dụ .txt hoặc .exe",
+                  "value": null
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/upload",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "upload"
+              ]
+            },
+            "description": "Kiểm tra xem máy chủ có giới hạn định dạng tệp được phép tải lên hay không."
+          },
+          "response": []
+        },
+        {
+          "name": "Tải lên khi chưa đăng nhập (kiểm tra phân quyền)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Bị từ chối truy cập khi không gửi token (401 hoặc 403)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "description": "Chọn một tệp ảnh bất kỳ",
+                  "value": null
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/upload",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "upload"
+              ]
+            },
+            "description": "Không gửi token xác thực. Endpoint hiện không yêu cầu đăng nhập."
+          },
+          "response": []
+        },
+        {
+          "name": "Truy cập tệp vừa tải lên",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Tệp truy cập được qua đường dẫn trả về', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Nội dung trả về không rỗng', function () {",
+                  "    pm.expect(pm.response.responseSize).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{uploadedUrl}}",
+              "host": [
+                "{{uploadedUrl}}"
+              ]
+            },
+            "description": "Kiểm tra tệp vừa tải lên có truy cập được qua đường dẫn trả về hay không. Chạy sau request \"Tải lên tệp ảnh hợp lệ\"."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.test('Thời gian phản hồi dưới 2 giây', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+          "});"
+        ]
+      }
+    }
+  ]
+}

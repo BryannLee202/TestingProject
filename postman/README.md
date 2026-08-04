@@ -15,26 +15,34 @@ cd postman && npm ci && npm test
 
 Muốn chạy trong Postman GUI thì xem mục [Import vào Postman](#import-vào-postman).
 
-## Bốn bộ collection
+## Năm bộ collection
 
 | Collection | Người làm | Phạm vi | Số request |
 |---|---|---|---|
 | `Epic2.1_2.3_Collection_Auth_Books_Categories_Banners_Phu.json` | Anh Phú | Auth, Books, Categories, Banners | 18 |
-| `YiYi_Book_API_Collection_Thien.json` | Thiên | Cart, Orders, Payment, Wishlist, Address, VAT Invoice | 35 |
+| `YiYi_Book_API_Collection_Thien.json` | Thiên | Cart, Orders, Payment, Wishlist, Address, VAT Invoice | 44 |
 | `YiYi_Book_API_Collection_Tai.json` | Tài | Admin, Rewards, RBAC, luồng đặt hàng đầy đủ | 40 |
 | `../test-scripts/Epic2.3_2.5_Collection_TestScripts_Dinh.json` | Đỉnh | Cart, Orders, Payment, Reviews, Wishlist, Coupons, Notifications, Newsletter | 26 |
+| `Epic2_Collection_Users_Contacts_Settings_Upload_VanAnh.json` | Vân Anh | Users, Contacts, Settings, Upload | 24 |
 
-Tổng **119 request**, tất cả đã được đối chiếu 1-1 với mapping controller thật
+Tổng **152 request**, tất cả đã được đối chiếu 1-1 với mapping controller thật
 trong `backend/src/main/java/com/bookstore/controller/`. Mỗi người giữ 1 collection
 riêng để làm việc hằng ngày, không đụng vào file của nhau.
 
 ### File gộp để chạy chung và nộp thầy
 
-`YiYi_Book_FullTestSuite_AllMembers.json` chứa cả 4 bộ trên trong 1 file, mỗi
+`YiYi_Book_FullTestSuite_AllMembers.json` chứa cả 5 bộ trên trong 1 file, mỗi
 người 1 folder riêng, dùng chung `YiYi_Book_Team_Local_Environment.json`. Đây
 là bản dùng khi cần chạy toàn bộ một lượt và xuất báo cáo — xem mục
 [Chạy chung để nộp thầy](#chạy-chung-để-nộp-thầy). Nội dung bên trong **giống
-hệt** 4 file gốc (đã kiểm chứng 119/119 request khớp), chỉ khác cách đóng gói.
+hệt** 5 file gốc (đã kiểm chứng 152/152 request khớp), chỉ khác cách đóng gói.
+
+⚠️ **Nhóm Upload trong bộ của Vân Anh cần chọn tệp thủ công.** Ba request
+`Tải lên tệp ảnh hợp lệ`, `Tải lên tệp không phải ảnh` và `Tải lên khi chưa
+đăng nhập` dùng `form-data` kiểu `file`. Collection Runner và Newman **không tự
+đính kèm tệp được** — phải mở từng request trong Postman, bấm chọn tệp từ máy,
+rồi mới chạy. Nếu chạy mà chưa chọn tệp, các request đó báo lỗi thiếu tham số
+`file`. Muốn xuất báo cáo tự động sạch thì bỏ tick nhóm Upload trong Runner.
 
 ## Environment
 
