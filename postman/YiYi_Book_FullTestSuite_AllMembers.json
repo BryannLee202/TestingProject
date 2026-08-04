@@ -1305,7 +1305,7 @@
                 "method": "PUT",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/orders/{{orderId}}/shipping?status=SHIPPED&shippingPartner=GiaoHangNhanh&trackingNumber=GHN987654",
+                  "raw": "{{baseUrl}}/orders/{{orderId}}/shipping?status=SHIPPING&shippingPartner=GiaoHangNhanh&trackingNumber=GHN987654",
                   "host": [
                     "{{baseUrl}}"
                   ],
@@ -1345,18 +1345,67 @@
               ]
             },
             {
+              "name": "Tạo đơn hàng để huỷ",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/orders",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"items\": [\n    {\n      \"bookId\": 1,\n      \"quantity\": 2,\n      \"price\": 250000.0\n    }\n  ],\n  \"shippingAddress\": \"123 Đường Nguyễn Trãi, Quận 5, TP.HCM\",\n  \"phoneNumber\": \"0987654321\",\n  \"paymentMethod\": \"COD\",\n  \"customerNote\": \"Giao hàng giờ hành chính\",\n  \"discountCouponCode\": \"GRAPE10\",\n  \"shippingCouponCode\": \"\",\n  \"shippingFee\": 15000.0,\n  \"spentPoints\": 0\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"✅ Status 200 OK\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});",
+                      "",
+                      "pm.test(\"⏱️ Response time < 2000ms\", function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});",
+                      "",
+                      "pm.test(\"📦 Đơn hàng đã tạo thành công\", function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.be.an('object');",
+                      "    pm.expect(jsonData.id).to.exist;",
+                      "    pm.environment.set(\"orderIdCancel\", jsonData.id);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
               "name": "Hủy đơn hàng",
               "request": {
                 "method": "PUT",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/orders/{{orderId}}/cancel",
+                  "raw": "{{baseUrl}}/orders/{{orderIdCancel}}/cancel",
                   "host": [
                     "{{baseUrl}}"
                   ],
                   "path": [
                     "orders",
-                    "{{orderId}}",
+                    "{{orderIdCancel}}",
                     "cancel"
                   ]
                 }
@@ -1380,18 +1429,67 @@
               ]
             },
             {
+              "name": "Tạo đơn hàng để đổi phương thức thanh toán",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/orders",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"items\": [\n    {\n      \"bookId\": 1,\n      \"quantity\": 2,\n      \"price\": 250000.0\n    }\n  ],\n  \"shippingAddress\": \"123 Đường Nguyễn Trãi, Quận 5, TP.HCM\",\n  \"phoneNumber\": \"0987654321\",\n  \"paymentMethod\": \"COD\",\n  \"customerNote\": \"Giao hàng giờ hành chính\",\n  \"discountCouponCode\": \"GRAPE10\",\n  \"shippingCouponCode\": \"\",\n  \"shippingFee\": 15000.0,\n  \"spentPoints\": 0\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"✅ Status 200 OK\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});",
+                      "",
+                      "pm.test(\"⏱️ Response time < 2000ms\", function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});",
+                      "",
+                      "pm.test(\"📦 Đơn hàng đã tạo thành công\", function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.be.an('object');",
+                      "    pm.expect(jsonData.id).to.exist;",
+                      "    pm.environment.set(\"orderIdPayment\", jsonData.id);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
               "name": "Cập nhật phương thức thanh toán",
               "request": {
                 "method": "PUT",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/orders/{{orderId}}/payment-method?method=VNPAY",
+                  "raw": "{{baseUrl}}/orders/{{orderIdPayment}}/payment-method?method=VNPAY",
                   "host": [
                     "{{baseUrl}}"
                   ],
                   "path": [
                     "orders",
-                    "{{orderId}}",
+                    "{{orderIdPayment}}",
                     "payment-method"
                   ],
                   "query": [
@@ -1417,7 +1515,87 @@
               ]
             },
             {
-              "name": "Yêu cầu trả hàng / hoàn tiền",
+              "name": "Tạo đơn hàng để trả hàng (nhánh duyệt)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/orders",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"items\": [\n    {\n      \"bookId\": 1,\n      \"quantity\": 2,\n      \"price\": 250000.0\n    }\n  ],\n  \"shippingAddress\": \"123 Đường Nguyễn Trãi, Quận 5, TP.HCM\",\n  \"phoneNumber\": \"0987654321\",\n  \"paymentMethod\": \"COD\",\n  \"customerNote\": \"Giao hàng giờ hành chính\",\n  \"discountCouponCode\": \"GRAPE10\",\n  \"shippingCouponCode\": \"\",\n  \"shippingFee\": 15000.0,\n  \"spentPoints\": 0\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"✅ Status 200 OK\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});",
+                      "",
+                      "pm.test(\"⏱️ Response time < 2000ms\", function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});",
+                      "",
+                      "pm.test(\"📦 Đơn hàng đã tạo thành công\", function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.be.an('object');",
+                      "    pm.expect(jsonData.id).to.exist;",
+                      "    pm.environment.set(\"orderIdReturnApprove\", jsonData.id);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Xác nhận đã nhận hàng (chuẩn bị trả hàng - duyệt)",
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/orders/{{orderIdReturnApprove}}/confirm-received",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders",
+                    "{{orderIdReturnApprove}}",
+                    "confirm-received"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"✅ Status 200 OK\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Yêu cầu trả hàng / hoàn tiền (nhánh duyệt)",
               "request": {
                 "method": "PUT",
                 "header": [
@@ -1427,13 +1605,13 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{baseUrl}}/orders/{{orderId}}/return",
+                  "raw": "{{baseUrl}}/orders/{{orderIdReturnApprove}}/return",
                   "host": [
                     "{{baseUrl}}"
                   ],
                   "path": [
                     "orders",
-                    "{{orderId}}",
+                    "{{orderIdReturnApprove}}",
                     "return"
                   ]
                 },
@@ -1457,18 +1635,99 @@
               ]
             },
             {
-              "name": "Xác nhận đã nhận hàng",
+              "name": "Đồng ý trả hàng (Admin)",
               "request": {
                 "method": "PUT",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/orders/{{orderId}}/confirm-received",
+                  "raw": "{{baseUrl}}/orders/{{orderIdReturnApprove}}/return/approve",
                   "host": [
                     "{{baseUrl}}"
                   ],
                   "path": [
                     "orders",
-                    "{{orderId}}",
+                    "{{orderIdReturnApprove}}",
+                    "return",
+                    "approve"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"✅ Status 200 OK\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Tạo đơn hàng để trả hàng (nhánh từ chối)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/orders",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"items\": [\n    {\n      \"bookId\": 1,\n      \"quantity\": 2,\n      \"price\": 250000.0\n    }\n  ],\n  \"shippingAddress\": \"123 Đường Nguyễn Trãi, Quận 5, TP.HCM\",\n  \"phoneNumber\": \"0987654321\",\n  \"paymentMethod\": \"COD\",\n  \"customerNote\": \"Giao hàng giờ hành chính\",\n  \"discountCouponCode\": \"GRAPE10\",\n  \"shippingCouponCode\": \"\",\n  \"shippingFee\": 15000.0,\n  \"spentPoints\": 0\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"✅ Status 200 OK\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});",
+                      "",
+                      "pm.test(\"⏱️ Response time < 2000ms\", function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});",
+                      "",
+                      "pm.test(\"📦 Đơn hàng đã tạo thành công\", function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.be.an('object');",
+                      "    pm.expect(jsonData.id).to.exist;",
+                      "    pm.environment.set(\"orderIdReturnReject\", jsonData.id);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Xác nhận đã nhận hàng (chuẩn bị trả hàng - từ chối)",
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/orders/{{orderIdReturnReject}}/confirm-received",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders",
+                    "{{orderIdReturnReject}}",
                     "confirm-received"
                   ]
                 }
@@ -1488,21 +1747,29 @@
               ]
             },
             {
-              "name": "Đồng ý trả hàng (Admin)",
+              "name": "Yêu cầu trả hàng / hoàn tiền (nhánh từ chối)",
               "request": {
                 "method": "PUT",
-                "header": [],
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
                 "url": {
-                  "raw": "{{baseUrl}}/orders/{{orderId}}/return/approve",
+                  "raw": "{{baseUrl}}/orders/{{orderIdReturnReject}}/return",
                   "host": [
                     "{{baseUrl}}"
                   ],
                   "path": [
                     "orders",
-                    "{{orderId}}",
-                    "return",
-                    "approve"
+                    "{{orderIdReturnReject}}",
+                    "return"
                   ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"Sách bị rách nhiều trang\",\n  \"phone\": \"0987654321\",\n  \"bank\": \"Vietcombank\",\n  \"details\": \"Chuyển khoản qua số tài khoản 0123456789\"\n}"
                 }
               },
               "event": [
@@ -1525,13 +1792,13 @@
                 "method": "PUT",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/orders/{{orderId}}/return/reject",
+                  "raw": "{{baseUrl}}/orders/{{orderIdReturnReject}}/return/reject",
                   "host": [
                     "{{baseUrl}}"
                   ],
                   "path": [
                     "orders",
-                    "{{orderId}}",
+                    "{{orderIdReturnReject}}",
                     "return",
                     "reject"
                   ]
@@ -1552,18 +1819,67 @@
               ]
             },
             {
+              "name": "Tạo đơn hàng để xoá",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/orders",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"items\": [\n    {\n      \"bookId\": 1,\n      \"quantity\": 2,\n      \"price\": 250000.0\n    }\n  ],\n  \"shippingAddress\": \"123 Đường Nguyễn Trãi, Quận 5, TP.HCM\",\n  \"phoneNumber\": \"0987654321\",\n  \"paymentMethod\": \"COD\",\n  \"customerNote\": \"Giao hàng giờ hành chính\",\n  \"discountCouponCode\": \"GRAPE10\",\n  \"shippingCouponCode\": \"\",\n  \"shippingFee\": 15000.0,\n  \"spentPoints\": 0\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"✅ Status 200 OK\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});",
+                      "",
+                      "pm.test(\"⏱️ Response time < 2000ms\", function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});",
+                      "",
+                      "pm.test(\"📦 Đơn hàng đã tạo thành công\", function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.be.an('object');",
+                      "    pm.expect(jsonData.id).to.exist;",
+                      "    pm.environment.set(\"orderIdDelete\", jsonData.id);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
               "name": "Xóa đơn hàng (Admin)",
               "request": {
                 "method": "DELETE",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/orders/{{orderId}}",
+                  "raw": "{{baseUrl}}/orders/{{orderIdDelete}}",
                   "host": [
                     "{{baseUrl}}"
                   ],
                   "path": [
                     "orders",
-                    "{{orderId}}"
+                    "{{orderIdDelete}}"
                   ]
                 }
               },
@@ -1582,12 +1898,110 @@
               ]
             },
             {
+              "name": "Tạo đơn hàng để xoá hàng loạt (1)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/orders",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"items\": [\n    {\n      \"bookId\": 1,\n      \"quantity\": 2,\n      \"price\": 250000.0\n    }\n  ],\n  \"shippingAddress\": \"123 Đường Nguyễn Trãi, Quận 5, TP.HCM\",\n  \"phoneNumber\": \"0987654321\",\n  \"paymentMethod\": \"COD\",\n  \"customerNote\": \"Giao hàng giờ hành chính\",\n  \"discountCouponCode\": \"GRAPE10\",\n  \"shippingCouponCode\": \"\",\n  \"shippingFee\": 15000.0,\n  \"spentPoints\": 0\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"✅ Status 200 OK\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});",
+                      "",
+                      "pm.test(\"⏱️ Response time < 2000ms\", function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});",
+                      "",
+                      "pm.test(\"📦 Đơn hàng đã tạo thành công\", function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.be.an('object');",
+                      "    pm.expect(jsonData.id).to.exist;",
+                      "    pm.environment.set(\"orderIdBulk1\", jsonData.id);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Tạo đơn hàng để xoá hàng loạt (2)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/orders",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"items\": [\n    {\n      \"bookId\": 1,\n      \"quantity\": 2,\n      \"price\": 250000.0\n    }\n  ],\n  \"shippingAddress\": \"123 Đường Nguyễn Trãi, Quận 5, TP.HCM\",\n  \"phoneNumber\": \"0987654321\",\n  \"paymentMethod\": \"COD\",\n  \"customerNote\": \"Giao hàng giờ hành chính\",\n  \"discountCouponCode\": \"GRAPE10\",\n  \"shippingCouponCode\": \"\",\n  \"shippingFee\": 15000.0,\n  \"spentPoints\": 0\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"✅ Status 200 OK\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});",
+                      "",
+                      "pm.test(\"⏱️ Response time < 2000ms\", function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});",
+                      "",
+                      "pm.test(\"📦 Đơn hàng đã tạo thành công\", function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.be.an('object');",
+                      "    pm.expect(jsonData.id).to.exist;",
+                      "    pm.environment.set(\"orderIdBulk2\", jsonData.id);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
               "name": "Xóa hàng loạt đơn hàng (Admin)",
               "request": {
                 "method": "DELETE",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/orders/bulk?ids={{orderId}}",
+                  "raw": "{{baseUrl}}/orders/bulk?ids={{orderIdBulk1}},{{orderIdBulk2}}",
                   "host": [
                     "{{baseUrl}}"
                   ],
@@ -1598,7 +2012,7 @@
                   "query": [
                     {
                       "key": "ids",
-                      "value": "{{orderId}}"
+                      "value": "{{orderIdBulk1}},{{orderIdBulk2}}"
                     }
                   ]
                 }

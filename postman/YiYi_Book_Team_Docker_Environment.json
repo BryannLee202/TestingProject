@@ -187,6 +187,48 @@
       "value": "",
       "type": "default",
       "enabled": true
+    },
+    {
+      "key": "orderIdCancel",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "orderIdPayment",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "orderIdReturnApprove",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "orderIdReturnReject",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "orderIdDelete",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "orderIdBulk1",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "orderIdBulk2",
+      "value": "",
+      "type": "default",
+      "enabled": true
     }
   ],
   "_postman_variable_scope": "environment"
