@@ -1,0 +1,32 @@
+{
+  "clientName": "Thunder Client",
+  "environmentName": "YiYi Book Docker",
+  "environmentId": "yiyi-docker-env",
+  "dateCreated": "2026-08-04T08:29:56.532Z",
+  "variables": [
+    {
+      "name": "baseUrl",
+      "value": "http://localhost:8081"
+    },
+    {
+      "name": "token",
+      "value": ""
+    },
+    {
+      "name": "userId",
+      "value": ""
+    },
+    {
+      "name": "bookId",
+      "value": "1"
+    },
+    {
+      "name": "categoryId",
+      "value": "1"
+    },
+    {
+      "name": "bannerId",
+      "value": "1"
+    }
+  ]
+}
