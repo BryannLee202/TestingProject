@@ -38,8 +38,8 @@
               "        body: {",
               "            mode: \"raw\",",
               "            raw: JSON.stringify({",
-              "                email: \"admin@gmail.com\",",
-              "                password: \"123456\"",
+              "                email: pm.environment.get(\"adminEmail\") || \"admin@gmail.com\",",
+              "                password: pm.environment.get(\"adminPassword\") || \"123456\"",
               "            })",
               "        }",
               "    }, function (err, res) {",
@@ -111,36 +111,6 @@
               ]
             },
             {
-              "name": "Xem giỏ hàng (Đường dẫn /cart/items)",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/cart/items",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "cart",
-                    "items"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"✅ Status 200 hoặc 404\", function () {",
-                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 404]);",
-                      "});"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ]
-            },
-            {
               "name": "Thêm sản phẩm vào giỏ hàng",
               "request": {
                 "method": "POST",
@@ -175,45 +145,6 @@
                       "",
                       "pm.test(\"⏱️ Response time < 2000ms\", function () {",
                       "    pm.expect(pm.response.responseTime).to.be.below(2000);",
-                      "});"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ]
-            },
-            {
-              "name": "Thêm sản phẩm vào giỏ hàng (Đường dẫn /cart/items)",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/cart/items",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "cart",
-                    "items"
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"bookId\": 1,\n  \"quantity\": 2\n}"
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"✅ Status 200 hoặc 404\", function () {",
-                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 404]);",
                       "});"
                     ],
                     "type": "text/javascript"
@@ -261,46 +192,6 @@
               ]
             },
             {
-              "name": "Cập nhật số lượng sản phẩm (Đường dẫn /cart/items)",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/cart/items/{{bookId}}",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "cart",
-                    "items",
-                    "{{bookId}}"
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"quantity\": 5\n}"
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"✅ Status 200 hoặc 404\", function () {",
-                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 404]);",
-                      "});"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ]
-            },
-            {
               "name": "Xóa sản phẩm khỏi giỏ hàng",
               "request": {
                 "method": "DELETE",
@@ -323,37 +214,6 @@
                     "exec": [
                       "pm.test(\"✅ Status 200 OK\", function () {",
                       "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
-                      "});"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ]
-            },
-            {
-              "name": "Xóa sản phẩm khỏi giỏ hàng (Đường dẫn /cart/items)",
-              "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/cart/items/{{bookId}}",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "cart",
-                    "items",
-                    "{{bookId}}"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"✅ Status 200 hoặc 404\", function () {",
-                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 404]);",
                       "});"
                     ],
                     "type": "text/javascript"
@@ -1270,35 +1130,6 @@
               ]
             },
             {
-              "name": "Xem danh sách yêu thích (Đường dẫn /wishlist)",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/wishlist",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "wishlist"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"✅ Status 200 hoặc 404\", function () {",
-                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 404]);",
-                      "});"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ]
-            },
-            {
               "name": "Thêm/Xóa khỏi danh sách yêu thích",
               "request": {
                 "method": "POST",
@@ -1330,99 +1161,6 @@
                       "",
                       "pm.test(\"❤️ Trạng thái thích hợp lệ\", function () {",
                       "    pm.expect(pm.response.json().isLiked).to.exist;",
-                      "});"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ]
-            },
-            {
-              "name": "Thêm/Xóa khỏi danh sách yêu thích (Đường dẫn /wishlist)",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/wishlist/book/{{bookId}}",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "wishlist",
-                    "book",
-                    "{{bookId}}"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"✅ Status 200 hoặc 404\", function () {",
-                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 404]);",
-                      "});"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ]
-            },
-            {
-              "name": "Xóa khỏi danh sách yêu thích",
-              "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/wishlists/book/{{bookId}}",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "wishlists",
-                    "book",
-                    "{{bookId}}"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"✅ Status 200 hoặc 404\", function () {",
-                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 404]);",
-                      "});"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ]
-            },
-            {
-              "name": "Xóa khỏi danh sách yêu thích (Đường dẫn /wishlist)",
-              "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/wishlist/book/{{bookId}}",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "wishlist",
-                    "book",
-                    "{{bookId}}"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"✅ Status 200 hoặc 404\", function () {",
-                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 404]);",
                       "});"
                     ],
                     "type": "text/javascript"

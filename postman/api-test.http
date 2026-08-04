@@ -1,0 +1,74 @@
+@baseUrl = http://localhost:8081
+
+### 1. Auth - Login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "password"
+}
+
+### 2. Auth - Register
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "user_test@example.com",
+  "password": "password",
+  "name": "Test User",
+  "phone": "0123456789"
+}
+
+### 3. Banners - Get All Banners
+GET {{baseUrl}}/api/banners
+
+### 4. Banners - Get Banners By Position
+GET {{baseUrl}}/api/banners/position/HOME_HERO
+
+### 5. Books - Get All Books
+GET {{baseUrl}}/api/books
+
+### 6. Books - Get Book by ID
+GET {{baseUrl}}/api/books/1
+
+### 7. Books - Search Books
+GET {{baseUrl}}/api/books/search?keyword=harry
+
+### 8. Categories - Get All Categories
+GET {{baseUrl}}/api/categories
+
+### 9. Categories - Get Category by ID
+GET {{baseUrl}}/api/categories/1
+
+### 10. Banners - Create Banner (Protected)
+POST {{baseUrl}}/api/banners
+Content-Type: application/json
+
+{
+  "imageUrl": "https://example.com/banner.jpg",
+  "position": "HOME_HERO",
+  "title": "Banner Sale",
+  "linkUrl": "/sale"
+}
+
+### 11. Books - Create Book (Protected)
+POST {{baseUrl}}/api/books
+Content-Type: application/json
+
+{
+  "title": "Clean Code",
+  "author": "Robert C. Martin",
+  "price": 250000,
+  "stock": 100,
+  "categoryId": 1
+}
+
+### 12. Categories - Create Category (Protected)
+POST {{baseUrl}}/api/categories
+Content-Type: application/json
+
+{
+  "name": "Lập trình",
+  "description": "Sách kỹ thuật và phần mềm"
+}
