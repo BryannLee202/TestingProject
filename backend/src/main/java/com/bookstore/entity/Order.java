@@ -85,8 +85,7 @@ public class Order {
     @Column(name = "return_bank", length = 255)
     private String returnBank;
 
-    @Lob
-    @Column(name = "return_details_text")
+    @Column(name = "return_details_text", columnDefinition = "TEXT")
     private String returnDetails;
 
     @Column(nullable = false)

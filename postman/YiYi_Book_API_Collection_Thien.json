@@ -143,7 +143,12 @@
                       "",
                       "pm.test(\"⏱️ Response time < 2000ms\", function () {",
                       "    pm.expect(pm.response.responseTime).to.be.below(2000);",
-                      "});"
+                      "});",
+                      "",
+                      "// Luu lai bookId vua them (than: 1) de cac request sau (Cap nhat/Xoa",
+                      "// san pham trong gio hang, Wishlist) dung {{bookId}} tro dung, khong",
+                      "// bi rong -> /api/cart/ (khong khop route nao, tra ve 404).",
+                      "pm.environment.set('bookId', 1);"
                     ],
                     "type": "text/javascript"
                   }
@@ -432,7 +437,7 @@
                   "query": [
                     {
                       "key": "status",
-                      "value": "SHIPPED"
+                      "value": "SHIPPING"
                     },
                     {
                       "key": "shippingPartner",

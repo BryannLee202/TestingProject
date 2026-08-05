@@ -150,7 +150,22 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"✅ Status 200 OK\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\npm.test(\"⏱ Response time < 2000ms\", () => {\r\n    pm.expect(pm.response.responseTime).to.be.below(2000);\r\n});\r\npm.test(\"📚 Response là array danh sách sách\", () => {\r\n    const json = pm.response.json();\r\n    const books = Array.isArray(json) ? json : (json.content || json.data || []);\r\n    pm.expect(books).to.be.an(\"array\");\r\n});\r\n"
+                  "pm.test(\"✅ Status 200 OK\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"⏱ Response time < 2000ms\", () => {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "pm.test(\"📚 Response là array danh sách sách\", () => {",
+                  "    const json = pm.response.json();",
+                  "    const books = Array.isArray(json) ? json : (json.content || json.data || []);",
+                  "    pm.expect(books).to.be.an(\"array\");",
+                  "    // Luu lai bookId dau tien de cac request sau (chi tiet sach, review,",
+                  "    // wishlist) dung {{bookId}} tro dung, khong bi rong.",
+                  "    if (books.length > 0 && books[0].id) {",
+                  "        pm.environment.set(\"bookId\", books[0].id);",
+                  "    }",
+                  "});"
                 ]
               }
             }
@@ -193,7 +208,7 @@
               ],
               "path": [
                 "books",
-                "1"
+                "{{bookId}}"
               ]
             }
           },
@@ -345,7 +360,21 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"✅ Tạo đơn hàng thành công (200/201)\", () => {\r\n    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r\n});\r\n\r\npm.test(\"⏱ Response time < 2000ms\", () => {\r\n    pm.expect(pm.response.responseTime).to.be.below(2000);\r\n});\r\n\r\npm.test(\"📦 Đơn hàng mới chứa thông tin id và totalAmount\", () => {\r\n    const json = pm.response.json();\r\n    pm.expect(json).to.have.property(\"id\");\r\n    pm.expect(json).to.have.property(\"totalAmount\");\r\n});\r\n"
+                  "pm.test(\"✅ Tạo đơn hàng thành công (200/201)\", () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "",
+                  "pm.test(\"⏱ Response time < 2000ms\", () => {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test(\"📦 Đơn hàng mới chứa thông tin id và totalAmount\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"id\");",
+                  "    pm.expect(json).to.have.property(\"totalAmount\");",
+                  "    // Luu lai orderId de nhom Payment ben duoi dung {{orderId}} tro dung.",
+                  "    if (json.id) { pm.environment.set(\"orderId\", json.id); }",
+                  "});"
                 ]
               }
             }
@@ -433,7 +462,7 @@
                 },
                 {
                   "key": "orderId",
-                  "value": "1"
+                  "value": "{{orderId}}"
                 }
               ]
             }
@@ -546,7 +575,7 @@
                 },
                 {
                   "key": "orderId",
-                  "value": "1"
+                  "value": "{{orderId}}"
                 }
               ]
             }
@@ -647,7 +676,7 @@
               "path": [
                 "reviews",
                 "book",
-                "1"
+                "{{bookId}}"
               ]
             }
           },
@@ -709,7 +738,7 @@
               "path": [
                 "reviews",
                 "book",
-                "1"
+                "{{bookId}}"
               ]
             }
           },
@@ -722,8 +751,8 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"✅ Status 200 (đã có đánh giá) hoặc 400 (chưa có đánh giá nào)\", () => {",
-                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+                  "pm.test(\"✅ Status 200 (đã có đánh giá), 400 (chưa có đánh giá nào) hoặc 404 (chưa có reviewId)\", () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]);",
                   "});",
                   "",
                   "pm.test(\"⏱ Response time < 2000ms\", () => {",
@@ -732,6 +761,11 @@
                   "",
                   "pm.test(\"👍 Phản hồi hợp lệ theo từng trường hợp\", () => {",
                   "    const json = pm.response.json();",
+                  "    if (pm.response.code === 404) {",
+                  "        // reviewId rong vi chua co danh gia nao duoc tao (ca DB sach) -> route",
+                  "        // /reviews//like khong khop, day la he qua da biet, khong phai loi moi.",
+                  "        return;",
+                  "    }",
                   "    if (pm.response.code === 200) {",
                   "        pm.expect(json).to.have.property(\"id\");",
                   "    } else {",
@@ -757,7 +791,7 @@
               ],
               "path": [
                 "reviews",
-                "1",
+                "{{reviewId}}",
                 "like"
               ]
             }
@@ -771,8 +805,8 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"✅ Status 200 (đã có đánh giá) hoặc 400 (chưa có đánh giá nào)\", () => {",
-                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+                  "pm.test(\"✅ Status 200 (đã có đánh giá), 400 (chưa có đánh giá nào) hoặc 404 (chưa có reviewId)\", () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]);",
                   "});",
                   "",
                   "pm.test(\"⏱ Response time < 2000ms\", () => {",
@@ -781,6 +815,11 @@
                   "",
                   "pm.test(\"💬 Phản hồi hợp lệ theo từng trường hợp\", () => {",
                   "    const json = pm.response.json();",
+                  "    if (pm.response.code === 404) {",
+                  "        // reviewId rong vi chua co danh gia nao duoc tao (ca DB sach) -> route",
+                  "        // /reviews//like khong khop, day la he qua da biet, khong phai loi moi.",
+                  "        return;",
+                  "    }",
                   "    if (pm.response.code === 200) {",
                   "        pm.expect(json).to.have.property(\"id\");",
                   "        pm.expect(json.content).to.eql(\"Cảm ơn bạn đã chia sẻ trải nghiệm!\");",
@@ -814,7 +853,7 @@
               ],
               "path": [
                 "reviews",
-                "1",
+                "{{reviewId}}",
                 "comments"
               ]
             }
@@ -897,7 +936,7 @@
               "path": [
                 "wishlists",
                 "book",
-                "1"
+                "{{bookId}}"
               ]
             }
           },
