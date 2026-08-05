@@ -1110,7 +1110,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"✅ Status 200 hoặc 201\", () => {\r\n    pm.expect(pm.response.code).to.be.oneOf([200, 201, 400]);\r\n});\r\npm.test(\"⏱ Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));\r\n"
+                  "pm.test(\"✅ Status 200 hoặc 201\", () => {\r\n    pm.expect(pm.response.code).to.be.oneOf([200, 201, 400]);\r\n});\r\n// NewsletterService.subscribe() goi sendWelcomeEmail() DONG BO, phai cho\r\n// Gmail SMTP tra loi (application.properties dat timeout 5000ms). Lan dang\r\n// ky dau tien vi vay luon mat ~5 giay; cac lan sau email da ton tai nen tra\r\n// 400 ngay lap tuc. Noi nguong len 8 giay cho dung ban chat endpoint nay,\r\n// giong cach nhom Payment de assertion long vi phu thuoc dich vu ben ngoai.\r\npm.test(\"⏱ Response time < 8000ms (endpoint gửi email đồng bộ)\", () => pm.expect(pm.response.responseTime).to.be.below(8000));\r\n"
                 ]
               }
             }

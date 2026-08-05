@@ -36,6 +36,7 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/settings/**").permitAll() // Xem cấu hình web
                 .requestMatchers("/api/payment/**").permitAll() // Cho phép callback từ cổng thanh toán
                 .requestMatchers("/error").permitAll() // Cho phép truy cập /error để hiển thị đúng mã lỗi
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/uploads/**").permitAll() // Ảnh đã tải lên (WebConfig phục vụ ở gốc): trình duyệt tải qua thẻ <img> nên không gửi được token
                 
                 // Quyền Admin
                 .requestMatchers("/api/orders/all").hasRole("ADMIN")
