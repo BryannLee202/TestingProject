@@ -1,7 +1,7 @@
 {
   "info": {
     "_postman_id": "2abd7c00-f853-4eb7-aeaa-dda1d9efb28e",
-    "name": "Epic 2 - Users, Contacts, Settings, Upload (Vân Anh)",
+    "name": "Vân Anh — Users, Contacts, Settings, Upload",
     "description": "Bốn nhóm endpoint: Users, Contacts, Settings, Upload — Vân Anh (Member 1).\n\nDùng chung environment \"YiYi Book — TEAM (Local)\".\n\nChạy folder \"00 - Auth\" trước để lấy adminToken và userToken.\n\nNhóm Upload dùng form-data: phải tự chọn tệp trong Postman trước khi chạy, nếu không sẽ báo lỗi thiếu tham số file.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "57072160",

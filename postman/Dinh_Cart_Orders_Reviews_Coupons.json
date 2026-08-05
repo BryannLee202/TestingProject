@@ -1,7 +1,7 @@
 {
   "info": {
     "_postman_id": "14c72a97-d46d-41a9-8d88-0bafe2478871",
-    "name": "Epic 2.3 & 2.5 - Test Scripts (Đỉnh)",
+    "name": "Đỉnh — Cart, Orders, Reviews, Coupons",
     "description": "Test script cho Auth, Books, Cart, Orders, Payment, Reviews, Wishlist, Coupons, Notifications, Newsletter — Phan Văn Đỉnh (Member 4)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },

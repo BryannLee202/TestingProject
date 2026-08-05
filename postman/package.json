@@ -2,11 +2,16 @@
   "name": "yiyi-book-postman-tests",
   "version": "1.0.0",
   "private": true,
-  "description": "Newman runner cho bo kiem thu API Member 5 - YiYi Bookstore Backend",
+  "description": "Newman runner cho bo kiem thu API YiYi Bookstore (5 thanh vien)",
   "scripts": {
-    "test": "newman run YiYi_Book_API_Collection_Tai.json --environment YiYi_Book_Local_Environment_Tai.json --reporters cli,htmlextra --reporter-htmlextra-export newman/newman-report.html --reporter-htmlextra-title \"YiYi Bookstore API Test Report - Member 5\" --delay-request 100",
-    "test:docker": "newman run YiYi_Book_API_Collection_Tai.json --environment YiYi_Book_Docker_Environment_Tai.json --reporters cli,htmlextra --reporter-htmlextra-export newman/newman-report.html --reporter-htmlextra-title \"YiYi Bookstore API Test Report - Member 5\" --delay-request 100",
-    "test:bail": "newman run YiYi_Book_API_Collection_Tai.json --environment YiYi_Book_Local_Environment_Tai.json --reporters cli --bail"
+    "test": "newman run _FullSuite_AllMembers.json --environment _Env_Local.json --reporters cli,htmlextra --reporter-htmlextra-export newman/newman-report.html --reporter-htmlextra-title \"YiYi Bookstore - Bao cao kiem thu API (5 thanh vien)\" --delay-request 100",
+    "test:docker": "newman run _FullSuite_AllMembers.json --environment _Env_Docker.json --reporters cli,htmlextra --reporter-htmlextra-export newman/newman-report.html --reporter-htmlextra-title \"YiYi Bookstore - Bao cao kiem thu API (5 thanh vien)\" --delay-request 100",
+    "test:bail": "newman run _FullSuite_AllMembers.json --environment _Env_Local.json --reporters cli --bail",
+    "test:phu": "newman run Phu_Auth_Books_Categories_Banners.json --environment _Env_Local.json --reporters cli",
+    "test:thien": "newman run Thien_Cart_Orders_Payment_Wishlist.json --environment _Env_Local.json --reporters cli",
+    "test:tai": "newman run Tai_Admin_Rewards_RBAC.json --environment _Env_Local.json --reporters cli",
+    "test:dinh": "newman run Dinh_Cart_Orders_Reviews_Coupons.json --environment _Env_Local.json --reporters cli",
+    "test:vananh": "newman run VanAnh_Users_Contacts_Settings_Upload.json --environment _Env_Local.json --reporters cli"
   },
   "devDependencies": {
     "newman": "^6.2.1",

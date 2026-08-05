@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "Member 3 — Endpoints (Cart, Orders, Payment, Wishlist, Address)",
+    "name": "Thiên — Cart, Orders, Payment, Wishlist",
     "description": "Postman Collection for YiYi Book APIs (Cart, Orders, Payment, Wishlist, Address, VAT Invoice) by Văn Thiên",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },

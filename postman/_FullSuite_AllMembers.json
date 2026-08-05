@@ -1,8 +1,8 @@
 {
   "info": {
     "_postman_id": "yiyi-bookstore-full-suite-0001",
-    "name": "YiYi Bookstore — Full API Test Suite (Phú + Thiên + Tài + Đỉnh + Vân Anh)",
-    "description": "Gộp cả 5 bộ collection đã kiểm chứng thành 1 file để chạy chung bằng Collection Runner / Newman và xuất báo cáo nộp thầy. Mỗi thành viên giữ nguyên folder + test script của mình, không đổi nội dung.\n\nDùng chung environment \"YiYi Book — TEAM (Local)\" hoặc \"(Docker)\".",
+    "name": "YiYi Book — TOÀN BỘ (5 thành viên)",
+    "description": "Gộp cả 5 bộ collection đã kiểm chứng thành 1 file để chạy chung bằng Collection Runner / Newman và xuất báo cáo nộp thầy. Mỗi thành viên giữ nguyên folder + test script của mình, không đổi nội dung.\n\nDùng chung environment \"YiYi Book — Local\".",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -890,7 +890,7 @@
       ]
     },
     {
-      "name": "Thiên",
+      "name": "Thiên — Cart, Orders, Payment, Wishlist",
       "auth": {
         "type": "bearer",
         "bearer": [
@@ -5173,7 +5173,7 @@
       }
     },
     {
-      "name": "Đỉnh — Cart, Orders, Payment, Reviews, Wishlist, Coupons, Notifications, Newsletter",
+      "name": "Đỉnh — Cart, Orders, Reviews, Coupons",
       "item": [
         {
           "name": "1. AUTH",

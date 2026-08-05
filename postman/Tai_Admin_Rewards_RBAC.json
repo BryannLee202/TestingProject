@@ -1,7 +1,7 @@
 {
   "info": {
     "_postman_id": "a5c1f7e2-9b34-4d18-8f60-yiyim5collection",
-    "name": "YiYi Book API — Member 5 (Tài): Admin + Rewards",
+    "name": "Tài — Admin, Rewards, RBAC",
     "description": "Bộ kiểm thử API cho phần việc **Member 5 (Minh Tài)** trong file phân công\n`jira_tasks.pdf` — dự án YiYi Bookstore Backend.\n\n## Phạm vi (task 2.3)\n\n| Folder | Nhóm endpoint | Yêu cầu quyền |\n|---|---|---|\n| 20 Admin Rewards | `/api/admin/rewards` | ADMIN |\n| 30 Rewards | `/api/rewards` | Đã đăng nhập |\n| 40 Admin Reviews | `/api/admin/reviews` | ADMIN |\n| 60 Admin Users | `/api/admin/users` | ADMIN |\n\nFolder `00 Setup & Auth`, `10 Fixtures` và `50 RBAC Negative` là phần hỗ trợ để bộ test\nchạy độc lập được bằng Newman mà không phụ thuộc phần việc của Member 2/3/4.\n\n## Cách chạy\n\nChạy **tuần tự từ trên xuống** (Collection Runner hoặc Newman). Folder sau dùng biến môi\ntrường do folder trước lưu lại: `adminToken`, `newUserId`, `bookId`, `orderId`, `reviewId`,\n`voucherCode`...\n\n## Vệ sinh dữ liệu\n\nBộ test tự tạo dữ liệu của chính nó (user test, đơn hàng, đánh giá, mã thưởng) và xoá sạch\nở cuối. Không sửa/xoá dữ liệu seed dùng chung của nhóm.\n\nTác dụng phụ duy nhất còn lại: mỗi lần chạy trừ tồn kho 1 cuốn sách (do có bước tạo đơn\nhàng thật). Muốn về trạng thái sạch: `docker compose down -v && docker compose up --build`.\n\n## Tiêu chí test (theo task 2.5 trong file phân công)\n\nMọi request đều kiểm tra: status code đúng, response time < 2000ms, body có đủ field, và\nlưu biến môi trường khi cần nối chuỗi request.\n",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },

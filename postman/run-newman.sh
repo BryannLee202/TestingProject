@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Chay bo kiem thu API Member 5 bang Newman va xuat bao cao HTML.
+# Chay TOAN BO bo kiem thu API (ca 5 thanh vien) bang Newman va xuat bao cao HTML.
 #
 #   ./run-newman.sh              # dung environment Local (mac dinh)
 #   ./run-newman.sh docker       # dung environment Docker (chay trong mang compose)
@@ -12,13 +12,13 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
-COLLECTION="YiYi_Book_API_Collection_Tai.json"
+COLLECTION="_FullSuite_AllMembers.json"
 PROFILE="${1:-local}"
 
 if [ "$PROFILE" = "docker" ]; then
-  ENVIRONMENT="YiYi_Book_Docker_Environment_Tai.json"
+  ENVIRONMENT="_Env_Docker.json"
 else
-  ENVIRONMENT="YiYi_Book_Local_Environment_Tai.json"
+  ENVIRONMENT="_Env_Local.json"
 fi
 
 # Lay baseUrl tu chinh file environment de khong khai bao trung o hai noi.
@@ -64,7 +64,7 @@ mkdir -p newman
   --environment "${ENVIRONMENT}" \
   --reporters cli,htmlextra \
   --reporter-htmlextra-export "newman/newman-report.html" \
-  --reporter-htmlextra-title "YiYi Bookstore API Test Report - Member 5" \
+  --reporter-htmlextra-title "YiYi Bookstore - Bao cao kiem thu API (5 thanh vien)" \
   --delay-request 100
 
 # set -e da lo phan exit code: newman tra khac 0 khi co test that bai.

@@ -1,6 +1,7 @@
-name: API tests (Postman/Newman — Member 5)
+name: API tests (Postman/Newman — 5 thanh vien)
 
-# Chay bo kiem thu API trong postman/ moi khi backend hoac bo test thay doi.
+# Chay TOAN BO bo kiem thu API (ca 5 thanh vien) trong postman/ moi khi backend
+# hoac bo test thay doi.
 # Bao cao HTML duoc dinh kem vao ket qua chay (tab Artifacts) de tai ve xem.
 
 on:
